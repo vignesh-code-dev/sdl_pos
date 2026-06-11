@@ -11,20 +11,20 @@ import {
 } from "lucide-react";
 
 const Products = () => {
-  // LocalStorage-ல் இருந்து ஏற்கனவே இருக்கும் பொருட்களை எடுக்கிறோம்
+  // Retrieve existing products from localStorage
   const [products, setProducts] = useState(() => {
     const savedProducts = localStorage.getItem("billmate_products");
     return savedProducts ? JSON.parse(savedProducts) : [];
   });
 
-  // ஸ்டேட்டுகள்
+  // States
   const [viewMode, setViewMode] = useState("table");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [showModal, setShowModal] = useState(false);
   const [modalMode, setModalMode] = useState("add");
 
-  // ஃபார்ம் ஸ்டேட் (discount மற்றும் tax சேர்க்கப்பட்டுள்ளது)
+  // Form state (discount and tax included)
   const [formData, setFormData] = useState({
     name: "",
     sku: "",
@@ -33,17 +33,17 @@ const Products = () => {
     sellingPrice: "",
     margin: "0",
     discount: "0",
-    tax: "0", // ➡️ புதிய வரி (Tax %) ஃபீல்டு
+    tax: "0", // ➡️ New tax (Tax %) field
     unit: "pcs",
     image: "",
   });
 
-  // தயாரிப்புகள் மாறும்போதெல்லாம் அதை localStorage-ல் சேமிக்கிறோம்
+  // Save to localStorage whenever products change
   useEffect(() => {
     localStorage.setItem("billmate_products", JSON.stringify(products));
   }, [products]);
 
-  // Profit Margin (%) தானாகவே கணக்கிடும் லாஜிக்
+  // Profit Margin (%) auto-calculate logic
   useEffect(() => {
     const cost = parseFloat(formData.costPrice) || 0;
     const sell = parseFloat(formData.sellingPrice) || 0;
@@ -57,13 +57,13 @@ const Products = () => {
     }
   }, [formData.costPrice, formData.sellingPrice]);
 
-  // இன்புட் மாற்றங்களை நிர்வகிக்க
+  // Manage input changes
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // இமேஜ் அப்லோடு லாஜிக் (Base64)
+  // Image upload logic (Base64)
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -75,7 +75,7 @@ const Products = () => {
     }
   };
 
-  // புது பொருளை ஆட் செய்ய ஓபன் பண்ணும் ஃபங்க்ஷன்
+  // Function to open the add product modal
   const openAddModal = () => {
     setModalMode("add");
     setFormData({
@@ -86,14 +86,14 @@ const Products = () => {
       sellingPrice: "",
       margin: "0",
       discount: "0",
-      tax: "0", // ➡️ ரீசெட் செய்யும் போது 0% வரி
+      tax: "0", // ➡️ 0% tax on reset
       unit: "pcs",
       image: "",
     });
     setShowModal(true);
   };
 
-  // ஏற்கனவே இருக்கும் பொருளை எடிட் செய்ய ஓபன் பண்ணும் ஃபங்க்ஷன்
+  // Function to open edit product modal
   const openEditModal = (product) => {
     setModalMode("edit");
     setFormData({
@@ -107,18 +107,18 @@ const Products = () => {
         ? product.discount
         : 0
       ).toString(),
-      tax: (product.tax !== undefined ? product.tax : 0).toString(), // ➡️ எடிட் செய்யும்போது வரியை ஏற்றுகிறது
+      tax: (product.tax !== undefined ? product.tax : 0).toString(), // ➡️ Loads tax when editing
       unit: product.unit,
       image: product.image || "",
     });
     setShowModal(true);
   };
 
-  // ஃபார்ம் சப்மிட் செய்யும் போது இயங்கும் முதன்மை லாஜிக்
+  // Primary form submission logic
   const handleFormSubmit = (e) => {
     e.preventDefault();
     if (!formData.name || !formData.sku || !formData.sellingPrice) {
-      alert("தயவுசெய்து தேவையான அனைத்து விவரங்களையும் நிரப்பவும்!");
+      alert("Please fill in all the required details!");
       return;
     }
 
@@ -133,12 +133,12 @@ const Products = () => {
       sellingPrice: parseFloat(formData.sellingPrice) || 0,
       margin: parseFloat(formData.margin) || 0,
       discount: cleanDiscount,
-      tax: parseFloat(formData.tax) || 0, // ➡️ நம்பர் ஆக மாற்றி சேமிக்கப்படுகிறது
+      tax: parseFloat(formData.tax) || 0, // ➡️ Converted to number and saved
     };
 
     if (modalMode === "add") {
       if (products.some((p) => p.sku === formData.sku)) {
-        alert("இந்த SKU குறியீடு ஏற்கனவே பயன்படுத்தப்பட்டுள்ளது!");
+        alert("This SKU code is already in use!");
         return;
       }
       setProducts((prev) => [processedProduct, ...prev]);
@@ -151,14 +151,14 @@ const Products = () => {
     setShowModal(false);
   };
 
-  // தயாரிப்பை நீக்குதல்
+  // Delete product
   const handleDeleteProduct = (sku) => {
-    if (window.confirm("இந்த தயாரிப்பை இன்வென்டரியில் இருந்து நீக்கலாமா?")) {
+    if (window.confirm("Are you sure you want to delete this product from the inventory?")) {
       setProducts((prev) => prev.filter((p) => p.sku !== sku));
     }
   };
 
-  // பில்டரிங் மற்றும் தேடல்
+  // Filtering and search
   const filteredProducts = products.filter((p) => {
     const matchesSearch =
       p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -176,7 +176,7 @@ const Products = () => {
     "Stationery",
     "Vegetables",
   ];
-  const taxRates = [0, 5, 12, 18, 28]; // ➡️ பொதுவான GST வரி விகிதங்கள்
+  const taxRates = [0, 5, 12, 18, 28]; // ➡️ General GST tax rates
 
   return (
     <div className="p-5 flex flex-col h-[calc(100vh-70px)] bg-pos-bg overflow-hidden text-slate-900">
@@ -190,7 +190,7 @@ const Products = () => {
             />
             <input
               type="text"
-              placeholder="தயாரிப்பு பெயர் அல்லது SKU மூலம் தேடுக..."
+              placeholder="Search by product name or SKU..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full text-xs bg-pos-bg border border-pos-border rounded-xl pl-10 pr-4 py-3 focus:outline-none focus:border-brand-primary font-medium"
@@ -240,7 +240,7 @@ const Products = () => {
           <div className="bg-white border border-pos-border rounded-2xl p-20 text-center text-slate-400">
             <Tag size={40} className="mx-auto mb-2 text-slate-300" />
             <p className="font-bold text-sm">
-              சரக்கு பட்டியலில் எந்த பொருட்களும் இல்லை!
+              No products found in the database.
             </p>
           </div>
         ) : viewMode === "table" ? (
@@ -257,8 +257,8 @@ const Products = () => {
                   <th className="py-3 px-4 text-right">Selling (₹)</th>
                   <th className="py-3 px-4 text-center">Margin</th>
                   <th className="py-3 px-4 text-center">Disc</th>
-                  <th className="py-3 px-4 text-center">Tax (GST)</th>{" "}
-                  {/* ➡️ டேபிளில் வரி தலைப்பு */}
+                  <th className="py-3 px-4 text-center">Tax (GST)</th>
+                  {/* ➡️ Tax header in table */}
                   <th className="py-3 px-4 text-center">Unit</th>
                   <th className="py-3 px-5 text-center">Actions</th>
                 </tr>
@@ -312,7 +312,7 @@ const Products = () => {
                       </span>
                     </td>
                     <td className="py-2.5 px-4 text-center">
-                      {/* ➡️ டேபிளில் வரி விகிதத்தைக் காட்டுதல் */}
+                      {/* ➡️ Show tax rate in table */}
                       <span
                         className={`font-bold px-1.5 py-0.5 rounded font-mono text-[10px] ${p.tax > 0 ? "bg-blue-50 text-blue-600" : "bg-slate-100 text-slate-400"}`}
                       >
@@ -371,7 +371,7 @@ const Products = () => {
                           {p.discount}% OFF
                         </span>
                       )}
-                      {/* ➡️ கார்டில் வரி பேட்ஜ் */}
+                      {/* ➡️ Tax badge in card */}
                       {p.tax > 0 && (
                         <span className="bg-blue-600 text-white text-[9px] font-bold px-2 py-0.5 rounded-md">
                           GST {p.tax}%
@@ -436,7 +436,7 @@ const Products = () => {
                   required
                   value={formData.name}
                   onChange={handleInputChange}
-                  placeholder="ஆசிர்வாத் கோதுமை மாவு"
+                  placeholder="Aashirvaad Wheat Flour"
                   className="w-full bg-pos-bg border border-pos-border rounded-xl px-3 py-2.5 text-slate-900 font-semibold focus:outline-none focus:border-brand-primary"
                 />
               </div>
@@ -489,7 +489,7 @@ const Products = () => {
                 </select>
               </div>
 
-              {/* ➡️ 5-Column-க்கு இணையான Responsive Flex/Grid அமைப்பு (Cost, Sell, Disc, Tax, Margin) */}
+              {/* ➡️ Responsive Flex/Grid structure for 5-Column alignment (Cost, Sell, Disc, Tax, Margin) */}
               <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 bg-pos-bg/50 border border-pos-border p-3 rounded-xl items-center">
                 <div className="space-y-1">
                   <label className="block font-bold text-[9px] uppercase tracking-tighter">
@@ -533,7 +533,7 @@ const Products = () => {
                     className="w-full bg-white border border-pos-border text-rose-700 rounded-lg px-1.5 py-1.5 font-mono font-bold focus:outline-none"
                   />
                 </div>
-                {/* ➡️ புதிய வரி (Tax Dropdown) */}
+                {/* ➡️ New Tax Dropdown */}
                 <div className="space-y-1">
                   <label className="block font-bold text-[9px] uppercase tracking-tighter text-blue-600">
                     Tax (GST %)

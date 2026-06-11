@@ -6,11 +6,11 @@ const KPIBox = ({
   value,
   icon: Icon,
   trend,
-  trendType = "up", // 'up' (பச்சை) அல்லது 'down' (சிவப்பு) அல்லது 'neutral' (சாம்பல்)
+  trendType = "up", // 'up' (green) or 'down' (red) or 'neutral' (grey)
   description,
   color = "primary", // 'primary' | 'success' | 'warning' | 'danger'
 }) => {
-  // கலர் தீம்களை மேனேஜ் செய்ய குட்டி லாஜிக்
+  // Simple logic to manage color themes
   const colorMaps = {
     primary: {
       bg: "bg-brand-primary/10",
@@ -40,7 +40,7 @@ const KPIBox = ({
     <div
       className={`bg-pos-card border ${selectedColor.border} p-6 rounded-2xl shadow-xl transition-all duration-300 hover:-translate-y-1`}
     >
-      {/* டாப் லைன்: டைட்டில் மற்றும் ஐகான் */}
+      {/* Top Line: Title and Icon */}
       <div className="flex items-center justify-between mb-4">
         <span className="text-sm font-medium text-slate-400 tracking-wide uppercase">
           {title}
@@ -52,13 +52,13 @@ const KPIBox = ({
         </div>
       </div>
 
-      {/* மிடில் லைன்: மெயின் வேல்யூ (தொகை அல்லது எண்ணிக்கை) */}
+      {/* Middle Line: Main Value (Amount or Count) */}
       <div className="flex items-baseline gap-2.5 mb-2">
         <span className="text-3xl font-extrabold text-[#2E7D32] tracking-tight">
           {value}
         </span>
 
-        {/* டிரெண்ட் பர்சடேஜ் (Trend Percentage) */}
+        {/* Trend Percentage */}
         {trend && (
           <div
             className={`flex items-center gap-0.5 text-xs font-bold px-2 py-0.5 rounded-full
@@ -74,7 +74,7 @@ const KPIBox = ({
         )}
       </div>
 
-      {/* பாட்டம் லைன்: குட்டி விபரம் */}
+      {/* Bottom Line: Description */}
       {description && (
         <p className="text-xs text-slate-500 font-medium">{description}</p>
       )}
