@@ -108,19 +108,6 @@ const Navbar = () => {
           </div>
         </div>
 
-        {/* டார்க் மோட் டாகுல் பட்டன் */}
-        <button
-          onClick={() => setIsDarkMode(!isDarkMode)}
-          className="p-2 rounded-full bg-pos-bg hover:bg-slate-800 text-slate-400 hover:text-white transition-colors border border-pos-border cursor-pointer"
-          title={isDarkMode ? "Light Mode" : "Dark Mode"}
-        >
-          {isDarkMode ? (
-            <Sun size={16} className="text-amber-400" />
-          ) : (
-            <Moon size={16} />
-          )}
-        </button>
-
         {/* 3. Premium User Dropdown Menu */}
         <div className="relative" ref={dropdownRef}>
           <button
