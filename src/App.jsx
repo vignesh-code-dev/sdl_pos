@@ -12,6 +12,7 @@ import StoreOverview from "./pages/Dashboard/StoreOverview"; // டாஷ்ப�
 import Analytics from "./pages/Dashboard/Analytics"; // டாஷ்போர்டு அனலிடிக்ஸ் பக்கம்
 import POSBilling from "./pages/Sales/POSBilling"; // POS பில்லிங் பக்கம்
 import Invoices from "./pages/Sales/Invoices";
+import DepositAccounts from "./pages/Sales/DepositAccounts";
 import Products from "./pages/Inventory/Products"; // பொருட்கள் மேலாண்மை பக்கம்
 import UserManagement from "./pages/People/UserManagement"; // பயனர் மேலாண்மை பக்கம்
 
@@ -52,9 +53,9 @@ function App() {
           <Route path="/pos" element={<POSBilling />} />
           <Route path="/invoices" element={<Invoices />} />
 
-          <Route
+           <Route
             path="/deposits"
-            element={<PlaceholderPage title="Customer Deposit Accounts" />}
+            element={<DepositAccounts />}
           />
           <Route
             path="/expenses"

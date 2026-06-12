@@ -28,18 +28,18 @@ export default function EditInvoiceModal({
     <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-[100] p-4 no-print animate-in fade-in duration-150">
       <form
         onSubmit={handleSubmit}
-        className="bg-white rounded-3xl shadow-2xl max-w-md w-full flex flex-col overflow-hidden animate-in zoom-in-95 duration-200"
+        className="bg-white rounded shadow-2xl max-w-md w-full flex flex-col overflow-hidden animate-in zoom-in-95 duration-200"
       >
         {/* Header */}
         <div className="bg-slate-50 border-b border-gray-200 px-5 py-4 flex justify-between items-center">
           <div className="flex items-center gap-2 text-emerald-500">
             <Edit2 size={16} />
-            <span className="font-extrabold text-xs uppercase tracking-wider text-gray-800">Edit Order Metadata</span>
+            <span className="font-extrabold text-xs uppercase tracking-wider text-gray-800">Edit Invoice Details</span>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="p-1 rounded-full text-slate-400 hover:text-slate-650 cursor-pointer"
+            className="p-1 rounded text-slate-400 hover:text-slate-650 cursor-pointer"
           >
             <X size={18} />
           </button>
@@ -47,14 +47,14 @@ export default function EditInvoiceModal({
 
         {/* Inputs */}
         <div className="p-5 space-y-4">
-          <div className="p-3 bg-slate-50 border border-gray-200 rounded-xl font-mono text-[11px] text-slate-500 space-y-1">
+          <div className="p-3 bg-slate-50 border border-gray-200 rounded font-mono text-[11px] text-slate-800 space-y-1">
             <div className="flex justify-between">
               <span>Invoice Hash Key:</span>
-              <span className="font-bold text-slate-800">{editedInvoice.id}</span>
+              <span className="font-bold text-slate-900">{editedInvoice.id}</span>
             </div>
             <div className="flex justify-between">
               <span>Grand Total Sale (₹):</span>
-              <span className="font-bold text-slate-800">₹{editedInvoice.grandTotal.toFixed(2)}</span>
+              <span className="font-bold text-slate-900">₹{editedInvoice.grandTotal.toFixed(2)}</span>
             </div>
           </div>
 
@@ -66,7 +66,7 @@ export default function EditInvoiceModal({
               required
               value={editedInvoice.customerName}
               onChange={(e) => setEditedInvoice({ ...editedInvoice, customerName: e.target.value })}
-              className="w-full text-xs font-bold text-slate-800 bg-slate-50 border border-gray-200 rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-emerald-500"
+              className="w-full text-xs font-bold text-slate-800 bg-slate-50 border border-gray-200 rounded px-3.5 py-2.5 focus:outline-none focus:border-emerald-500"
             />
           </div>
 
@@ -78,7 +78,7 @@ export default function EditInvoiceModal({
               required
               value={editedInvoice.customerMobile}
               onChange={(e) => setEditedInvoice({ ...editedInvoice, customerMobile: e.target.value })}
-              className="w-full text-xs font-bold text-slate-800 bg-slate-50 border border-gray-200 rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-emerald-500"
+              className="w-full text-xs font-bold text-slate-800 bg-slate-50 border border-gray-200 rounded px-3.5 py-2.5 focus:outline-none focus:border-emerald-500"
             />
           </div>
 
@@ -88,7 +88,7 @@ export default function EditInvoiceModal({
             <select
               value={editedInvoice.paymentMethod || "CASH"}
               onChange={(e) => setEditedInvoice({ ...editedInvoice, paymentMethod: e.target.value })}
-              className="w-full text-xs font-bold text-slate-800 bg-slate-50 border border-gray-200 rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-emerald-500 cursor-pointer"
+              className="w-full text-xs font-bold text-slate-800 bg-slate-50 border border-gray-200 rounded px-3.5 py-2.5 focus:outline-none focus:border-emerald-500 cursor-pointer"
             >
               <option value="CASH">Cash Payment</option>
               <option value="CARD">Card Swipe</option>
@@ -107,7 +107,7 @@ export default function EditInvoiceModal({
               required
               value={editedInvoice.paidAmount}
               onChange={(e) => setEditedInvoice({ ...editedInvoice, paidAmount: parseFloat(e.target.value) || 0 })}
-              className="w-full text-xs font-bold text-slate-800 bg-slate-50 border border-gray-200 rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-emerald-500 font-mono"
+              className="w-full text-xs font-bold text-slate-800 bg-slate-50 border border-gray-200 rounded px-3.5 py-2.5 focus:outline-none focus:border-emerald-500 font-mono"
             />
           </div>
 
@@ -117,7 +117,7 @@ export default function EditInvoiceModal({
             <select
               value={editedInvoice.status || "Active"}
               onChange={(e) => setEditedInvoice({ ...editedInvoice, status: e.target.value })}
-              className="w-full text-xs font-bold text-slate-800 bg-slate-50 border border-gray-200 rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-emerald-500 cursor-pointer"
+              className="w-full text-xs font-bold text-slate-800 bg-slate-50 border border-gray-200 rounded px-3.5 py-2.5 focus:outline-none focus:border-emerald-500 cursor-pointer"
             >
               <option value="Active">Active / Approved</option>
               <option value="Cancelled">Cancelled / Voided Order</option>
@@ -129,7 +129,7 @@ export default function EditInvoiceModal({
         <div className="bg-slate-50 border-t border-gray-200 p-4 flex gap-3 font-sans">
           <button
             type="submit"
-            className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white py-3 text-xs font-black rounded-xl cursor-pointer flex items-center justify-center gap-1.5 transition-colors border-0"
+            className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white py-3 text-xs font-black rounded cursor-pointer flex items-center justify-center gap-1.5 transition-colors border-0"
           >
             <Save size={14} />
             <span>Save Registry Changes</span>
@@ -137,7 +137,7 @@ export default function EditInvoiceModal({
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-700 py-3 text-xs font-bold rounded-xl cursor-pointer border-0"
+            className="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-700 py-3 text-xs font-bold rounded cursor-pointer border-0"
           >
             Cancel
           </button>

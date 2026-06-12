@@ -1,6 +1,8 @@
 import React from 'react';
-import { Receipt, X, Printer, Download, RotateCcw } from 'lucide-react';
-import { calculateLineTotal, downloadInvoiceHTML } from '../utils/invoiceDownload';
+import { Receipt, X, Printer, RotateCcw, Download } from 'lucide-react';
+import { calculateLineTotal } from '../utils/invoiceCalculations';
+import { downloadInvoiceHTML } from '../utils/invoiceDownload';
+import { printInvoice } from '../utils/invoicePrinter';
 
 export default function InvoiceModal({
   isOpen,
@@ -9,12 +11,22 @@ export default function InvoiceModal({
   title = "Sale Invoice Details",
   closeActionText = "Close View",
   onCloseAction,
-  showToast
+  showToast,
+  showDownload = false
 }) {
   if (!isOpen || !invoice) return null;
 
+  const hasMixedUnits = (() => {
+    if (!invoice || !invoice.items || invoice.items.length === 0) return false;
+    const firstUnit = (invoice.items[0].unit || "pcs").toLowerCase().trim();
+    return invoice.items.some(item => {
+      const u = (item.unit || "pcs").toLowerCase().trim();
+      return u !== firstUnit;
+    });
+  })();
+
   const handlePrint = () => {
-    window.print();
+    printInvoice(invoice);
   };
 
   const handleDownload = () => {
@@ -91,12 +103,12 @@ export default function InvoiceModal({
                 {invoice.items && invoice.items.map((line, idx) => {
                   const finalLineAmt = calculateLineTotal(line);
                   return (
-                    <tr key={line.sku} className="border-b border-gray-100 text-gray-800 hover:bg-slate-50/40 transition-colors">
+                    <tr key={`${line.sku}-${idx}`}   className="border-b border-gray-100 text-gray-800 hover:bg-slate-50/40 transition-colors">
                       <td className="py-3 text-center text-xs text-gray-450 font-semibold font-mono" style={{ width: "45px" }}>{idx + 1}</td>
                       <td className="py-3 text-left">
-                        <div className="text-[13px] font-semibold text-gray-800 leading-tight">{line.name}</div>
-                        <div className="text-[11px] text-gray-500 mt-1 font-mono uppercase tracking-wider">{line.sku}</div>
-                        {line.discount > 0 && <span className="text-[9px] mt-1 inline-block bg-red-50 text-red-500 px-1.5 py-0.5 rounded font-medium">-{line.discount}%Disc</span>}
+                        <div className="text-[14px] font-semibold text-gray-800 leading-tight">{line.name}</div>
+                        <div className="text-[12px] text-gray-500 mt-1 font-mono uppercase tracking-wider">{line.sku}</div>
+                        {line.discount > 0 && <span className="text-[10px] mt-1 inline-block bg-red-50 text-red-500 px-1.5 py-0.5 rounded font-medium">{line.discount}% Discount</span>}
                       </td>
                       <td className="text-center text-[14px] font-semibold text-gray-800" style={{ width: "50px" }}>{line.quantity}</td>
                       <td className="text-center text-[14px] text-gray-600" style={{ width: "50px" }}>{line.unit || "pcs"}</td>
@@ -135,12 +147,14 @@ export default function InvoiceModal({
                 <span>
                   Total Items: <span className="text-gray-800">{invoice.items ? invoice.items.length : 0}</span>
                 </span>
-                <span>
-                  Total Quantity:{" "}
-                  <span className="text-gray-800">
-                    {invoice.items ? invoice.items.reduce((sum, item) => sum + item.quantity, 0) : 0}
+                {!hasMixedUnits && (
+                  <span>
+                    Total Quantity:{" "}
+                    <span className="text-gray-800">
+                      {Number((invoice.items ? invoice.items.reduce((sum, item) => sum + parseFloat(item.quantity || 0), 0) : 0).toFixed(3))}
+                    </span>
                   </span>
-                </span>
+                )}
               </div>
               <div className="flex justify-between text-[10px] text-gray-500">
                 <span>Subtotal:</span>
@@ -172,6 +186,12 @@ export default function InvoiceModal({
                 <span className="text-[11px] font-bold text-gray-800">₹{invoice.grandTotal.toFixed(2)}</span>
               </div>
               
+              <div className="flex justify-between">
+                <span className="text-[10px] text-gray-500">Amount Tendered Paid:</span>
+                <span className="text-[11px] font-extrabold text-emerald-700">
+                  ₹{parseFloat(invoice.paidAmount !== undefined ? invoice.paidAmount : invoice.grandTotal).toFixed(2)}
+                </span>
+              </div>
 
               <div className="flex justify-between">
                 <span className="text-[10px] text-gray-500">Outstanding Balance:</span>
@@ -181,8 +201,8 @@ export default function InvoiceModal({
               </div>
 
               <div className="flex justify-between border-t border-gray-200 pt-2 mt-1">
-                <span className="text-[12px] font-bold text-gray-700 uppercase">Grand Total Paid</span>
-                <span className="text-s font-bold text-emerald-600">
+                <span className="text-[10px] font-bold text-gray-700 uppercase">Grand Total Paid</span>
+                <span className="text-sm font-bold text-emerald-600">
                   ₹{parseFloat(invoice.paidAmount !== undefined ? invoice.paidAmount : invoice.grandTotal).toFixed(2)}
                 </span>
               </div>
@@ -201,12 +221,17 @@ export default function InvoiceModal({
         {/* Modal Actions Footer */}
         <div className="bg-gray-50 border-t border-gray-200 px-5 py-3 flex gap-2.5 flex-shrink-0 no-print flex-col sm:flex-row">
           <button type="button" onClick={handlePrint}
-            className="flex-1 h-11 bg-emerald-500 hover:bg-slate-950 text-white rounded text-xs font-semibold flex items-center justify-center gap-2 cursor-pointer border-0 transition-colors">
+            className="flex-1 h-11 bg-slate-800 hover:bg-slate-950 text-white rounded-lg text-xs font-semibold flex items-center justify-center gap-2 cursor-pointer border-0 transition-colors">
             <Printer size={14} /> Print Receipt
           </button>
-          
+          {showDownload && (
+            <button type="button" onClick={handleDownload}
+              className="flex-1 h-11 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold flex items-center justify-center gap-2 cursor-pointer border-0 transition-colors">
+              <Download size={14} /> Download Invoice
+            </button>
+          )}
           <button type="button" onClick={handleFinalClose}
-            className="flex-1 h-11 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded text-xs font-semibold cursor-pointer border-0 transition-colors">
+            className="flex-1 h-11 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-xs font-semibold cursor-pointer border-0 transition-colors">
             {closeActionText}
           </button>
         </div>

@@ -67,17 +67,17 @@ export default function ReturnInvoiceModal({
 
   return (
     <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-[100] p-4 no-print animate-in fade-in duration-150 font-sans">
-      <div className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+      <div className="bg-white rounded shadow-2xl max-w-2xl w-full flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
         {/* Header */}
         <div className="bg-slate-50 border-b border-gray-200 px-5 py-4 flex justify-between items-center">
           <div className="flex items-center gap-2 text-rose-600">
-            <RotateCcw size={16} />
-            <span className="font-extrabold text-xs uppercase tracking-wider">Execute Product Returns & Refund Credits</span>
+            
+            <span className="font-bold text-xs uppercase tracking-wider">Execute Product Returns & Refund Credits</span>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="p-1 rounded-full text-slate-400 hover:text-slate-650 cursor-pointer border-0 bg-transparent"
+            className="p-1 rounded text-rose-500 hover:text-slate-650 cursor-pointer border-0 bg-transparent"
           >
             <X size={18} />
           </button>
@@ -85,21 +85,21 @@ export default function ReturnInvoiceModal({
 
         {/* Content Body */}
         <div className="p-5 space-y-4 overflow-y-auto" style={{ maxHeight: "calc(100vh - 200px)" }}>
-          <div className="grid grid-cols-2 gap-3 bg-slate-50 border border-gray-200 p-3 rounded-xl font-mono text-[10px] text-slate-500">
+          <div className="grid grid-cols-2 gap-3 bg-slate-50 border border-gray-200 p-3 rounded font-mono text-[10px] text-slate-500">
             <div>
-              <span className="block font-sans uppercase font-bold text-slate-400 text-[9px]">Receipt ID:</span>
-              <span className="font-bold text-slate-800 text-xs">{invoice.id}</span>
+              <span className="block  uppercase font-bold text-slate-700 text-[11px]">Receipt ID: </span>
+              <span className="font-bold text-slate-800 text-[12px]">{invoice.id}</span>
             </div>
             <div>
-              <span className="block font-sans uppercase font-bold text-slate-400 text-[9px]">Customer:</span>
-              <span className="font-bold text-slate-800 text-xs capitalize">{invoice.customerName || "Walk-in"}</span>
+              <span className="block uppercase font-bold text-slate-700 text-[11px]">Customer:</span>
+              <span className="font-bold text-slate-800 text-[12px] capitalize">{invoice.customerName || "Walk-in"}</span>
             </div>
           </div>
 
           <div className="space-y-2">
-            <span className="text-[11px] font-bold uppercase text-slate-400 block tracking-wider">Select Line Items quantity to return</span>
+            <span className="text-[11px] font-bold uppercase text-slate-800 block tracking-wider">Select Line Items quantity to return</span>
 
-            <div className="border border-gray-200 rounded-xl overflow-hidden divide-y divide-gray-100 bg-white shadow-xs">
+            <div className="border border-gray-200 rounded overflow-hidden divide-y divide-gray-100 bg-white shadow-xs">
               {returnLines.map((line) => {
                 const lineRefundValue = (line.rate * line.quantityToReturn) - ((line.rate * line.quantityToReturn) * (line.discount / 100));
                 const taxComponent = lineRefundValue * (line.tax / 100);
@@ -123,7 +123,7 @@ export default function ReturnInvoiceModal({
 
                     {/* Quantity Counter for returns */}
                     <div className="flex items-center gap-4 self-end sm:self-auto shrink-0">
-                      <div className="flex items-center gap-1.5 bg-slate-50 border border-gray-200 rounded-xl p-1">
+                      <div className="flex items-center gap-1.5 bg-slate-50 border border-gray-200 rounded p-1">
                         <button
                           type="button"
                           onClick={() => updateLineQty(line.sku, -1)}

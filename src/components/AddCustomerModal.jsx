@@ -54,10 +54,10 @@ export default function AddCustomerModal({
   };
 
   return (
-    <div className="no-print fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-[120] p-4 animate-in fade-in duration-150">
-      <div className="bg-white rounded shadow-xl w-full max-w-sm border border-slate-100 overflow-hidden text-slate-800 font-sans">
+    <div className="no-print fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-[120] p-5 animate-in fade-in duration-150">
+      <div className="bg-white rounded shadow-xl w-full max-w-sm py-3 border border-slate-100 overflow-hidden text-slate-800 font-sans">
         {/* Modal Header */}
-        <div className="bg-slate-50 border-b border-gray-100 px-5 py-4 flex items-center justify-between">
+        <div className="bg-slate-50 border-b border-gray-100 px-5 py-5 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 bg-emerald-50 text-emerald-600 rounded flex items-center justify-center">
               <UserPlus size={16} />
@@ -66,7 +66,7 @@ export default function AddCustomerModal({
               <h3 className="font-extrabold text-sm text-slate-900">
                 Register New Customer
               </h3>
-              <p className="text-[10px] text-slate-400 font-semibold tracking-normal">Directly save customer record</p>
+              <p className="text-[11px] text-slate-500 font-semibold tracking-normal">Directly save customer record</p>
             </div>
           </div>
           <button

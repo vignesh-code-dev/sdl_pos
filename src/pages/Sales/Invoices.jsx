@@ -25,7 +25,6 @@ import {
   ShoppingBag
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
-import { downloadInvoiceHTML } from "../../utils/invoiceDownload";
 import InvoiceModal from "../../components/InvoiceModal";
 import EditInvoiceModal from "../../components/EditInvoiceModal";
 import ReturnInvoiceModal from "../../components/ReturnInvoiceModal";
@@ -268,7 +267,7 @@ const Invoices = () => {
 
     filteredInvoices.forEach((inv) => {
       const returnsRefund = inv.returns ? inv.returns.reduce((sum, r) => sum + r.refundAmount, 0) : 0;
-      const countItems = inv.items ? inv.items.reduce((sum, i) => sum + i.quantity, 0) : 0;
+      const countItems = inv.items ? inv.items.reduce((sum, i) => sum + parseFloat(i.quantity || 0), 0) : 0;
       
       const lineStr = `"${inv.id}","${inv.date}","${inv.customerName.replace(/"/g, '""')}","${inv.customerMobile}","${countItems}","${returnsRefund}","${inv.grandTotal.toFixed(2)}","${parseFloat(inv.paidAmount || 0).toFixed(2)}","${parseFloat(inv.balance || 0).toFixed(2)}","${inv.paymentMethod}","${inv.status}","${inv.operator}"\n`;
       csvContent += lineStr;
@@ -623,15 +622,15 @@ const Invoices = () => {
                   </td>
                 </tr>
               ) : (
-                filteredInvoices.map((inv) => {
-                  const lineItemsCount = inv.items ? inv.items.reduce((sum, item) => sum + item.quantity, 0) : 0;
+                filteredInvoices.map((inv, idx) => {
+                  const lineItemsCount = inv.items ? inv.items.reduce((sum, item) => sum + parseFloat(item.quantity || 0), 0) : 0;
                   const totalRefunds = inv.returns ? inv.returns.reduce((sum, ret) => sum + ret.refundAmount, 0) : 0;
                   const paidVal = inv.paidAmount !== undefined ? inv.paidAmount : inv.grandTotal;
                   const balanceVal = inv.balance !== undefined ? inv.balance : Math.max(0, inv.grandTotal - paidVal);
                   
                   return (
                     <tr
-                      key={inv.id}
+                      key={`${inv.id}-${idx}`}
                       className={`hover:bg-slate-50/50 transition-colors ${
                         inv.status === "Cancelled" ? "bg-slate-50/40 opacity-75" : ""
                       }`}
@@ -656,7 +655,7 @@ const Invoices = () => {
 
                       {/* Items quantity */}
                       <td className="py-3.5 px-3 text-center font-bold text-slate-600 font-mono">
-                        {lineItemsCount}
+                        {Number(lineItemsCount.toFixed(3))}
                       </td>
 
                       {/* Returns Refund status */}
@@ -794,6 +793,7 @@ const Invoices = () => {
         title="Sale Invoice Details"
         closeActionText="Close View"
         showToast={showToast}
+        showDownload={true}
       />
 
       <EditInvoiceModal
