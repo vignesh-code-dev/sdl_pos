@@ -14,7 +14,11 @@ import POSBilling from "./pages/Sales/POSBilling"; // POS பில்லிங�
 import Invoices from "./pages/Sales/Invoices";
 import DepositAccounts from "./pages/Sales/DepositAccounts";
 import Products from "./pages/Inventory/Products"; // பொருட்கள் மேலாண்மை பக்கம்
-import UserManagement from "./pages/People/UserManagement"; // பயனர் மேலாண்மை பக்கம்
+import UserManagement from "./pages/people/UserManagement"; // பயனர் மேலாண்மை பக்கம்
+import StockCount from "./pages/Inventory/StockCount";
+import StockEntry from "./pages/Inventory/StockEntry";
+import StockHistory from "./pages/Inventory/StockHistory";
+import StockAlerts from "./pages/Inventory/StockAlerts";
 
 // தற்காலிக பேஜ் காம்போனன்ட்
 const PlaceholderPage = ({ title }) => (
@@ -68,22 +72,13 @@ function App() {
 
           {/* Inventory Group */}
           <Route path="/products" element={<Products />} />
-          <Route
-            path="/stock-count"
-            element={<PlaceholderPage title="Real-Time Stock Count Viewer" />}
-          />
-          <Route
-            path="/stock-entry"
-            element={<PlaceholderPage title="New Stock Entry (Restocking)" />}
-          />
-          <Route
-            path="/stock-history"
-            element={<PlaceholderPage title="Stock Movement Audit History" />}
-          />
+          <Route path="/stock-count" element={<StockCount />} />
+          <Route path="/stock-entry" element={<StockEntry />} />
+          <Route path="/stock-history" element={<StockHistory />} />
           <Route
             path="/stock-alerts"
             element={
-              <PlaceholderPage title="Low Stock & Out of Stock Alerts" />
+              <StockAlerts />
             }
           />
 

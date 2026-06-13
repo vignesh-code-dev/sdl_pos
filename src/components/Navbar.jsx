@@ -1,7 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
 import {
-  Sun,
-  Moon,
   Wifi,
   WifiOff,
   Clock,
@@ -16,7 +14,6 @@ const Navbar = () => {
   // ➡️ Get required details from global context
   const { userRole, shopInfo, logout } = useAuth();
 
-  const [isDarkMode, setIsDarkMode] = useState(true);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -100,8 +97,10 @@ const Navbar = () => {
       <div className="flex items-center gap-4">
         <div className="flex items-center gap-3 text-xs font-bold border-r border-pos-border pr-4 hidden md:flex">
           <div className="flex items-center gap-1.5 text-slate-400">
-            <Calendar size={14} className="text-text-muted" />
-            <span className="text-text-muted ">{formatDate(currentTime)}</span>
+            <Calendar size={14} className="text-text-secondary" />
+            <span className="text-text-secondary">
+              {formatDate(currentTime)}
+            </span>
           </div>
           <div className="flex items-center gap-1.5 text-brand-primary font-mono bg-emerald-500/5 px-2 py-1 rounded-full border border-brand-primary/10">
             <Clock size={14} />
@@ -109,32 +108,19 @@ const Navbar = () => {
           </div>
         </div>
 
-        {/* Dark Mode toggle button */}
-        <button
-          onClick={() => setIsDarkMode(!isDarkMode)}
-          className="p-2 rounded-full bg-pos-bg hover:bg-slate-800 text-slate-400 hover:text-white transition-colors border border-pos-border cursor-pointer"
-          title={isDarkMode ? "Light Mode" : "Dark Mode"}
-        >
-          {isDarkMode ? (
-            <Sun size={16} className="text-amber-400" />
-          ) : (
-            <Moon size={16} />
-          )}
-        </button>
-
         {/* 3. Premium User Dropdown Menu */}
         <div className="relative" ref={dropdownRef}>
           <button
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-            className="flex items-center gap-2.5 bg-pos-bg hover:bg-slate-800 border border-pos-border pl-1.5 pr-3 py-1.5 rounded-xl transition-all cursor-pointer text-left"
+            className="flex items-center cursor-pointer gap-2 text-left"
           >
-            {/* User initial letter logo */}
+            {/* யூசர் முதல் எழுத்து லோகோ */}
             <div className="w-7 h-7 rounded-lg bg-brand-primary/10 text-brand-primary border border-brand-primary/20 flex items-center justify-center font-black text-xs uppercase">
               {shopInfo?.username[0] || "U"}
             </div>
 
             <div className="hidden sm:block">
-              {/* Original login user name */}
+              {/* ஒரிஜினல் லாகின் யூசர் பெயர் */}
               <span className="text-xs font-black text-slate-200 leading-none block capitalize">
                 {shopInfo?.username || "Operator"}
               </span>
