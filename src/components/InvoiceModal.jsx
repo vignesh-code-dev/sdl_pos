@@ -82,7 +82,7 @@ export default function InvoiceModal({
               <div className="text-[10px] text-gray-500 flex justify-between">
                 <span>Cashier: <span className="text-gray-850 font-semibold">{invoice.operator || "Admin"}</span></span>
                 {invoice.status && (
-                  <span>Status: <span className={`font-bold uppercase ${invoice.status === "Cancelled" ? "text-red-650" : "text-emerald-700"}`}>{invoice.status}</span></span>
+                  <span>Bill Status: <span className={`font-bold uppercase ${invoice.status === "Cancelled" ? "text-red-650" : "text-emerald-700"}`}>{invoice.status}</span></span>
                 )}
               </div>
             </div>
@@ -106,14 +106,14 @@ export default function InvoiceModal({
                     <tr key={`${line.sku}-${idx}`}   className="border-b border-gray-100 text-gray-800 hover:bg-slate-50/40 transition-colors">
                       <td className="py-3 text-center text-xs text-gray-450 font-semibold font-mono" style={{ width: "45px" }}>{idx + 1}</td>
                       <td className="py-3 text-left">
-                        <div className="text-[14px] font-semibold text-gray-800 leading-tight">{line.name}</div>
-                        <div className="text-[12px] text-gray-500 mt-1 font-mono uppercase tracking-wider">{line.sku}</div>
-                        {line.discount > 0 && <span className="text-[10px] mt-1 inline-block bg-red-50 text-red-500 px-1.5 py-0.5 rounded font-medium">{line.discount}% Discount</span>}
+                        <div className="text-[12px] font-semibold text-gray-800 leading-tight">{line.name}</div>
+                        <div className="text-[9px] text-gray-500 mt-1 font-mono uppercase tracking-wider">{line.sku}</div>
+                        {line.discount > 0 && <span className="text-[9px] mt-1 inline-block bg-red-50 text-red-500 px-1.5 py-0.5 rounded font-medium">{line.discount}% Discount</span>}
                       </td>
-                      <td className="text-center text-[14px] font-semibold text-gray-800" style={{ width: "50px" }}>{line.quantity}</td>
-                      <td className="text-center text-[14px] text-gray-600" style={{ width: "50px" }}>{line.unit || "pcs"}</td>
-                      <td className="text-right text-[14px] font-medium text-gray-700" style={{ width: "65px" }}>₹{line.rate.toFixed(1)}</td>
-                      <td className="text-right text-[14px] font-bold text-gray-900" style={{ width: "75px" }}>₹{finalLineAmt.toFixed(1)}</td>
+                      <td className="text-center text-[12px]  text-gray-600" style={{ width: "50px" }}>{line.quantity}</td>
+                      <td className="text-center text-[12px] text-gray-600" style={{ width: "50px" }}>{line.unit || "pcs"}</td>
+                      <td className="text-right text-[12px] font-medium text-gray-700" style={{ width: "65px" }}>₹{line.rate.toFixed(1)}</td>
+                      <td className="text-right text-[12px] font-bold text-gray-900" style={{ width: "75px" }}>₹{finalLineAmt.toFixed(1)}</td>
                     </tr>
                   );
                 })}

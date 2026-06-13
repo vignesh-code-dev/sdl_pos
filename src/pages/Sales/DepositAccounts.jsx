@@ -360,7 +360,7 @@ const DepositAccounts = () => {
         <div className="bg-white rounded-xl p-4.5 border border-slate-100 shadow-3xs flex items-center justify-between">
           <div>
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Active Accounts</span>
-            <span className="text-2xl font-black text-blue-600 mt-block">{activeAccountsCount}</span>
+            <span className="text-2xl font-black text-blue-600 mt-1 block">{activeAccountsCount}</span>
             <span className="text-[10px] text-slate-400 mt-1 block font-medium">Customers with unpaid balances</span>
           </div>
           <div className="h-12 w-12 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
@@ -391,7 +391,7 @@ const DepositAccounts = () => {
           {/* Filtering */}
           <div className="flex items-center gap-2">
             <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider shrink-0">Balance State:</span>
-            <div className="flex bg-slate-100 p-0.5.5 rounded-lg border border-slate-200">
+            <div className="flex bg-slate-100 p-0.5 rounded-lg border border-slate-200">
               <button
                 type="button"
                 onClick={() => setStatusFilter("All")}
@@ -425,12 +425,12 @@ const DepositAccounts = () => {
         <div className="overflow-x-auto min-h-[300px]">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-slate-50 border-b border-slate-100 text-[10px] font-bold text-slate-450 uppercase tracking-widest">
+              <tr className="bg-slate-50 border-b border-slate-100 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
                 <th className="px-6 py-4">Customer Name & Info</th>
                 <th className="px-6 py-4 text-right">Credit Limit</th>
                 <th className="px-6 py-4 text-right">Credit Extended (Dr)</th>
                 <th className="px-6 py-4 text-right">Payments Made (Cr)</th>
-                <th className="px-6 py-4 text-right">Outstanding (Due)</th>
+                <th className="px-6 py-4 text-right font-black">Outstanding (Due)</th>
                 <th className="px-6 py-4">Account Standing</th>
                 <th className="px-6 py-4 text-center">Actions</th>
               </tr>
@@ -496,7 +496,7 @@ const DepositAccounts = () => {
                           <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
                             <div 
                               className={`h-full rounded-full transition-all duration-300
-                                ${usedPercentage > 85 ? "bg-rose-505 bg-rose-500" : usedPercentage > 50 ? "bg-amber-500" : "bg-emerald-500"}`}
+                                ${usedPercentage > 85 ? "bg-rose-500" : usedPercentage > 50 ? "bg-amber-500" : "bg-emerald-500"}`}
                               style={{ width: `${usedPercentage}%` }}
                             />
                           </div>
@@ -563,7 +563,7 @@ const DepositAccounts = () => {
       {showPaymentModal && selectedAccount && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
           <div className="bg-white rounded-xl shadow-lg border border-slate-100 w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-150">
-            <div className="bg-slate-50 border-b border-slack border-slate-100 p-4.5 px-5 flex items-center justify-between">
+            <div className="bg-slate-50 border-b border-slate-100 p-4.5 px-5 flex items-center justify-between">
               <div>
                 <h3 className="text-sm font-black text-slate-800 uppercase tracking-wider">Collect Credit Payment</h3>
                 <p className="text-[11px] text-slate-400 mt-0.5 font-bold">RECEIVE SETTLEMENT FOR {selectedAccount.customerName.toUpperCase()}</p>

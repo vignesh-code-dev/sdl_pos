@@ -385,9 +385,56 @@
         customerName: customerRefName, customerMobile: customerMobile || "Walk-In",
         items: cart.map(item => ({ ...item, quantity: parseFloat(item.quantity) || 0 })),
         subtotal, totalLineDiscount, totalTax, globalDiscount, grandTotal,
-        paidAmount: grandTotal, balance: 0, status: "Active", returns: [],
+        paidAmount: paymentMethod === "CREDIT" ? 0 : grandTotal,
+        balance: paymentMethod === "CREDIT" ? grandTotal : 0,
+        status: "Active", returns: [],
         operator: "admin", paymentMethod
       };
+
+      if (paymentMethod === "CREDIT") {
+        try {
+          const rawAccounts = localStorage.getItem("billmate_deposit_accounts");
+          let accountsList = rawAccounts ? JSON.parse(rawAccounts) : [];
+          const identifier = customerMobile || "Walk-In";
+          let targetIndex = accountsList.findIndex(
+            acc => acc.customerMobile === identifier || 
+            (receiptObj.customerMobile && acc.customerMobile === receiptObj.customerMobile)
+          );
+          
+          const txObj = {
+            id: `TX-${Math.floor(10000 + Math.random() * 90000)}`,
+            date: formattedDate,
+            type: "CREDIT",
+            amount: grandTotal,
+            description: `POS purchase on Credit (${receiptObj.id})`
+          };
+
+          if (targetIndex !== -1) {
+            const acc = accountsList[targetIndex];
+            acc.creditGiven = (acc.creditGiven || 0) + grandTotal;
+            acc.outstanding = (acc.outstanding || 0) + grandTotal;
+            acc.transactions = [txObj, ...(acc.transactions || [])];
+            accountsList[targetIndex] = acc;
+          } else {
+            // Create a default account if not found
+            const newAcc = {
+              customerId: `C-${Date.now()}`,
+              customerName: customerRefName || "Walk-In Client",
+              customerMobile: identifier,
+              creditLimit: 20000,
+              creditGiven: grandTotal,
+              paymentsReceived: 0,
+              outstanding: grandTotal,
+              transactions: [txObj]
+            };
+            accountsList.push(newAcc);
+          }
+          localStorage.setItem("billmate_deposit_accounts", JSON.stringify(accountsList));
+        } catch (e) {
+          console.error("Failed to sync credit account transaction", e);
+        }
+      }
+
       try {
         const invoices = JSON.parse(localStorage.getItem("billmate_invoices") || "[]");
         const updatedInvoices = [receiptObj, ...invoices].slice(0, 50);
@@ -427,10 +474,11 @@
       { value: "CARD", label: "Card", icon: <CreditCard size={16} /> },
       { value: "UPI", label: "UPI", icon: <Smartphone size={16} /> },
       { value: "BANK", label: "Bank Transfer", icon: <Building2 size={16} /> },
+       { value: "CREDIT", label: "Credit", icon: <Receipt size={16} /> },
     ];
 
     return (
-      <div className="flex flex-col h-screen bg-gray-50 overflow-hidden">
+      <div className="flex flex-col h-full bg-gray-50 overflow-hidden">
         <style>{`
           @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
           * { box-sizing: border-box; }
@@ -456,8 +504,8 @@
             {/* Search Bar */}
             <form onSubmit={handleProductSearchSubmit} className="relative flex gap-2">
               <div className="relative flex-1">
-                <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400">
-                  <Search size={16} />
+                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                  <Search size={14} />
                 </div>
                 <input
                   ref={searchInputRef}
@@ -466,23 +514,23 @@
                   onKeyDown={handleSearchKeys}
                   onChange={(e) => { setSearchInput(e.target.value); setFocusedSuggestionIndex(-1); }}
                   placeholder="Type product name, SKU or scan barcode..."
-                  className="w-full h-11 bg-white border border-gray-200 rounded pl-10 pr-16 text-sm text-gray-700 placeholder-gray-400 font-medium outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition-all shadow-2xs"
+                  className="w-full h-9 bg-white border border-gray-200 rounded pl-10 pr-16 text-sm text-gray-700 placeholder-gray-400 font-medium outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition-all shadow-2xs"
                 />
-                <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center gap-2">
                   {searchInput && (
                     <button type="button" onClick={() => { setSearchInput(""); setFocusedSuggestionIndex(-1); }}
                       className="text-gray-400 hover:text-gray-600 p-1 bg-transparent border-0 cursor-pointer">
-                      <X size={14} />
+                      <X size={13} />
                     </button>
                   )}
-                  <div className="h-7 w-7 bg-gray-50 border border-gray-200 rounded flex items-center justify-center text-gray-500">
-                    <Barcode size={15} />
+                  <div className="h-6 w-6 bg-gray-50 border border-gray-200 rounded flex items-center justify-center text-gray-500">
+                    <Barcode size={13} />
                   </div>
                 </div>
               </div>
               <button type="submit"
-                className="h-11 px-5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-bold flex items-center gap-2 cursor-pointer border-0 transition-colors shadow-xs">
-                <Search size={16} />
+                className="h-9 px-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-xs font-bold flex items-center gap-2 cursor-pointer border-0 transition-colors shadow-xs">
+                <Search size={13} />
                 Search
               </button>
   
@@ -510,32 +558,32 @@
             </form>
   
             {/* Cart Stats */}
-            <div className="grid grid-cols-4 gap-4">
+            <div className="grid grid-cols-4 gap-3">
               <div className="bg-white rounded p-4 border border-gray-150 shadow-2xs">
                 <div className="text-[12px] font-bold text-gray-500 uppercase tracking-wider">ITEMS</div>
-                <div className="text-2xl font-bold text-gray-900 mt-1">{totalItems}</div>
+                <div className="text-xl font-bold text-gray-900 mt-1">{totalItems}</div>
               </div>
               <div className="bg-white rounded p-4 border border-gray-150 shadow-2xs">
                 <div className="text-[12px] font-bold text-gray-500 uppercase tracking-wider">QUANTITY</div>
-                <div className="text-2xl font-bold text-gray-900 mt-1">{Number(totalQty.toFixed(3))}</div>
+                <div className="text-xl font-bold text-gray-900 mt-1">{Number(totalQty.toFixed(3))}</div>
               </div>
               <div className="bg-white rounded p-4 border border-gray-150 shadow-2xs">
                 <div className="text-[12px] font-bold text-gray-500 uppercase tracking-wider">SUBTOTAL</div>
-                <div className="text-2xl font-bold text-emerald-600 mt-1">₹{subtotal.toFixed(2)}</div>
+                <div className="text-xl font-bold text-emerald-600 mt-1">₹{subtotal.toFixed(2)}</div>
               </div>
               <div className="bg-white rounded p-4 border border-gray-150 shadow-2xs">
                 <div className="text-[12px] font-bold text-gray-500 uppercase tracking-wider">DISCOUNT</div>
-                <div className="text-2xl font-bold text-red-600 mt-1">₹{totalDiscount.toFixed(2)}</div>
+                <div className="text-xl font-bold text-red-600 mt-1">₹{totalDiscount.toFixed(2)}</div>
               </div>
             </div>
               
             {/* Cart Table */}
-            <div className="flex-1 bg-white border border-gray-200 rounded overflow-hidden flex flex-col shadow-2xs">
+            <div className="flex-1 bg-white border border-gray-200 rounded overflow-hidden flex flex-col shadow-3xs">
               {/* Header with solid primary green background to match image */}
-              <div className="bg-emerald-600 px-6 py-3.5 grid grid-cols-12 gap-4 text-[12px] font-bold text-white uppercase tracking-wider items-center">
-                <div className="col-span-1 text-center">#</div>
+              <div className="bg-emerald-600 px-4 py-3.5 grid grid-cols-12 gap-4 text-[12px] font-bold text-white uppercase tracking-wider items-center">
+                <div className="col-span-1 text-center">S.No</div>
                 <div className="col-span-3 text-left">PRODUCT DETAILS</div>
-                <div className="col-span-1 text-center">RATE (₹)</div>
+                <div className="col-span-1 text-center">RATE ₹</div>
                 <div className="col-span-2 text-center">QTY</div>
                 <div className="col-span-1 text-center">UNIT</div>
                 <div className="col-span-1 text-center">DISC %</div>
@@ -560,8 +608,8 @@
                       <div key={item.sku} className="cart-row border-b border-gray-100 last:border-b-0 px-6 py-4.5 grid grid-cols-12 gap-4 items-center hover:bg-slate-50/40 transition-colors">
                         <div className="col-span-1 text-[15px] text-gray-800 font-bold text-center">{idx + 1}</div>
                         <div className="col-span-3 text-left">
-                          <div className="text-[15px] font-bold text-slate-800 leading-tight">{item.name}</div>
-                          <div className="text-[12px] text-slate-400 mt-1 font-semibold uppercase tracking-wider">{item.sku}</div>
+                          <div className="text-[14px] font-bold text-slate-800 leading-tight">{item.name}</div>
+                          <div className="text-[10px] text-slate-400 mt-0.5 font-semibold uppercase tracking-wider">{item.sku}</div>
                         </div>
                         <div className="col-span-1 text-center text-[14px] font-bold text-slate-700">{item.rate.toFixed(2)}</div>
                         <div className="col-span-2">
@@ -620,12 +668,12 @@
           </div>
 
           {/* RIGHT PANEL - CHECKOUT */}
-          <div className="w-[380px] bg-white border border-gray-200 rounded flex flex-col overflow-hidden shadow-2xs shrink-0">
-            <div className="flex-1 overflow-y-auto pos-scroll p-6 space-y-5">
+          <div className="w-[350px] bg-white border border-gray-200 rounded flex flex-col overflow-hidden shadow-3xs shrink-0">
+            <div className="flex-1 overflow-y-auto pos-scroll p-4 space-y-4">
               {/* Customer Section */}
               <div>
-                <div className="flex items-center justify-between mb-3 border-b border-slate-100 pb-2.5">
-                  <div className="flex items-center gap-2 text-xs font-black text-slate-700 uppercase tracking-wider">
+                <div className="flex items-center justify-between mb-1 border-b border-slate-100 pb-1.5">
+                  <div className="flex items-center gap-2 text-xs font-black text-slate-700 uppercase">
                     <User size={14} className="text-emerald-600" />
                     CUSTOMER DETAILS
                   </div>
@@ -643,7 +691,7 @@
                   {/* Mobile Number Input */}
                   <div>
                     <div className="relative">
-                      <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+                      <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
                       <input type="text" maxLength={10} value={customerMobile}
                         onChange={(e) => {
                           const val = e.target.value.replace(/\D/g, "");
@@ -667,22 +715,41 @@
                       )}
                     </div>
                   </div>
-
                   {/* Customer Name Input (Shown ONLY if 10-digit mobile is registered in customer database) */}
                   {customerMobile.length === 10 && !isNewCustomer && customerName && (
                     <div className="animate-in fade-in slide-in-from-top-1 duration-150">
-                      <div className="w-full h-9 bg-emerald-50/50 border border-emerald-100 rounded px-4 flex items-center justify-between text-xs font-extrabold text-slate-800">
-                        <span className="truncate">{customerName}</span>
-                        <span className="text-[9px] text-emerald-700 font-extrabold uppercase border bg-emerald-50 border border-emerald-200 px-0.5 py-0.5 ">Active</span>
+                      <div className="relative">
+                        <User size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+                        <div className="w-full h-9 bg-emerald-50/50 border border-emerald-100 rounded pl-9 pr-4 flex items-center justify-between text-[13px] font-bold text-slate-800">
+                          <span className="truncate">{customerName}</span>
+                          <span className=" absolute right-2.5 top-1/2 -translate-y-1/2 text-[9px] rounded text-emerald-700 font-extrabold uppercase border bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 ">Active</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Customer Name Input (Shown ONLY if 10-digit mobile is new / not registered yet) */}
+                  {customerMobile.length === 10 && isNewCustomer && (
+                    <div className="animate-in fade-in slide-in-from-top-1 duration-150">
+                      <div className="relative">
+                        <User size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+                        <input
+                          type="text"
+                          value={customerName}
+                          onChange={(e) => setCustomerName(e.target.value)}
+                          placeholder="Enter new customer name..."
+                          className="w-full h-10 bg-slate-50 hover:bg-slate-100/60 border border-gray-200 rounded pl-9 pr-4 text-xs font-bold text-slate-800 outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-50/55 transition-all font-sans"
+                        />
                       </div>
                     </div>
                   )}
                 </div>
               </div>
 
+
               {/* Payment Method */}
               <div>
-                <div className="flex items-center gap-2 text-xs font-black text-slate-700 uppercase tracking-wider mb-2.5 border-b border-slate-100 pb-2">
+                <div className="flex items-center gap-2 text-xs font-black text-slate-700 uppercase  mb-2 border-b border-slate-100 pb-2">
                   <CreditCard size={14} className="text-emerald-600" />
                   PAYMENT METHOD <span className="text-red-500 font-black text-xs">*</span>
                 </div>
@@ -690,7 +757,7 @@
                   {paymentOptions.map(opt => (
                     <button key={opt.value} type="button"
                       onClick={() => { setPaymentMethod(opt.value); setPaymentMethodError(false); }}
-                      className={`flex items-center justify-start gap-2.5 px-3 py-4 rounded text-xs font-extrabold border cursor-pointer transition-all
+                      className={`flex items-center justify-start gap-3 px-3 py-3 rounded text-[11px] font-extrabold border cursor-pointer transition-all
                         ${paymentMethod === opt.value
                           ? "border-emerald-600 bg-emerald-50 text-emerald-800 shadow-3xs"
                           : "border-gray-200 bg-white text-slate-600 hover:border-emerald-400 hover:text-emerald-700 shadow-5xs"
@@ -709,32 +776,32 @@
 
               {/* Discount */}
               <div>
-                <div className="flex items-center gap-2 text-xs font-black text-slate-700 uppercase tracking-wider mb-2.5 border-b border-slate-100 pb-2">
+                <div className="flex items-center gap-2 text-xs font-black text-slate-700 uppercase tracking-wider mb-2 border-b border-slate-100 pb-2">
                   <Percent size={14} className="text-emerald-600" />
                   DISCOUNT
                 </div>
                 <div>
-                  <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-3.5">Flat Invoice Discount (₹)</label>
+                  <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-3">Flat Invoice Discount (₹)</label>
                   <input type="number" min="0" value={globalDiscount || ""}
                     onChange={(e) => setGlobalDiscount(Math.max(0, parseFloat(e.target.value) || 0))}
                     placeholder="0.00"
-                    className="w-full h-10 text-left bg-slate-50 hover:bg-slate-100/60 border border-gray-200 rounded px-3.5 text-sm font-extrabold text-slate-800 outline-none focus:bg-white focus:border-emerald-500 focus:ring-4 focus:ring-emerald-50/55 transition-all" />
+                    className="w-full h-10 text-left bg-slate-50 hover:bg-slate-100/60 border border-gray-200 rounded px-3.5 text-xs font-extrabold text-slate-800 outline-none focus:bg-white focus:border-emerald-500 focus:ring-4 focus:ring-emerald-50/55 transition-all" />
                 </div>
               </div>
 
               {/* Totals */}
-              <div className="bg-slate-50/80 rounded p-4 space-y-4 border border-slate-150">
+              <div className="bg-slate-50/80 rounded p-4 space-y-2 border border-slate-150">
                 <div className="flex justify-between items-center text-[13px] font-semibold text-slate-500">
                   <span>Item Subtotal</span>
-                  <span className="font-bold text-[15px] text-slate-800">₹{subtotal.toFixed(2)}</span>
+                  <span className="font-bold text-[14px] text-slate-800">₹{subtotal.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between items-center text-[13px] font-semibold text-slate-500">
                   <span>Discounts</span>
-                  <span className="font-bold text-[15px] text-emerald-600">-₹{totalLineDiscount.toFixed(2)}</span>
+                  <span className="font-bold text-[14px] text-emerald-600">-₹{totalLineDiscount.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between items-center text-[13px] font-semibold text-slate-500">
                   <span>Tax (Integrated GST)</span>
-                  <span className="font-bold text-[15px] text-slate-800">₹{totalTax.toFixed(2)}</span>
+                  <span className="font-bold text-[14px] text-slate-800">₹{totalTax.toFixed(2)}</span>
                 </div>
                 {globalDiscount > 0 && (
                   <div className="flex justify-between items-center text-xs font-semibold text-slate-500 border-t border-slate-200/60 pt-2">
@@ -742,7 +809,7 @@
                     <span className="font-extrabold text-emerald-600">-₹{globalDiscount.toFixed(2)}</span>
                   </div>
                 )}
-                <div className="flex justify-between items-center border-t border-slate-250 pt-3.5 mt-2">
+                <div className="flex justify-between items-center border-t border-slate-250 pt-3 ">
                   <span className="text-[15px] font-black text-slate-700 uppercase">GRAND PAYABLE</span>
                   <span className="text-[17px] font-black text-emerald-600">₹{grandTotal.toFixed(2)}</span>
                 </div>
@@ -750,9 +817,9 @@
             </div>
 
             {/* CTA Buttons */}
-            <div className="p-5 border-t border-gray-100 bg-slate-50/20">
+            <div className="p-3.5 border-t border-gray-100 bg-slate-50/20">
               <button type="button" onClick={handleCompleteSale}
-                className="w-full h-13 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-sm font-black flex items-center justify-center gap-2 cursor-pointer border-0 transition-colors shadow-sm uppercase tracking-wider">
+                className="w-full h-11 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-[13px] font-black flex items-center justify-center gap-2 cursor-pointer border-0 transition-colors shadow-xl uppercase tracking-wider">
                 <CheckCircle size={16} strokeWidth={2.5} /> Complete Checkout
               </button>
             </div>
