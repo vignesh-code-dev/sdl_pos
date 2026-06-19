@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import KPIBox from "../../components/KPIBox";
+import KPIBox from "../../components/dashboard/KPIBox";
 import {
   DollarSign,
   ShoppingBag,

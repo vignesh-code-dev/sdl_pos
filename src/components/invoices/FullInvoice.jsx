@@ -55,7 +55,7 @@ export const FullInvoice = ({ invoice }) => {
 
       <table className="items-table">
         <thead>
-          <tr style={{ borderBottom: '2px solid #374151', fontWeight: 'bold', color: '#4b5563' }}>
+          <tr style={{ borderBottom: '1px solid #374151', fontWeight: 'bold', color: '#4b5563' }}>
             <th style={{ padding: '6px 4px', textAlign: 'center', width: '32px' }}>#</th>
             <th style={{ padding: '6px 4px', textAlign: 'left' }}>Particulars</th>
             <th style={{ padding: '6px 4px', textAlign: 'center', width: '40px' }}>Qty</th>

@@ -1,8 +1,8 @@
 import React from 'react';
 import { Receipt, X, Printer, RotateCcw, Download } from 'lucide-react';
-import { calculateLineTotal } from '../utils/invoiceCalculations';
-import { downloadInvoiceHTML } from '../utils/invoiceDownload';
-import { printInvoice } from '../utils/invoicePrinter';
+import { calculateLineTotal } from '../../utils/invoiceCalculations';
+import { downloadInvoiceHTML } from '../../utils/invoiceDownload';
+import { printInvoice } from '../../utils/invoicePrinter';
 
 export default function InvoiceModal({
   isOpen,
@@ -70,7 +70,7 @@ export default function InvoiceModal({
             </div>
 
             {/* Invoice Details - Reorganized */}
-            <div className="border-y border-dashed border-gray-300 py-2.5 mb-3 space-y-1">
+            <div className="border-y border-dashed border-gray-300 py-2.5 mb-1 space-y-1">
               <div className="flex justify-between text-[10px] text-gray-500">
                 <span>Invoice Number: <span className="text-gray-800 font-semibold">{invoice.id}</span></span>
                 <span>Date / Time: <span className="text-gray-800 font-semibold">{invoice.date}</span></span>
@@ -82,13 +82,13 @@ export default function InvoiceModal({
               <div className="text-[10px] text-gray-500 flex justify-between">
                 <span>Cashier: <span className="text-gray-850 font-semibold">{invoice.operator || "Admin"}</span></span>
                 {invoice.status && (
-                  <span>Bill Status: <span className={`font-bold uppercase ${invoice.status === "Cancelled" ? "text-red-650" : "text-emerald-700"}`}>{invoice.status}</span></span>
+                  <span>Status: <span className={`font-bold uppercase ${invoice.status === "Cancelled" ? "text-red-650" : "text-emerald-700"}`}>{invoice.status}</span></span>
                 )}
               </div>
             </div>
 
             {/* Itemized Table */}
-            <table className="w-full border-collapse text-[14px] mb-3">
+            <table className="w-full border-collapse text-[14px] mb-2">
               <thead>
                 <tr className="border-b border-dashed border-gray-300 text-gray-400 font-medium">
                   <th className="py-2 text-center text-xs" style={{ width: "45px", minWidth: "45px" }}>S.No</th>
@@ -103,17 +103,17 @@ export default function InvoiceModal({
                 {invoice.items && invoice.items.map((line, idx) => {
                   const finalLineAmt = calculateLineTotal(line);
                   return (
-                    <tr key={`${line.sku}-${idx}`}   className="border-b border-gray-100 text-gray-800 hover:bg-slate-50/40 transition-colors">
-                      <td className="py-3 text-center text-xs text-gray-450 font-semibold font-mono" style={{ width: "45px" }}>{idx + 1}</td>
-                      <td className="py-3 text-left">
-                        <div className="text-[12px] font-semibold text-gray-800 leading-tight">{line.name}</div>
-                        <div className="text-[9px] text-gray-500 mt-1 font-mono uppercase tracking-wider">{line.sku}</div>
-                        {line.discount > 0 && <span className="text-[9px] mt-1 inline-block bg-red-50 text-red-500 px-1.5 py-0.5 rounded font-medium">{line.discount}% Discount</span>}
+                    <tr key={`${line.sku}-${idx}`} className="border-b border-gray-100 text-gray-800 hover:bg-slate-50/40 transition-colors">
+                      <td className="py-2 text-center text-xs text-gray-450 font-medium font-mono" style={{ width: "40px" }}>{idx + 1}</td>
+                      <td className="py-2 text-left">
+                        <div className="text-[11px] font-semibold text-gray-800 leading-tight">{line.name}</div>
+                        <div className="text-[9px] text-gray-500 mt-1 font-mono uppercase tracking-wider">{line.sku} {line.discount > 0 && <span className="text-[9px] inline-block text-red-500 font-medium">{line.discount}% Discount</span>}</div>
+                        
                       </td>
-                      <td className="text-center text-[12px]  text-gray-600" style={{ width: "50px" }}>{line.quantity}</td>
-                      <td className="text-center text-[12px] text-gray-600" style={{ width: "50px" }}>{line.unit || "pcs"}</td>
-                      <td className="text-right text-[12px] font-medium text-gray-700" style={{ width: "65px" }}>₹{line.rate.toFixed(1)}</td>
-                      <td className="text-right text-[12px] font-bold text-gray-900" style={{ width: "75px" }}>₹{finalLineAmt.toFixed(1)}</td>
+                      <td className="text-center text-[11px] font-semibold text-gray-800" style={{ width: "50px" }}>{line.quantity}</td>
+                      <td className="text-center text-[11px] text-gray-600" style={{ width: "50px" }}>{line.unit || "pcs"}</td>
+                      <td className="text-right text-[11px] font-medium text-gray-700" style={{ width: "65px" }}>₹{Number(line.rate || 0).toFixed(1)}</td>
+                      <td className="text-right text-[11px] font-bold text-gray-900" style={{ width: "75px" }}>₹{Number(finalLineAmt || 0).toFixed(1)}</td>
                     </tr>
                   );
                 })}
@@ -134,7 +134,7 @@ export default function InvoiceModal({
                         <span className="font-extrabold">{ret.name}</span>
                         <span className="opacity-90"> (Qty Returned: {ret.quantityReturned})</span>
                       </div>
-                      <span className="font-bold font-mono">-₹{ret.refundAmount.toFixed(2)}</span>
+                      <span className="font-bold font-mono">-₹{Number(ret.refundAmount || 0).toFixed(2)}</span>
                     </div>
                   ))}
                 </div>
@@ -158,52 +158,52 @@ export default function InvoiceModal({
               </div>
               <div className="flex justify-between text-[10px] text-gray-500">
                 <span>Subtotal:</span>
-                <span className="text-gray-800">₹{invoice.subtotal.toFixed(2)}</span>
+                <span className="text-gray-800">₹{Number(invoice.subtotal || 0).toFixed(2)}</span>
               </div>
               {invoice.totalLineDiscount > 0 && (
                 <div className="flex justify-between text-[10px] text-red-650">
                   <span>Item Discount:</span>
-                  <span className="font-medium">-₹{invoice.totalLineDiscount.toFixed(2)}</span>
+                  <span className="font-medium">-₹{Number(invoice.totalLineDiscount || 0).toFixed(2)}</span>
                 </div>
               )}
               {invoice.globalDiscount > 0 && (
                 <div className="flex justify-between text-[10px] text-red-650">
                   <span>Invoice Discount:</span>
-                  <span className="font-medium">-₹{invoice.globalDiscount.toFixed(2)}</span>
+                  <span className="font-medium">-₹{Number(invoice.globalDiscount || 0).toFixed(2)}</span>
                 </div>
               )}
               <div className="flex justify-between text-[10px] text-gray-500 border-t border-gray-200 pt-1 mt-1">
                 <span>CGST (9%):</span>
-                <span className="text-gray-800">₹{(invoice.totalTax / 2).toFixed(2)}</span>
+                <span className="text-gray-800">₹{Number((invoice.totalTax || 0) / 2).toFixed(2)}</span>
               </div>
               <div className="flex justify-between text-[10px] text-gray-500 border-b border-gray-200 pb-1 mb-1">
                 <span>SGST (9%):</span>
-                <span className="text-gray-800">₹{(invoice.totalTax / 2).toFixed(2)}</span>
+                <span className="text-gray-800">₹{Number((invoice.totalTax || 0) / 2).toFixed(2)}</span>
               </div>
               
               <div className="flex justify-between">
                 <span className="text-[10px] text-gray-500">Grand Total Due:</span>
-                <span className="text-[11px] font-bold text-gray-800">₹{invoice.grandTotal.toFixed(2)}</span>
+                <span className="text-[11px] font-bold text-gray-800">₹{Number(invoice.grandTotal || 0).toFixed(2)}</span>
               </div>
               
               <div className="flex justify-between">
                 <span className="text-[10px] text-gray-500">Amount Tendered Paid:</span>
                 <span className="text-[11px] font-extrabold text-emerald-700">
-                  ₹{parseFloat(invoice.paidAmount !== undefined ? invoice.paidAmount : invoice.grandTotal).toFixed(2)}
+                  ₹{Number(invoice.paidAmount !== undefined ? invoice.paidAmount : (invoice.grandTotal || 0)).toFixed(2)}
                 </span>
               </div>
 
               <div className="flex justify-between">
                 <span className="text-[10px] text-gray-500">Outstanding Balance:</span>
                 <span className={`text-[11px] font-bold ${parseFloat(invoice.balance !== undefined ? invoice.balance : 0) > 0 ? "text-red-650" : "text-gray-800"}`}>
-                  ₹{parseFloat(invoice.balance !== undefined ? invoice.balance : 0).toFixed(2)}
+                  ₹{Number(invoice.balance !== undefined ? invoice.balance : 0).toFixed(2)}
                 </span>
               </div>
 
               <div className="flex justify-between border-t border-gray-200 pt-2 mt-1">
                 <span className="text-[10px] font-bold text-gray-700 uppercase">Grand Total Paid</span>
                 <span className="text-sm font-bold text-emerald-600">
-                  ₹{parseFloat(invoice.paidAmount !== undefined ? invoice.paidAmount : invoice.grandTotal).toFixed(2)}
+                  ₹{Number(invoice.paidAmount !== undefined ? invoice.paidAmount : (invoice.grandTotal || 0)).toFixed(2)}
                 </span>
               </div>
             </div>

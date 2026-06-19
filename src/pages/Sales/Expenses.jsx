@@ -36,6 +36,9 @@ export default function Expenses() {
   const [showNewShopInput, setShowNewShopInput] = useState(false);
   const [showNewCategoryInput, setShowNewCategoryInput] = useState(false);
 
+  // Modal visibility state
+  const [showAddModal, setShowAddModal] = useState(false);
+
   // --- 3. FILTER / SEARCH STATS ---
   const [searchTerm, setSearchTerm] = useState("");
   const [filterShop, setFilterShop] = useState("All");
@@ -81,7 +84,7 @@ export default function Expenses() {
     if (!savedExpenses || JSON.parse(savedExpenses).length === 0) {
       const defaultExpenses = [
         {
-          id: "EXP-202606-1001",
+          id: "EXP-2506-1001",
           date: "2026-06-11",
           time: "10:30",
           shop: "Main Supermarket",
@@ -90,7 +93,7 @@ export default function Expenses() {
           note: "Monthly building lease payment for main block"
         },
         {
-          id: "EXP-202606-1002",
+          id: "EXP-2506-1002",
           date: "2026-06-10",
           time: "14:15",
           shop: "Main Supermarket",
@@ -99,7 +102,7 @@ export default function Expenses() {
           note: "May electricity invoice - online trans ref #983274"
         },
         {
-          id: "EXP-202606-1003",
+          id: "EXP-2506-1003",
           date: "2026-06-08",
           time: "11:00",
           shop: "SDL Electronics",
@@ -108,7 +111,7 @@ export default function Expenses() {
           note: "UPS replacement batteries for billing setups"
         },
         {
-          id: "EXP-202606-1004",
+          id: "EXP-2506-1004",
           date: "2026-06-05",
           time: "18:00",
           shop: "Main Supermarket",
@@ -117,7 +120,7 @@ export default function Expenses() {
           note: "Part-time cashier stipend (May cycle)"
         },
         {
-          id: "EXP-202606-1005",
+          id: "EXP-2506-1005",
           date: "2026-06-01",
           time: "09:30",
           shop: "City Food Court",
@@ -133,12 +136,29 @@ export default function Expenses() {
     }
 
     // D. Default form fields to current date/time
+    resetFormFields();
+  }, []);
+
+  const resetFormFields = () => {
     const today = new Date();
     const formattedDate = today.toISOString().split("T")[0];
     const formattedTime = today.toTimeString().split(" ")[0].slice(0, 5); // HH:MM
     setDate(formattedDate);
     setTime(formattedTime);
-  }, []);
+    setAmount("");
+    setSelectedShop("");
+    setSelectedCategory("");
+    setNote("");
+    setShowNewShopInput(false);
+    setShowNewCategoryInput(false);
+    setCustomShop("");
+    setCustomCategory("");
+  };
+
+  const handleOpenAddExpenseModal = () => {
+    resetFormFields();
+    setShowAddModal(true);
+  };
 
   // Sync expenses list to storage
   const saveExpensesToStorage = (updated) => {
@@ -209,7 +229,7 @@ export default function Expenses() {
       return;
     }
 
-    const randId = `EXP-${new Date().getFullYear()}${(new Date().getMonth() + 1).toString().padStart(2, "0")}-${Math.floor(1000 + Math.random() * 9000)}`;
+    const randId = `EXP-${new Date().getFullYear().toString().substring(2)}${(new Date().getMonth() + 1).toString().padStart(2, "0")}-${Math.floor(1000 + Math.random() * 9000)}`;
     const newExpense = {
       id: randId,
       date: date || new Date().toISOString().split("T")[0],
@@ -223,10 +243,9 @@ export default function Expenses() {
     const updated = [newExpense, ...expenses];
     saveExpensesToStorage(updated);
 
-    // Reset Form Fields (keep defaults for ease-of-use)
-    setAmount("");
-    setNote("");
     showToast("Expense logged successfully!", "success");
+    setShowAddModal(false);
+    resetFormFields();
   };
 
   const handleDeleteExpense = (id) => {
@@ -308,147 +327,381 @@ export default function Expenses() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="p-6 space-y-6 bg-pos-bg overflow-x-hidden min-h-screen text-slate-800 font-sans">
+      
       {/* 1. Header Banner */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-pos-card border border-pos-border p-5 rounded shadow-sm">
         <div className="space-y-1">
-          <h1 className="text-2xl font-black text-slate-800 tracking-tight uppercase font-mono">
+          <h1 className="text-3xl font-bold tracking-tight text-brand-primary">
             Expense Tracker
           </h1>
-          <p className="text-xs font-bold text-slate-400">
+          <p className="text-xs text-text-muted mt-1">
             Record and manage business expenses with category and shop classification
           </p>
         </div>
+        
 
-        <div>
+        <div className="flex items-center gap-3">
           <button
             onClick={handleExportCSV}
-            className="flex items-center gap-1.5 text-xs font-extrabold bg-slate-800 hover:bg-slate-700 hover:text-white text-slate-100 px-4 py-2.5 rounded-xl transition-colors shadow-sm cursor-pointer border-0"
+             className="flex items-center gap-1.5 text-sm font-semibold bg-white border border-brand-primary hover:bg-brand-primary/5 text-brand-primary px-4 py-2.5 rounded transition-all cursor-pointer"
           >
             <Download size={14} />
             Export CSV
+          </button>
+          
+          <button
+            onClick={handleOpenAddExpenseModal}
+            className="flex items-center gap-1.5 text-sm font-semibold bg-brand-primary hover:bg-[#008967] text-white px-4 py-2.5 rounded transition-all shadow-sm cursor-pointer border-0"
+          >
+            <Plus size={14} />
+            Log New Expense
           </button>
         </div>
       </div>
 
       {/* 2. Analytical KPI Widgets */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        <div className="bg-pos-card border border-pos-border p-5 rounded-2xl shadow-xs flex items-center justify-between">
-          <div className="space-y-1">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Total Logged (INR)</span>
-            <span className="text-xl font-black text-slate-800 font-mono">₹{totalSumFiltered.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+        <div className="bg-pos-card border border-pos-border p-5 rounded shadow-xs flex items-center justify-between">
+          <div className="space-y-2">
+             <span className="text-xs py-1 text-slate-500 uppercase tracking-widest block font-bold select-none">Total Logged (INR)</span>
+            <span className="text-3xl font-semibold text-slate-800 font-mono">₹{totalSumFiltered.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
           </div>
-          <div className="p-3 rounded-xl bg-teal-50 text-brand-primary border border-teal-100">
+          <div className="p-3 rounded-xl bg-teal-50 text-brand-primary border border-teal-100 font-semibold text-sm">
             <DollarSign size={20} />
           </div>
         </div>
 
-        <div className="bg-pos-card border border-pos-border p-5 rounded-2xl shadow-xs flex items-center justify-between">
-          <div className="space-y-1">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Average Cost</span>
-            <span className="text-xl font-black text-slate-800 font-mono">₹{averageValue.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+        <div className="bg-pos-card border border-pos-border p-5 rounded shadow-xs flex items-center justify-between">
+          <div className="space-y-2">
+             <span className="text-xs uppercase text-slate-500 tracking-widest block font-bold select-none">Average Cost</span>
+            <span className="text-3xl font-semibold text-slate-800 font-mono">₹{averageValue.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
           </div>
-          <div className="p-3 rounded-xl bg-sky-50 text-sky-600 border border-sky-100">
+          <div className="p-3 rounded-xl bg-sky-50 text-sky-600 border border-sky-100 font-semibold text-sm">
             <CheckCircle2 size={20} />
           </div>
         </div>
 
-        <div className="bg-pos-card border border-pos-border p-5 rounded-2xl shadow-xs flex items-center justify-between">
-          <div className="space-y-1">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Top Expense Category</span>
-            <span className="text-sm font-black text-slate-800 truncate block max-w-[150px]">{mostExpensiveCategory}</span>
-            <span className="text-[10px] font-bold text-rose-500 font-mono">₹{topCatAmt.toLocaleString("en-IN")}</span>
+        <div className="bg-pos-card border border-pos-border p-5 rounded shadow-xs flex items-center justify-between">
+          <div className="space-y-2">
+            <span className="text-xs  uppercase text-slate-500 tracking-widest block font-bold select-none">Top Category</span>
+            <span className="text-2xl font-bold text-emerald-700 tracking-widest">{mostExpensiveCategory}: ₹{topCatAmt.toLocaleString("en-IN")}</span>
+        
           </div>
-          <div className="p-3 rounded-xl bg-rose-50 text-brand-danger border border-rose-100">
+          <div className="p-3 rounded-xl bg-rose-50 text-brand-danger border border-rose-100 font-semibold text-sm">
             <FileText size={20} />
           </div>
         </div>
 
-        <div className="bg-pos-card border border-pos-border p-5 rounded-2xl shadow-xs flex items-center justify-between">
-          <div className="space-y-1">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Filtered Entries Count</span>
-            <span className="text-xl font-black text-slate-800 font-mono">{totalCountFiltered}</span>
+        <div className="bg-pos-card border border-pos-border p-5 rounded shadow-xs flex items-center justify-between">
+          <div className="space-y-2">
+             <span className="text-xs text-slate-500  uppercase tracking-widest block font-bold select-none">Filtered Count</span>
+            <span className="text-3xl font-bold text-slate-800 font-mono">{totalCountFiltered}</span>
           </div>
-          <div className="p-3 rounded-xl bg-amber-50 text-brand-warning border border-amber-100">
+          <div className="p-3 rounded-xl bg-amber-50 text-brand-warning border border-amber-100 font-semibold text-sm">
             <Calendar size={20} />
           </div>
         </div>
       </div>
 
-      {/* 3. Main Split Panel Grid - Left Log Entry, Right Logs Table */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      {/* 3. Main Full-Width Single Column Layout */}
+      <div className="space-y-6">
         
-        {/* Left Column: Register New Expense Form (Colspan: 4) */}
-        <section className="lg:col-span-4 space-y-6">
-          <div className="bg-pos-card border border-pos-border rounded-2xl shadow-xs p-6 space-y-5">
-            <div className="border-b border-pos-border/60 pb-3 flex items-center gap-2">
-              <PlusCircle size={18} className="text-brand-primary" />
-              <h2 className="text-sm font-extrabold text-slate-800 tracking-tight uppercase">Log New Expense</h2>
+        {/* A. Search and Filters Panel */}
+        <div className="bg-pos-card border border-pos-border p-5 rounded shadow-xs animate-in fade-in duration-200">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4 items-end">
+            
+            {/* Realtime Search Query */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-slate-500 uppercase tracking-wide uppercase tracking-wider py-1 flex items-center gap-1.5 select-none">
+                <Search size={11.5} className="text-brand-primary" />
+                <span>Search Notes/IDs</span>
+              </label>
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Type note, shop, ID..."
+                className="w-full text-sm font-semibold text-slate-800 bg-[#f8fafc] border border-pos-border rounded px-3.5 py-3 focus:outline-none focus:border-brand-primary focus:bg-white transition-all placeholder:text-slate-400 placeholder:font-medium height-[42px]"
+              />
             </div>
 
-            <form onSubmit={handleSaveExpense} className="space-y-4">
+            {/* Date From (Since) */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-slate-500 uppercase tracking-wide uppercase tracking-wider py-1 flex items-center gap-1.5 select-none">
+                <Calendar size={11.5} className="text-brand-primary" />
+                <span>Since</span>
+              </label>
+              <input
+                type="date"
+                value={dateFrom}
+                onChange={(e) => setDateFrom(e.target.value)}
+                className="w-full text-sm font-semibold text-[#475569] bg-[#f8fafc] border border-pos-border rounded px-3.5 py-3 focus:outline-none focus:border-brand-primary focus:bg-white transition-all font-mono"
+              />
+            </div>
+
+            {/* Date To (Until) */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-slate-500 uppercase tracking-wide uppercase tracking-wider py-1 flex items-center gap-1.5 select-none">
+                <Calendar size={11.5} className="text-brand-primary" />
+                <span>Until</span>
+              </label>
+              <input
+                type="date"
+                value={dateTo}
+                onChange={(e) => setDateTo(e.target.value)}
+                className="w-full text-sm font-semibold text-[#475569] bg-[#f8fafc] border border-pos-border rounded px-3.5 py-3 focus:outline-none focus:border-brand-primary focus:bg-white transition-all font-mono"
+              />
+            </div>
+
+            {/* Category selection filter */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-slate-500 uppercase tracking-wide uppercase tracking-wider py-1 flex items-center gap-1.5 select-none">
+                <Filter size={11.5} className="text-brand-primary" />
+                <span>Category</span>
+              </label>
+              <select
+                value={filterCategory}
+                onChange={(e) => setFilterCategory(e.target.value)}
+                className="w-full text-sm font-bold text-[#475569] bg-[#f8fafc] border border-pos-border rounded px-3.5 py-3 focus:outline-none focus:border-brand-primary focus:bg-white transition-all cursor-pointer "
+              >
+                <option value="All">All Categories</option>
+                {categories.map((cat, idx) => (
+                  <option key={idx} value={cat}>{cat}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Shop selection filter */}
+            <div className="space-y-1.5">
+              <label className="text-xs  font-bold text-slate-500 uppercase tracking-wide uppercase tracking-wider py-1 flex items-center gap-1.5 select-none">
+                <Filter size={11.5} className="text-brand-primary" />
+                <span>Shop Group</span>
+              </label>
+              <select
+                value={filterShop}
+                onChange={(e) => setFilterShop(e.target.value)}
+                className="w-full text-sm font-bold text-[#475569] bg-[#f8fafc] border border-pos-border rounded px-3.5 py-3 focus:outline-none focus:border-brand-primary focus:bg-white transition-all cursor-pointer"
+              >
+                <option value="All">All Shops</option>
+                {shops.map((sh, idx) => (
+                  <option key={idx} value={sh}>{sh}</option>
+                ))}
+              </select>
+            </div>
+
+          </div>
+        </div>
+
+        {/* Quick Clear filters panel */}
+        {(searchTerm || dateFrom || dateTo || filterShop !== "All" || filterCategory !== "All") && (
+          <div className="flex justify-end pr-1 -mt-4 animate-in fade-in duration-200">
+            <button
+              onClick={() => {
+                setSearchTerm("");
+                setDateFrom("");
+                setDateTo("");
+                setFilterShop("All");
+                setFilterCategory("All");
+              }}
+              className="text-xs text-slate-400 hover:text-brand-danger font-extrabold flex items-center gap-1.5 cursor-pointer bg-transparent border-0"
+            >
+              Clear Active Filters
+            </button>
+          </div>
+        )}
+
+        {/* B. Entry Records Table Panel */}
+        <div className="bg-pos-card border border-pos-border rounded shadow-sm overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse min-w-[900px]">
+              <thead>
+                 <tr className="border-b border-pos-border text-white uppercase text-xs font-semibold tracking-wider bg-emerald-600">
+                  <th className="p-4 text-center text-xs font-semibold uppercase">Expense ID</th>
+                  <th className="p-4 text-center text-xs font-semibold uppercase">Date</th>
+                  <th className="p-4 text-center text-xs font-semibold uppercase">Time</th>
+                  <th className="p-4 text-center text-xs font-semibold uppercase">Shop</th>
+                  <th className="p-4 text-center text-xs font-semibold uppercase">Category</th>
+                  <th className="p-4 text-center text-xs font-semibold uppercase">Amount</th>
+                  <th className="p-4 text-center text-xs font-semibold uppercase">Note</th>
+                  <th className="p-4 text-center text-xs font-semibold uppercase w-24">Action</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-pos-border/50 text-sm font-medium text-text-secondary">
+                {filtered.length === 0 ? (
+                  <tr>
+                    <td colSpan="8" className="p-20 text-center text-slate-400 font-semibold text-xs">
+                      No expenses found matching the selected filters. Log a new expense to get started.
+                    </td>
+                  </tr>
+                ) : (
+                  filtered.map((exp) => (
+                     <tr key={exp.id} className="hover:bg-slate-50/40 transition-colors text-sm font-medium text-text-secondary">
+                      {/* ID Column */}
+                      <td className="p-4 text-slate-800 text-center text-sm font-semibold font-mono">{exp.id}</td>
+                      
+                      {/* Date Column */}
+                      <td className="p-4 text-slate-750 text-center text-sm font-medium">{exp.date}</td>
+                      
+                      {/* Time Column */}
+                      <td className="p-4 text-slate-750 text-center text-sm font-medium">{exp.time}</td>
+                      
+                      {/* Shop Column */}
+                      <td className="p-4 text-slate-800 text-center text-sm font-semibold">{exp.shop}</td>
+                      
+                      {/* Category Column */}
+                      <td className="p-4 text-center">
+                        <span className="hover:bg-emerald-50 text-brand-primary px-2.5 py-1 text-xs font-bold tracking-wide uppercase select-none transition-colors">
+                          {exp.category}
+                        </span>
+                      </td>
+                      
+                      {/* Amount Column */}
+                      <td className="p-4 text-center font-bold text-slate-800 font-mono text-sm font-semibold">
+                        ₹{exp.amount.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </td>
+                      
+                      {/* Note Column */}
+                      <td className="p-4 text-text-secondary max-w-[215px] break-words text-justify text-sm font-medium leading-relaxed">
+                        {exp.note || <span className="text-text-muted select-none">No remarks</span>}
+                      </td>
+                      
+                      {/* Actions Column */}
+                      <td className="p-4 text-center">
+                        {confirmDeleteId === exp.id ? (
+                          <div className="flex items-center justify-center gap-1.5">
+                            <button
+                              onClick={() => handleDeleteExpense(exp.id)}
+                              className="bg-brand-danger hover:bg-rose-600 text-white border-0 py-1 px-2.5 rounded font-bold text-[10px] cursor-pointer"
+                            >
+                              Delete
+                            </button>
+                            <button
+                              onClick={() => setConfirmDeleteId(null)}
+                              className="bg-slate-100 hover:bg-slate-200 text-slate-600 border-0 py-1 px-2.5 rounded font-bold text-[10px] cursor-pointer"
+                            >
+                              Stop
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => setConfirmDeleteId(exp.id)}
+                            title="Delete Expense Entry"
+                            className="p-2 text-slate-400 hover:text-brand-danger hover:bg-rose-50 rounded-xl transition-all cursor-pointer border-0 bg-transparent flex items-center justify-center mx-auto"
+                          >
+                            <Trash2 size={14.5} strokeWidth={2.5} />
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+
+
+          {/* Summary Footer on Filtered Amount */}
+          <div className="bg-slate-50/50 p-4 border-t border-pos-border flex flex-col sm:flex-row justify-between items-center text-xs font-bold text-slate-600 gap-2 select-none">
+            <span>Showing {filtered.length} of {expenses.length} expense transactions</span>
+          </div>
+        </div>
+      </div>
+
+      {/* --- 4. SECURE MODAL POPUP FOR LOGGING NEW EXPENSES --- */}
+      {showAddModal && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-[110] p-4 text-slate-800 animate-in fade-in duration-200">
+          <div className="bg-white rounded-lg  shadow-xl w-full max-w-lg border border-pos-border overflow-hidden animate-in zoom-in-95 duration-150">
+            
+            {/* Modal Header */}
+            <div className="bg-[#F8FBFC] border-b border-pos-border px-6 py-4.5 flex items-center justify-between select-none">
+              <div className="flex items-center gap-2">
+                <div className="w-8.5 h-8.5 bg-brand-primary/10 rounded flex items-center justify-center text-brand-primary">
+                  <PlusCircle size={16} strokeWidth={2.5} />
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-xl text-slate-900 uppercase tracking-wider">
+                    Log New Expense
+                  </h3>
+                  <p className="text-[11px] text-slate-400 font-semibold uppercase tracking-wide">Business Ledger Entry</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowAddModal(false)}
+                className="p-1.5 rounded-full text-slate-600 hover:text-slate-655 hover:bg-slate-100 transition-colors cursor-pointer border-0"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Modal Form */}
+            <form onSubmit={handleSaveExpense} className="p-6 space-y-4">
               
-              {/* DATE */}
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wide flex items-center gap-1.5">
-                  <Calendar size={12} className="text-brand-primary" />
-                  <span>Date</span>
-                </label>
-                <input
-                  type="date"
-                  required
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                  className="w-full text-xs font-semibold text-slate-800 bg-slate-50 border border-pos-border rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-brand-primary"
-                />
+              {/* Row 1: Date & Time as 2 Columns split */}
+              <div className="grid grid-cols-2 gap-4">
+                {/* DATE */}
+                <div className="space-y-2">
+                  <label className="text-[12px] px-1 font-bold text-slate-500 uppercase tracking-widest block select-none">
+                    Date *
+                  </label>
+                  <input
+                    type="date"
+                    required
+                    value={date}
+                    onChange={(e) => setDate(e.target.value)}
+                    className="w-full text-xs font-semibold text-slate-800 bg-slate-50 border border-pos-border rounded-lg px-3.5 py-2.5 focus:outline-none focus:border-brand-primary focus:bg-white transition-all font-mono"
+                  />
+                </div>
+
+                {/* TIME */}
+                <div className="space-y-1.5">
+                  <label className="text-[12px] px-1 font-bold text-slate-400 uppercase tracking-widest block select-none">
+                    Time *
+                  </label>
+                  <input
+                    type="time"
+                    required
+                    value={time}
+                    onChange={(e) => setTime(e.target.value)}
+                    className="w-full text-xs font-semibold text-slate-800 bg-slate-50 border border-pos-border rounded-lg px-3.5 py-2.5 focus:outline-none focus:border-brand-primary focus:bg-white transition-all font-mono"
+                  />
+                </div>
               </div>
 
-              {/* TIME */}
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wide flex items-center gap-1.5">
-                  <Clock size={12} className="text-brand-primary" />
-                  <span>Time</span>
+              {/* Row 2: Amount */}
+              <div className="space-y-1.5">
+                <label className="text-[12px] font-bold text-slate-400 uppercase tracking-widest block select-none">
+                  Amount (₹) *
                 </label>
-                <input
-                  type="time"
-                  required
-                  value={time}
-                  onChange={(e) => setTime(e.target.value)}
-                  className="w-full text-xs font-semibold text-slate-800 bg-slate-50 border border-pos-border rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-brand-primary"
-                />
+                <div className="relative">
+                  <span className="absolute left-4 top-2.5 text-[14px] font-black text-slate-450">
+                    ₹
+                  </span>
+                  <input
+                    type="number"
+                    step="1"
+                    min="1"
+                    required
+                    placeholder="0.00"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    className="w-full text-[15px] font-bold text-slate-800 bg-slate-50 border border-pos-border rounded pl-8 pr-3.5 py-2.5 focus:outline-none focus:border-brand-primary focus:bg-white transition-all font-mono placeholder:font-sans placeholder:text-slate-400 placeholder:font-normal"
+                  />
+                </div>
               </div>
 
-              {/* AMOUNT */}
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wide flex items-center gap-1.5">
-                  <DollarSign size={12} className="text-brand-primary" />
-                  <span>Amount (₹)</span>
-                </label>
-                <input
-                  type="number"
-                  step="0.01"
-                  min="0.01"
-                  required
-                  placeholder="e.g. 500.00"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  className="w-full text-xs font-bold text-slate-800 bg-slate-50 border border-pos-border rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-brand-primary font-mono placeholder:font-sans placeholder:text-slate-400 placeholder:font-medium"
-                />
-              </div>
-
-              {/* SHOP NAME */}
-              <div className="space-y-1 relative">
-                <div className="flex justify-between items-center mb-1">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wide flex items-center gap-1.5">
-                    <Building2 size={12} className="text-brand-primary" />
-                    <span>Shop Name</span>
+              {/* Row 3: Shop Name Selection */}
+              <div className="space-y-1.5 relative">
+                <div className="flex justify-between items-center select-none mb-1">
+                  <label className="text-[12px] font-bold text-slate-400 uppercase tracking-widest block">
+                    Shop Name *
                   </label>
                   <button
                     type="button"
                     onClick={() => { setShowNewShopInput(!showNewShopInput); setShowNewCategoryInput(false); }}
                     className="text-[10px] text-brand-primary font-extrabold hover:underline border-0 bg-transparent cursor-pointer p-0"
                   >
-                    {showNewShopInput ? "Select Existing" : "+ Create New"}
+                    {showNewShopInput ? "Show dropdown" : "+ Register New Shop"}
                   </button>
                 </div>
 
@@ -456,7 +709,8 @@ export default function Expenses() {
                   <select
                     value={selectedShop}
                     onChange={(e) => setSelectedShop(e.target.value)}
-                    className="w-full text-xs font-semibold text-slate-800 bg-slate-50 border border-pos-border rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-brand-primary"
+                    required
+                    className="w-full text-xs font-bold text-slate-700 bg-slate-50 border border-pos-border rounded px-3.5 py-2.5 focus:outline-none focus:border-brand-primary focus:bg-white transition-all cursor-pointer"
                   >
                     <option value="">-- Choose Shop --</option>
                     {shops.map((s, idx) => (
@@ -470,32 +724,31 @@ export default function Expenses() {
                       placeholder="Enter new shop name"
                       value={customShop}
                       onChange={(e) => setCustomShop(e.target.value)}
-                      className="flex-1 text-xs font-semibold text-slate-800 bg-white border border-brand-primary/40 rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary/20"
+                      className="flex-1 text-xs font-semibold text-slate-800 bg-white border border-brand-primary/40 rounded px-3.5 py-2.5 focus:outline-none focus:border-brand-primary"
                     />
                     <button
                       type="button"
                       onClick={handleAddNewShop}
-                      className="bg-brand-primary hover:bg-brand-primary/90 text-white text-xs px-3.5 rounded-xl font-bold border-0 cursor-pointer transition-colors"
+                      className="bg-brand-primary hover:bg-[#008967] text-white text-xs px-4 rounded font-bold border-0 cursor-pointer transition-all"
                     >
-                      Add
+                      Save
                     </button>
                   </div>
                 )}
               </div>
 
-              {/* CATEGORY */}
-              <div className="space-y-1 relative">
-                <div className="flex justify-between items-center mb-1">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wide flex items-center gap-1.5">
-                    <Bookmark size={12} className="text-brand-primary" />
-                    <span>Expense Category</span>
+              {/* Row 4: Expense Category Selection */}
+              <div className="space-y-1.5 relative">
+                <div className="flex justify-between items-center select-none mb-1">
+                  <label className="text-[12px] font-bold text-slate-400 uppercase tracking-widest block">
+                    Expense Category *
                   </label>
                   <button
                     type="button"
                     onClick={() => { setShowNewCategoryInput(!showNewCategoryInput); setShowNewShopInput(false); }}
                     className="text-[10px] text-brand-primary font-extrabold hover:underline border-0 bg-transparent cursor-pointer p-0"
                   >
-                    {showNewCategoryInput ? "Select Existing" : "+ Create New"}
+                    {showNewCategoryInput ? "Show list" : "+ Create Custom"}
                   </button>
                 </div>
 
@@ -503,7 +756,8 @@ export default function Expenses() {
                   <select
                     value={selectedCategory}
                     onChange={(e) => setSelectedCategory(e.target.value)}
-                    className="w-full text-xs font-semibold text-slate-800 bg-slate-50 border border-pos-border rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-brand-primary"
+                    required
+                    className="w-full text-xs font-bold text-slate-700 bg-slate-50 border border-pos-border rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-brand-primary focus:bg-white transition-all cursor-pointer"
                   >
                     <option value="">-- Choose Category --</option>
                     {categories.map((c, idx) => (
@@ -517,230 +771,58 @@ export default function Expenses() {
                       placeholder="e.g. Salaries, Electricity"
                       value={customCategory}
                       onChange={(e) => setCustomCategory(e.target.value)}
-                      className="flex-1 text-xs font-semibold text-slate-800 bg-white border border-brand-primary/40 rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary/20"
+                      className="flex-1 text-xs font-semibold text-slate-800 bg-white border border-brand-primary/40 rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-brand-primary"
                     />
                     <button
                       type="button"
                       onClick={handleAddNewCategory}
-                      className="bg-brand-primary hover:bg-brand-primary/90 text-white text-xs px-3.5 rounded-xl font-bold border-0 cursor-pointer transition-colors"
+                      className="bg-brand-primary hover:bg-[#008967] text-white text-xs px-4 rounded-xl font-bold border-0 cursor-pointer transition-all"
                     >
-                      Add
+                      Save
                     </button>
                   </div>
                 )}
               </div>
 
-              {/* NOTE (OPTIONAL) */}
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wide block">
-                  Optional Note (Remarks)
+              {/* Row 5: Notes/Remarks Textbox */}
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block select-none">
+                  Optional Note / Remarks
                 </label>
                 <textarea
-                  rows="3"
+                  rows="2"
                   placeholder="Describe details... (supplier name, online txn ID, etc.)"
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
-                  className="w-full text-xs font-medium text-slate-800 bg-slate-50 border border-pos-border rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-brand-primary placeholder:text-slate-400"
+                  className="w-full text-xs font-medium text-slate-800 bg-slate-50 border border-pos-border rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-brand-primary focus:bg-white transition-all placeholder:text-slate-400"
                 />
               </div>
 
-              {/* SUBMIT */}
-              <button
-                type="submit"
-                className="w-full bg-brand-primary hover:bg-brand-primary/95 text-white py-3 px-4 rounded-xl text-xs font-extrabold flex items-center justify-center gap-1.5 mt-2 transition-all shadow-md shadow-emerald-500/10 cursor-pointer border-0 uppercase tracking-wider"
-              >
-                <Plus size={14} />
-                Save Expense Record
-              </button>
+              {/* Modal Buttons Footer bar */}
+              <div className="flex gap-3 pt-3.5 border-t border-pos-border select-none">
+                <button
+                  type="button"
+                  onClick={() => setShowAddModal(false)}
+                  className="flex-1 py-2.5 bg-[#f5f5f5] hover:bg-slate-200 border border-[#eee] text-slate-650 rounded-xl text-xs font-black cursor-pointer transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 py-2.5 bg-brand-primary hover:bg-[#008a69] text-white rounded-xl text-xs font-black transition-all shadow-xs cursor-pointer border-0 uppercase tracking-wider"
+                >
+                  Save Entry
+                </button>
+              </div>
+
             </form>
           </div>
-        </section>
-
-        {/* Right Column: Filters and Recent Expenses Table List (Colspan: 8) */}
-        <div className="lg:col-span-8 space-y-6">
-          
-          {/* Filters Panel Container */}
-          <div className="bg-pos-card border border-pos-border p-5 rounded-2xl shadow-xs grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
-            
-            {/* Realtime Search Query */}
-            <div className="space-y-1.5 col-span-1 sm:col-span-2 lg:col-span-1">
-              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wide flex items-center gap-1">
-                <Search size={11} className="text-brand-primary" />
-                <span>Search Notes/IDs</span>
-              </label>
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Type note, shop, ID..."
-                className="w-full text-xs font-semibold text-slate-800 placeholder-slate-400 bg-slate-50 border border-pos-border rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-brand-primary"
-              />
-            </div>
-
-            {/* Date From */}
-            <div className="space-y-1.5">
-              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wide flex items-center gap-1">
-                <Calendar size={11} className="text-brand-primary" />
-                <span>Since</span>
-              </label>
-              <input
-                type="date"
-                value={dateFrom}
-                onChange={(e) => setDateFrom(e.target.value)}
-                className="w-full text-xs font-semibold text-slate-800 bg-slate-50 border border-pos-border rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-brand-primary"
-              />
-            </div>
-
-            {/* Date To */}
-            <div className="space-y-1.5">
-              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wide flex items-center gap-1">
-                <Calendar size={11} className="text-brand-primary" />
-                <span>Until</span>
-              </label>
-              <input
-                type="date"
-                value={dateTo}
-                onChange={(e) => setDateTo(e.target.value)}
-                className="w-full text-xs font-semibold text-slate-800 bg-slate-50 border border-pos-border rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-brand-primary"
-              />
-            </div>
-
-            {/* Shop filter */}
-            <div className="space-y-1.5">
-              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wide flex items-center gap-1">
-                <Filter size={11} className="text-brand-primary" />
-                <span>Shop Group</span>
-              </label>
-              <select
-                value={filterShop}
-                onChange={(e) => setFilterShop(e.target.value)}
-                className="w-full text-xs font-semibold text-slate-800 bg-slate-50 border border-pos-border rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-brand-primary"
-              >
-                <option value="All">All Shops</option>
-                {shops.map((sh, idx) => (
-                  <option key={idx} value={sh}>{sh}</option>
-                ))}
-              </select>
-            </div>
-
-          </div>
-
-          {/* Quick Clear filters link */}
-          {(searchTerm || dateFrom || dateTo || filterShop !== "All") && (
-            <div className="flex justify-end pr-1">
-              <button
-                onClick={() => {
-                  setSearchTerm("");
-                  setDateFrom("");
-                  setDateTo("");
-                  setFilterShop("All");
-                }}
-                className="text-xs text-slate-400 hover:text-brand-danger font-extrabold flex items-center gap-1.5 cursor-pointer bg-transparent border-0"
-              >
-                Clear Filters
-              </button>
-            </div>
-          )}
-
-          {/* Table Panel Container */}
-          <div className="bg-pos-card border border-pos-border rounded-2xl shadow-xs overflow-hidden">
-            <div className="p-5 border-b border-pos-border/60 flex items-center justify-between bg-slate-50/50">
-              <div className="flex items-center gap-2">
-                <FileText size={16} className="text-slate-400" />
-                <span className="text-xs font-extrabold text-slate-700 uppercase tracking-wider">
-                  Recent Expense Logs ({filtered.length})
-                </span>
-              </div>
-            </div>
-
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse">
-                <thead>
-                  <tr className="border-b border-pos-border text-slate-400 uppercase text-[10px] tracking-widest font-extrabold bg-slate-50/30">
-                    <th className="p-4 text-left">Date / Time</th>
-                    <th className="p-4 text-left">Shop</th>
-                    <th className="p-4 text-left">Category</th>
-                    <th className="p-4 text-right">Amount</th>
-                    <th className="p-4 text-left">Note</th>
-                    <th className="p-4 text-center">Action</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-pos-border/50">
-                  {filtered.length === 0 ? (
-                    <tr>
-                      <td colSpan="6" className="p-12 text-center text-slate-400 font-semibold text-xs">
-                        No expenses found matching the selected filters. Log a new expense to get started.
-                      </td>
-                    </tr>
-                  ) : (
-                    filtered.map((exp) => (
-                      <tr key={exp.id} className="hover:bg-slate-50/40 transition-colors text-xs text-slate-700">
-                        <td className="p-4">
-                          <div className="font-bold text-slate-800 font-mono">{exp.date}</div>
-                          <div className="text-[10px] text-slate-400 mt-0.5">{exp.time}</div>
-                          <div className="text-[9px] text-slate-300 font-mono mt-0.5 uppercase">{exp.id}</div>
-                        </td>
-                        <td className="p-4 font-semibold text-slate-800">{exp.shop}</td>
-                        <td className="p-4">
-                          <span className="bg-slate-100 text-slate-600 px-2 py-1 rounded text-[10px] font-bold">
-                            {exp.category}
-                          </span>
-                        </td>
-                        <td className="p-4 text-right font-bold text-slate-800 font-mono">
-                          ₹{exp.amount.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                        </td>
-                        <td className="p-4 text-slate-500 max-w-[200px] break-words leading-relaxed font-medium">
-                          {exp.note || <span className="italic text-slate-300 font-normal">No remarks</span>}
-                        </td>
-                        <td className="p-4 text-center">
-                          {confirmDeleteId === exp.id ? (
-                            <div className="flex items-center justify-center gap-2">
-                              <button
-                                onClick={() => handleDeleteExpense(exp.id)}
-                                className="bg-brand-danger hover:bg-rose-600 text-white border-0 py-1 px-2.5 rounded font-bold text-[10px] cursor-pointer"
-                              >
-                                Delete
-                              </button>
-                              <button
-                                onClick={() => setConfirmDeleteId(null)}
-                                className="bg-slate-100 hover:bg-slate-200 text-slate-600 border-0 py-1 px-2.5 rounded font-bold text-[10px] cursor-pointer"
-                              >
-                                Stop
-                              </button>
-                            </div>
-                          ) : (
-                            <button
-                              onClick={() => setConfirmDeleteId(exp.id)}
-                              title="Delete Expense Entry"
-                              className="text-slate-400 hover:text-brand-danger p-2 hover:bg-rose-50 rounded-xl transition-all cursor-pointer border-0 bg-transparent"
-                            >
-                              <Trash2 size={15} />
-                            </button>
-                          )}
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Summary Footer on Filtered Amount */}
-            <div className="bg-slate-50/50 p-4 border-t border-pos-border flex flex-col sm:flex-row justify-between items-center text-xs font-bold text-slate-600 gap-2">
-              <span>Showing {filtered.length} of {expenses.length} expense transactions</span>
-              <span className="text-sm font-black text-slate-800">
-                Filtered Total: <span className="font-mono text-brand-primary">₹{totalSumFiltered.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-              </span>
-            </div>
-          </div>
-
         </div>
+      )}
 
-      </div>
-
-      {/* --- 4. TOAST ALERTS --- */}
+      {/* --- 5. TOAST ALERTS --- */}
       {toast.show && (
-        <div className="fixed bottom-5 right-5 z-[100] flex items-center gap-2 px-4 py-3 border border-pos-border rounded-xl bg-slate-900 text-slate-100 shadow-xl transition-all animate-fader text-xs leading-relaxed max-w-sm">
+        <div className="fixed bottom-5 right-5 z-[200] flex items-center gap-2.5 px-4.5 py-3 border border-pos-border rounded-xl bg-slate-900 text-slate-100 shadow-xl transition-all animate-fader text-xs leading-relaxed max-w-sm animate-in fade-in slide-in-from-bottom-4 duration-300">
           {toast.type === "success" ? (
             <CheckCircle2 size={16} className="text-brand-success shrink-0" />
           ) : toast.type === "warning" ? (
@@ -751,6 +833,7 @@ export default function Expenses() {
           <span className="font-bold flex-1">{toast.message}</span>
         </div>
       )}
+
     </div>
   );
 }

@@ -55,31 +55,31 @@ export default function AddCustomerModal({
 
   return (
     <div className="no-print fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-[120] p-5 animate-in fade-in duration-150">
-      <div className="bg-white rounded shadow-xl w-full max-w-sm py-3 border border-slate-100 overflow-hidden text-slate-800 font-sans">
+      <div className="bg-white rounded shadow-xl w-full max-w-sm  border border-slate-100 overflow-hidden text-slate-800 font-sans">
         {/* Modal Header */}
         <div className="bg-slate-50 border-b border-gray-100 px-5 py-5 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 bg-emerald-50 text-emerald-600 rounded flex items-center justify-center">
-              <UserPlus size={16} />
+              <UserPlus size={17} />
             </div>
             <div>
-              <h3 className="font-extrabold text-sm text-slate-900">
+              <h3 className="font-bold text-[16px] text-slate-900">
                 Register New Customer
               </h3>
-              <p className="text-[11px] text-slate-500 font-semibold tracking-normal">Directly save customer record</p>
+              <p className="text-[12px] text-slate-500 font-semibold tracking-normal">Directly save customer record</p>
             </div>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 rounded text-slate-400 hover:text-slate-650 hover:bg-slate-200 transition-colors cursor-pointer"
+            className="p-1.5 rounded text-slate-400 hover:text-slate-750 hover:bg-slate-200 transition-colors cursor-pointer"
           >
             <X size={16} />
           </button>
         </div>
 
         {/* Modal Body */}
-        <form onSubmit={handleSubmit} className="p-5 space-y-4">
+        <form onSubmit={handleSubmit} className="p-5 space-y-5">
           {newCustError && (
             <div className="bg-red-50 border border-red-200 text-red-700 py-2.5 px-3 rounded text-xs leading-relaxed font-semibold">
               {newCustError}
@@ -88,7 +88,7 @@ export default function AddCustomerModal({
 
           {/* Customer Name */}
           <div className="space-y-1">
-            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">
+            <label className="text-[14px] font-bold text-slate-600 uppercase tracking-wide block px-1 py-1">
               Customer Name *
             </label>
             <input
@@ -97,13 +97,13 @@ export default function AddCustomerModal({
               placeholder="Enter Full Name"
               value={newCustName}
               onChange={(e) => setNewCustName(e.target.value)}
-              className="w-full h-9 bg-slate-50 border border-gray-200 rounded px-3 text-xs font-semibold text-slate-850 outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 transition-all"
+              className="w-full h-10 bg-slate-50 border border-gray-200 rounded px-3 text-xs font-semibold text-slate-850 outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 transition-all"
             />
           </div>
 
           {/* Mobile Number */}
           <div className="space-y-1">
-            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">
+            <label className="text-[14px] font-bold text-slate-600 uppercase tracking-wide block px-1 py-1">
               Phone / Mobile Number *
             </label>
             <input
@@ -113,14 +113,14 @@ export default function AddCustomerModal({
               placeholder="10-digit mobile number"
               value={newCustPhone}
               onChange={(e) => setNewCustPhone(e.target.value.replace(/\D/g, ""))}
-              className="w-full h-9 bg-slate-50 border border-gray-200 rounded px-3 text-xs font-semibold text-slate-850 outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 transition-all font-mono"
+              className="w-full h-10 bg-slate-50 border border-gray-200 rounded px-3 text-xs font-semibold text-slate-850 outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 transition-all font-mono"
             />
           </div>
 
           {/* Email (Optional) */}
           <div className="space-y-1">
-            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">
-              Email Address (Optional)
+            <label className="text-[14px] font-bold text-slate-600 uppercase tracking-wide block px-1 py-1">
+              Email Address <span className="text-[12px] text-slate-400 ">(Optional)</span>
             </label>
             <input
               type="email"
@@ -133,8 +133,8 @@ export default function AddCustomerModal({
 
           {/* Address (Optional) */}
           <div className="space-y-1">
-            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">
-              Physical Address (Optional)
+            <label className="text-[14px] font-bold text-slate-600 uppercase tracking-wide block px-1 py-1">
+              Physical Address  <span className="text-[12px] text-slate-400 ">(Optional)</span>
             </label>
             <textarea
               placeholder="Home or Business Address"

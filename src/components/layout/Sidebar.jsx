@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { NavLink } from "react-router-dom";
-import { useAuth } from "../context/AuthContext"; // ➡️ Our global authentication hook
+import { useAuth } from "../../context/AuthContext"; // ➡️ Our global authentication hook
 import {
   LayoutDashboard,
   BarChart2,

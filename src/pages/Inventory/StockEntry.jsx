@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 
 const StockEntry = () => {
-  // பார்ம் ஸ்டேட்ஸ் (Form States)
+  // Form States
   const [products, setProducts] = useState([]);
   const [selectedProductId, setSelectedProductId] = useState("");
   const [quantity, setQuantity] = useState("");
@@ -19,15 +19,15 @@ const StockEntry = () => {
   const [purchasePrice, setPurchasePrice] = useState("");
   const [sellingPrice, setSellingPrice] = useState("");
   const [supplierNote, setSupplierNote] = useState("");
-  const [entryMode, setEntryMode] = useState("manual"); // manual அல்லது barcode
+  const [entryMode, setEntryMode] = useState("manual"); // manual or barcode
   const [barcodeInput, setBarcodeInput] = useState("");
 
-  // சமீபத்திய என்ட்ரிகள் ஸ்டேட் (Recent Entries State)
+  // Recent Entries State
   const [recentEntries, setRecentEntries] = useState([]);
   const [successMessage, setSuccessMessage] = useState("");
 
   useEffect(() => {
-    // லோக்கல் ஸ்டோரேஜில் இருந்து தயாரிப்புகள் மற்றும் முந்தைய என்ட்ரிகளை எடுத்தல்
+    // Fetch products and previous entries from localStorage
     const savedProducts = localStorage.getItem("billmate_products");
     if (savedProducts) setProducts(JSON.parse(savedProducts));
 
@@ -37,29 +37,29 @@ const StockEntry = () => {
     }
   }, []);
 
-  // பார்ம் சப்மிட் செய்யும் லாஜிக்
+  // Form submit logic
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!selectedProductId || !quantity || !purchasePrice) {
-      alert("தயவுசெய்து தேவையான அனைத்து விவரங்களையும் நிரப்பவும்!");
+      alert("Please fill in all the required details!");
       return;
     }
 
-    // தற்போதைய தயாரிப்பைக் கண்டறிதல்
+    // Find current product
     const updatedProducts = products.map((prod) => {
       if (prod.sku === selectedProductId || prod.id === selectedProductId) {
         const currentStock = Number(prod.currentStock || 0) + Number(quantity);
         return {
           ...prod,
           currentStock: currentStock,
-          costPrice: Number(purchasePrice), // புதிய வாங்குதல் விலை அப்டேட்
-          sellingPrice: sellingPrice ? Number(sellingPrice) : prod.sellingPrice, //விருப்பப்பட்டால் விற்பனை விலை அப்டேட்
+          costPrice: Number(purchasePrice), // Update cost price
+          sellingPrice: sellingPrice ? Number(sellingPrice) : prod.sellingPrice, // Update selling price optionally
         };
       }
       return prod;
     });
 
-    // தயாரிப்பு பெயர் அறிதல் (என்ட்ரி பேனலுக்காக)
+    // Find product name (for entry panel)
     const currentProd = products.find(
       (p) => p.sku === selectedProductId || p.id === selectedProductId,
     );
@@ -69,38 +69,38 @@ const StockEntry = () => {
       const date = new Date(dateString);
       if (isNaN(date.getTime())) return dateString;
 
-      // 'en-GB' லோக்கல் தானாகவே DD/MM/YYYY வடிவம் தரும், அதை நாம் '-' ஆக மாற்றுகிறோம்
+      // 'en-GB' locale automatically provides DD/MM/YYYY format, we convert / to -
       return new Intl.DateTimeFormat("en-GB").format(date).replace(/\//g, "-");
     };
 
-    // புதிய என்ட்ரி டேட்டா உருவாக்குதல் (SKU மற்றும் Notes பிழைகள் இங்கே சரி செய்யப்பட்டுள்ளன)
+    // Create new entry data (SKU and Notes are handled correctly)
     const newEntry = {
       id: Date.now(),
       name: currentProd ? currentProd.name : "Unknown Product",
-      sku: currentProd ? currentProd.sku : selectedProductId, // SKU வை நேரடியாக இணைத்தல்
+      sku: currentProd ? currentProd.sku : selectedProductId, // Link SKU directly
       qty: Number(quantity),
       unit: unit,
       buyPrice: Number(purchasePrice),
-      entryBy: "Admin", // தற்போதைய பயனர்
-      notes: supplierNote, // சப்ளையர் குறிப்பை 'notes' என்ற பெயரில் சேமித்தல்
-      date: formatDateIntl(new Date().toISOString()), // சரியான தேதி வடிவமைப்பு
+      entryBy: "Admin", // Current User
+      notes: supplierNote, // Save supplier remark as 'notes'
+      date: formatDateIntl(new Date().toISOString()), // Correct date formatting
     };
 
     const finalEntries = [newEntry, ...recentEntries];
 
-    // லோக்கல் ஸ்டோரேஜில் சேமித்தல் (முழு வரலாறும் சேமிப்பில் இருக்கும்)
+    // Save to localStorage (entire history is saved)
     localStorage.setItem("billmate_products", JSON.stringify(updatedProducts));
     localStorage.setItem(
       "billmate_stock_entries",
       JSON.stringify(finalEntries),
     );
 
-    // ஸ்டேட்களை புதுப்பித்தல்
+    // Update states
     setProducts(updatedProducts);
     setRecentEntries(finalEntries);
     setSuccessMessage("Stock replenished successfully!");
 
-    // பார்மை ரீசெட் செய்தல்
+    // Reset form
     setSelectedProductId("");
     setQuantity("");
     setPurchasePrice("");
@@ -111,7 +111,7 @@ const StockEntry = () => {
     setTimeout(() => setSuccessMessage(""), 3000);
   };
 
-  // பார்கோடு ஸ்கேன் செய்யும் போலி செயல்பாடு (Simulated Barcode Scan)
+  // Simulated Barcode Scan function
   const handleBarcodeSubmit = (e) => {
     e.preventDefault();
     const foundProduct = products.find((p) => p.sku === barcodeInput);
@@ -120,16 +120,16 @@ const StockEntry = () => {
       setPurchasePrice(foundProduct.costPrice || "");
       alert(`Product Found: ${foundProduct.name}`);
     } else {
-      alert("தயாரிப்பு பார்கோடுடன் பொருந்தவில்லை!");
+      alert("The product does not match the barcode!");
     }
   };
 
   return (
     <div className="p-5 grid grid-cols-1 lg:grid-cols-3 gap-5 bg-pos-bg text-slate-900 font-sans min-h-[calc(100vh-70px)]">
-      {/* இடது மற்றும் நடுப்பகுதி: STOCK ENTRY FORM */}
+      {/* Left and Center Panel: STOCK ENTRY FORM */}
       <div className="lg:col-span-2 bg-white border border-pos-border rounded p-5 shadow-xs flex flex-col justify-between">
         <div>
-          {/* தலைப்பு */}
+          {/* Header */}
           <div className="flex items-center justify-between border-b border-pos-border pb-3 mb-4">
             <div>
               <h2 className="text-lg font-bold text-brand-primary flex items-center gap-2">
@@ -141,7 +141,7 @@ const StockEntry = () => {
               </p>
             </div>
 
-            {/* என்ட்ரி மோடு சுவிட்ச் */}
+            {/* Entry mode switch */}
             <div className="flex border border-pos-border rounded overflow-hidden p-0.5 bg-slate-50">
               <button
                 onClick={() => setEntryMode("manual")}
@@ -158,7 +158,7 @@ const StockEntry = () => {
             </div>
           </div>
 
-          {/* பார்கோடு ஸ்கேனர் உள்ளீடு */}
+          {/* Barcode scanner input */}
           {entryMode === "barcode" && (
             <form
               onSubmit={handleBarcodeSubmit}
@@ -181,14 +181,14 @@ const StockEntry = () => {
             </form>
           )}
 
-          {/* வெற்றி அறிவிப்பு */}
+          {/* Success Notification */}
           {successMessage && (
             <div className="mb-4 bg-emerald-50 text-emerald-700 p-2.5 rounded text-xs font-bold flex items-center gap-2 border border-emerald-100 animate-pulse">
               <CheckCircle2 size={16} /> {successMessage}
             </div>
           )}
 
-          {/* முதன்மைப் படிவம் (Main Form) */}
+          {/* Main Form */}
           <form
             onSubmit={handleSubmit}
             className="grid grid-cols-1 sm:grid-cols-2 gap-4"
@@ -318,7 +318,7 @@ const StockEntry = () => {
               </div>
             </div>
 
-            {/* சப்மிட் பட்டன் */}
+            {/* Submit button */}
             <div className="sm:col-span-2 mt-2">
               <button
                 type="submit"
@@ -331,7 +331,7 @@ const StockEntry = () => {
         </div>
       </div>
 
-      {/* வலது பகுதி: RECENT STOCK ENTRIES PANEL */}
+      {/* Right side: RECENT STOCK ENTRIES PANEL */}
       <div className="bg-white border border-pos-border rounded p-4 shadow-xs flex flex-col h-full overflow-hidden">
         <div className="flex items-center gap-2 border-b border-pos-border pb-3 mb-3 shrink-0">
           <Clock size={16} className="text-brand-primary" />
@@ -340,7 +340,7 @@ const StockEntry = () => {
           </h3>
         </div>
 
-        {/* ஸ்க்ரோலபிள் என்ட்ரி லிஸ்ட் */}
+        {/* Scrollable Entry List */}
         <div className="flex-1 overflow-y-auto space-y-3 pr-1">
           {recentEntries.length === 0 ? (
             <p className="text-sm text-slate-400 text-center py-10 italic">
@@ -369,7 +369,7 @@ const StockEntry = () => {
                     +{entry.qty} {entry.unit}
                   </span>
                 </div>
-                {/* Supplier Note Right Panel-இல் காட்டுவதற்கு */}
+                {/* Supplier Note to display on Right Panel */}
                 {(entry.notes || entry.supplierNote) && (
                   <p className="text-[11px] text-slate-500 bg-slate-50 border border-slate-100 rounded p-1.5 mt-2 italic line-clamp-1">
                     Note: {entry.notes || entry.supplierNote}

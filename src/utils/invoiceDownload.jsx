@@ -140,7 +140,7 @@ export const downloadInvoiceHTML = (invoice, showToast) => {
 
   const blob = new Blob([htmlContent], { type: "text/html;charset=utf-8;" });
   const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
+  const link = document.createElement("a")  ;
   link.setAttribute("href", url);
   link.setAttribute("download", `Invoice_Receipt_${invoice.id}.html`);
   document.body.appendChild(link);

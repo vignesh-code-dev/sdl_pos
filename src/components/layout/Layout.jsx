@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Navbar from './Navbar';
 
 const Layout = ({ children, userRole, onRoleChange }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const location = useLocation();
+  const isPosPage = location.pathname === "/pos";
 
   return (
     <div className="flex h-screen bg-pos-bg text-slate-100 font-sans overflow-hidden">
@@ -22,7 +25,7 @@ const Layout = ({ children, userRole, onRoleChange }) => {
         <Navbar userRole={userRole} onRoleChange={onRoleChange} />
 
         {/* Page Content Render Area */}
-        <main className="flex-1 overflow-y-auto bg-pos-bg/20">
+        <main className={`flex-1 bg-pos-bg/20 ${isPosPage ? "overflow-hidden flex flex-col" : "overflow-y-auto"}`}>
           {children}
         </main>
 

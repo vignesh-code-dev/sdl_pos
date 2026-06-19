@@ -49,7 +49,7 @@ export default function EditInvoiceModal({
         <div className="p-5 space-y-4">
           <div className="p-3 bg-slate-50 border border-gray-200 rounded font-mono text-[11px] text-slate-800 space-y-1">
             <div className="flex justify-between">
-              <span>Invoice Hash Key:</span>
+              <span>Invoice Id:</span>
               <span className="font-bold text-slate-900">{editedInvoice.id}</span>
             </div>
             <div className="flex justify-between">

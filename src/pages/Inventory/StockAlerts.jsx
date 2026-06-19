@@ -62,20 +62,20 @@ const StockAlerts = () => {
     (p) => p.alert.type === "Force Sale",
   ).length;
 
-  // கோப்பின் மிக மேலே இம்போர்ட் செய்யும் இடத்தில் இப்படி இருக்கிறதா என்று உறுதி செய்து கொள்ளவும்:
+  // Ensure correct imports at the top of the file:
   // import { jsPDF } from "jspdf";
-  // import autoTable from "jspdf-autotable"; <--- இப்படி மாற்றி இம்போர்ட் செய்யவும்
+  // import autoTable from "jspdf-autotable";
 
   const handleExportPDF = () => {
     try {
       const doc = new jsPDF();
 
-      // 1. ரிப்போர்ட் தலைப்பு (Header)
+      // 1. Report Title (Header)
       doc.setFont("helvetica", "bold");
       doc.setFontSize(18);
       doc.text("BillMate - Stock Alerts Report", 14, 20);
 
-      // 2. சப்-ஹெடிங் மற்றும் ஃபில்டர் விவரங்கள்
+      // 2. Sub-heading and filter details
       doc.setFontSize(10);
       doc.setFont("helvetica", "normal");
       doc.text(
@@ -89,7 +89,7 @@ const StockAlerts = () => {
         34,
       );
 
-      // 3. டேபிளுக்கான தரவுகள் (Rows & Columns)
+      // 3. Table data (Rows & Columns)
       const tableHeaders = [
         [
           "Product Details",
@@ -108,7 +108,7 @@ const StockAlerts = () => {
         prod.currentStock,
       ]);
 
-      // 4. குளோபல் ஆட்டோ-டேபிள் ஃபங்க்ஷனைப் பயன்படுத்துதல் (Fix)
+      // 4. Use the global autoTable function (Fix)
       autoTable(doc, {
         head: tableHeaders,
         body: tableRows,
@@ -121,12 +121,12 @@ const StockAlerts = () => {
         },
       });
 
-      // 5. PDF கோப்பை டவுன்லோட் செய்தல்
+      // 5. Download the PDF file
       doc.save(`Stock_Alerts_${alertFilter.replace(" ", "_")}.pdf`);
     } catch (error) {
       console.error("PDF download failed:", error);
       alert(
-        "PDF உருவாக்குவதில் சிக்கல் ஏற்பட்டுள்ளது! கன்சோலை சரிபார்க்கவும்.",
+        "There was a problem generating the PDF! Please check the console.",
       );
     }
   };
@@ -254,7 +254,7 @@ const StockAlerts = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-pos-border text-[13px] text-slate-700">
-              {alertLogs.map((prod) => {
+              {alertLogs.map((prod, index) => {
                 let badgeColor = "bg-brand-warning text-white border-amber-100";
                 if (prod.alert.type === "Force Sale")
                   badgeColor = "bg-purple-600 text-white border-purple-100";
@@ -263,9 +263,9 @@ const StockAlerts = () => {
 
                 return (
                   <tr
-                    key={prod.id}
+                    key={prod.sku || prod.id || index}
                     className="hover:bg-slate-50/60 transition-colors"
-                  >
+                  > 
                     <td className="py-3 px-4 text-left pl-6 font-bold text-slate-800">
                       {prod.name}
                     </td>

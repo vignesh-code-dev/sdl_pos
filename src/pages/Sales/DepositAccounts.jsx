@@ -7,6 +7,7 @@ import {
   Trash2,
   Edit,
   AlertCircle,
+  Filter,
   FileText,
   CheckCircle,
   DollarSign,
@@ -22,6 +23,7 @@ import {
   Unlock,
   Printer,
   ChevronRight,
+  ChevronLeft,
   ShieldAlert,
   ArrowLeftRight
 } from "lucide-react";
@@ -35,6 +37,15 @@ const DepositAccounts = () => {
   // 2. Search & Filters State
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("All"); // "All", "Outstanding", "Settled"
+
+  // Pagination config
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 8;
+
+  // Reset page upon filter changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, statusFilter]);
 
   // 3. Modal Controls
   const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -278,8 +289,14 @@ const DepositAccounts = () => {
     return matchesSearch;
   });
 
+  // --- 8.5 PAGINATION CALCULATIONS ---
+  const totalRecords = filteredAccounts.length;
+  const totalPages = Math.ceil(totalRecords / itemsPerPage) || 1;
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedAccounts = filteredAccounts.slice(startIndex, startIndex + itemsPerPage);
+
   return (
-    <div className="p-6 bg-[#f8fafc] min-h-[calc(100vh-60px)] font-sans">
+    <div className="p-6 space-y-6 bg-pos-bg overflow-x-hidden min-h-screen text-slate-800 font-sans">
       
       {/* Toast Notification */}
       {toast.show && (
@@ -291,212 +308,227 @@ const DepositAccounts = () => {
       )}
 
       {/* Header section with page title */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-        <div>
-          <h1 className="text-2xl font-black text-slate-800 tracking-tight flex items-center gap-2">
-            <Wallet className="text-emerald-600" size={24} />
-            DEPOSIT ACCOUNTS
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-pos-card border border-pos-border p-5 rounded shadow-sm">
+        <div className="space-y-1">
+          <h1 className="text-3xl font-bold tracking-tight text-brand-primary flex items-center gap-2">
+           
+            Deposit Accounts Manager
           </h1>
-          <p className="text-slate-500 text-xs mt-1 font-medium">
+          <p className="text-xs text-slate-400 mt-1">
             Manage customer credit accounts, track loans extended, deposits made, and active outstanding balances.
           </p>
         </div>
 
         {/* Buttons */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <button
             type="button"
             onClick={() => setShowOpenAccountModal(true)}
-            className="h-10 px-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-extrabold flex items-center gap-2 cursor-pointer shadow-xs border-0 transition-colors"
+            className="flex items-center gap-1.5 text-sm font-extrabold bg-brand-primary hover:bg-brand-primary/95 text-white px-4 py-2.5 rounded transition-colors shadow-sm cursor-pointer border-0"
           >
             <Plus size={15} strokeWidth={2.5} />
-            OPEN CREDIT ACCOUNT
+            Open Credit Account
           </button>
         </div>
       </div>
 
       {/* KPI STAT CARDS */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         
         {/* Total Credit Given */}
-        <div className="bg-white rounded-xl p-4.5 border border-slate-100 shadow-3xs flex items-center justify-between">
-          <div>
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Total Credit Given</span>
-            <span className="text-2xl font-black text-slate-800 mt-1 block">₹{totalCreditGiven.toLocaleString("en-IN", { minimumFractionDigits: 2 })}</span>
-            <span className="text-[10px] text-slate-400 mt-1 block font-medium">Cumulative credit extended</span>
+        <div className="bg-pos-card border border-pos-border p-5 rounded shadow-sm flex items-center justify-between">
+          <div className="space-y-2">
+            <span className="text-xs font-bold text-slate-400 uppercase tracking-widest block">Total Credit Given</span>
+            <span className="text-3xl font-black text-slate-800 tracking-tight block font-mono">₹{totalCreditGiven.toLocaleString("en-IN", { minimumFractionDigits: 2 })}</span>
+            <span className="text-[13px] text-slate-400 font-medium block ">Cumulative credit extended</span>
           </div>
-          <div className="h-12 w-12 rounded-lg bg-orange-50 text-orange-600 flex items-center justify-center shrink-0">
-            <ArrowUpCircle size={24} />
+          <div className="p-3 rounded-xl bg-orange-50 text-orange-600 border border-orange-100 flex items-center justify-center shrink-0">
+            <ArrowUpCircle size={20} />
           </div>
         </div>
 
         {/* Total Payments */}
-        <div className="bg-white rounded-xl p-4.5 border border-slate-100 shadow-3xs flex items-center justify-between">
-          <div>
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Total Payments</span>
-            <span className="text-2xl font-black text-emerald-600 mt-1 block">₹{totalPayments.toLocaleString("en-IN", { minimumFractionDigits: 2 })}</span>
-            <span className="text-[10px] text-slate-400 mt-1 block font-medium">Payments credited to accounts</span>
+        <div className="bg-pos-card border border-pos-border p-5 rounded shadow-sm flex items-center justify-between">
+          <div className="space-y-2">
+            <span className="text-xs font-bold text-slate-400 uppercase tracking-widest block">Total Payments</span>
+            <span className="text-3xl font-black text-emerald-700 tracking-tight block font-mono">₹{totalPayments.toLocaleString("en-IN", { minimumFractionDigits: 2 })}</span>
+            <span className="text-[13px] text-slate-400 font-medium block">Payments credited to accounts</span>
           </div>
-          <div className="h-12 w-12 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
-            <ArrowDownCircle size={24} />
+          <div className="p-3 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-100 flex items-center justify-center shrink-0">
+            <ArrowDownCircle size={20} />
           </div>
         </div>
 
         {/* Total Outstanding */}
-        <div className="bg-white rounded-xl p-4.5 border border-slate-100 shadow-3xs flex items-center justify-between">
-          <div>
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Total Outstanding Balance</span>
-            <span className={`text-2xl font-black mt-1 block ${totalOutstanding > 0 ? "text-rose-600" : "text-emerald-600"}`}>
+        <div className="bg-pos-card border border-pos-border p-5 rounded shadow-sm flex items-center justify-between">
+          <div className="space-y-2">
+            <span className="text-xs font-bold text-slate-400 uppercase tracking-widest block">Total Outstanding Balance</span>
+            <span className={`text-3xl font-black tracking-tight block font-mono ${totalOutstanding > 0 ? "text-brand-danger" : "text-emerald-700"}`}>
               ₹{totalOutstanding.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
             </span>
-            <span className="text-[10px] text-slate-400 mt-1 block font-medium">Net receivable amount</span>
+            <span className="text-[13px] text-slate-400 font-medium block">Net receivable amount</span>
           </div>
-          <div className="h-12 w-12 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center shrink-0">
-            <DollarSign size={24} />
+          <div className="p-3 rounded-xl bg-rose-50 text-brand-danger border border-rose-100 flex items-center justify-center shrink-0">
+            <DollarSign size={20} />
           </div>
         </div>
 
         {/* Active Accounts */}
-        <div className="bg-white rounded-xl p-4.5 border border-slate-100 shadow-3xs flex items-center justify-between">
-          <div>
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Active Accounts</span>
-            <span className="text-2xl font-black text-blue-600 mt-1 block">{activeAccountsCount}</span>
-            <span className="text-[10px] text-slate-400 mt-1 block font-medium">Customers with unpaid balances</span>
+        <div className="bg-pos-card border border-pos-border p-5 rounded shadow-sm flex items-center justify-between">
+          <div className="space-y-2">
+            <span className="text-xs font-bold text-slate-400 uppercase tracking-widest block">Active Accounts</span>
+            <span className="text-3xl font-black text-blue-600 tracking-tight block font-mono">{activeAccountsCount}</span>
+            <span className="text-[13px] text-slate-400 font-medium block">Customers with unpaid balances</span>
           </div>
-          <div className="h-12 w-12 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
-            <User size={24} />
+          <div className="p-3 rounded-xl bg-blue-50 text-blue-600 border border-blue-100 flex items-center justify-center shrink-0">
+            <User size={20} />
           </div>
         </div>
 
       </div>
 
-      {/* FILTER & TABLE PANEL */}
-      <div className="bg-white rounded-xl border border-slate-100 shadow-3xs overflow-hidden flex flex-col">
+      {/* FILTERS DOCK */}
+      <div className="bg-pos-card border border-pos-border p-5 rounded shadow-sm grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
         
-        {/* Toolbar */}
-        <div className="p-4 bg-slate-50 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3.5">
-          
-          {/* Searching */}
-          <div className="relative flex-1 max-w-md">
-            <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search credit customer by name or phone..."
-              className="w-full h-10 bg-white border border-slate-200 hover:border-slate-300 rounded-lg pl-10 pr-4 text-xs font-semibold text-slate-700 outline-none focus:border-emerald-500 transition-colors shadow-5xs"
-            />
-          </div>
-
-          {/* Filtering */}
-          <div className="flex items-center gap-2">
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider shrink-0">Balance State:</span>
-            <div className="flex bg-slate-100 p-0.5 rounded-lg border border-slate-200">
-              <button
-                type="button"
-                onClick={() => setStatusFilter("All")}
-                className={`px-3 py-1.5 rounded-md text-[10px] font-extrabold cursor-pointer transition-all border-0
-                  ${statusFilter === "All" ? "bg-white text-slate-700 shadow-3xs" : "text-slate-400 hover:text-slate-700"}`}
-              >
-                ALL
-              </button>
-              <button
-                type="button"
-                onClick={() => setStatusFilter("Outstanding")}
-                className={`px-3 py-1.5 rounded-md text-[10px] font-extrabold cursor-pointer transition-all border-0
-                  ${statusFilter === "Outstanding" ? "bg-white text-rose-600 shadow-3xs" : "text-slate-400 hover:text-rose-600"}`}
-              >
-                OUTSTANDING ({accounts.filter(a => a.outstanding > 0).length})
-              </button>
-              <button
-                type="button"
-                onClick={() => setStatusFilter("Settled")}
-                className={`px-3 py-1.5 rounded-md text-[10px] font-extrabold cursor-pointer transition-all border-0
-                  ${statusFilter === "Settled" ? "bg-white text-emerald-600 shadow-3xs" : "text-slate-400 hover:text-slate-700"}`}
-              >
-                CLEAR / DEPOSITED
-              </button>
-            </div>
-          </div>
-
+        {/* Searching */}
+        <div className="md:col-span-2 space-y-3">
+          <label className="text-[13px] font-bold text-slate-400 uppercase tracking-wide flex items-center gap-1">
+            <Search size={11} className="text-brand-primary" />
+            <span>Search Customer Registry</span>
+          </label>
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search credit customer by name or phone..."
+            className="w-full text-sm font-semibold text-slate-800 placeholder-slate-400 bg-slate-50 border border-pos-border rounded px-3.5 py-2.5 focus:outline-none focus:border-brand-primary"
+          />
         </div>
 
-        {/* Core Table */}
-        <div className="overflow-x-auto min-h-[300px]">
-          <table className="w-full text-left border-collapse">
+        {/* Filtering */}
+        <div className="space-y-3">
+          <label className="text-[13px] font-bold text-slate-400 uppercase tracking-wide flex items-center gap-1">
+            <Filter size={11} className="text-brand-primary" />
+            <span>Balance State Filter</span>
+          </label>
+          <div className="flex bg-slate-50 border border-pos-border rounded p-1 justify-between">
+            <button
+              type="button"
+              onClick={() => setStatusFilter("All")}
+              className={`flex-1 text-center py-1.5 text-[13px] font-extrabold rounded transition-colors cursor-pointer border-0 ${
+                statusFilter === "All"
+                  ? "bg-brand-primary text-white shadow-xs"
+                  : "text-slate-400 hover:text-slate-700"
+              }`}
+            >
+              ALL
+            </button>
+            <button
+              type="button"
+              onClick={() => setStatusFilter("Outstanding")}
+              className={`flex-1 text-center py-1.5 text-[13px] font-bold rounded transition-colors cursor-pointer border-0 ${
+                statusFilter === "Outstanding"
+                  ? "bg-brand-primary text-white shadow-xs"
+                  : "text-slate-400 hover:text-slate-700"
+              }`}
+            >
+              DUE ({accounts.filter(a => a.outstanding > 0).length})
+            </button>
+            <button
+              type="button"
+              onClick={() => setStatusFilter("Settled")}
+              className={`flex-1 text-center py-1.5 text-[13px] font-bold rounded transition-colors cursor-pointer border-0 ${
+                statusFilter === "Settled"
+                  ? "bg-brand-primary text-white shadow-xs"
+                  : "text-slate-400 hover:text-slate-700"
+              }`}
+            >
+              SETTLED
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      {/* DATA TABLE CARD */}
+      <div className="bg-pos-card border border-pos-border rounded shadow-sm overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse min-w-[900px]">
             <thead>
-              <tr className="bg-slate-50 border-b border-slate-100 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-                <th className="px-6 py-4">Customer Name & Info</th>
-                <th className="px-6 py-4 text-right">Credit Limit</th>
-                <th className="px-6 py-4 text-right">Credit Extended (Dr)</th>
-                <th className="px-6 py-4 text-right">Payments Made (Cr)</th>
-                <th className="px-6 py-4 text-right font-black">Outstanding (Due)</th>
-                <th className="px-6 py-4">Account Standing</th>
-                <th className="px-6 py-4 text-center">Actions</th>
+              <tr className="border-b border-pos-border text-white uppercase text-xs font-semibold tracking-wider bg-emerald-600">
+                <th className="p-4 text-xs font-semibold uppercase">Customer Name & Info</th>
+                <th className="p-4 text-right text-xs font-semibold uppercase">Credit Limit</th>
+                <th className="p-4 text-right text-xs font-semibold uppercase">Credit Extended (Dr)</th>
+                <th className="p-4 text-right text-xs font-semibold uppercase">Payments Made (Cr)</th>
+                <th className="p-4 text-right text-xs font-semibold uppercase">Outstanding (Due)</th>
+                <th className="p-4 text-xs font-semibold uppercase">Account Standing</th>
+                <th className="p-4 text-center text-xs font-semibold uppercase w-40">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 text-xs">
-              {filteredAccounts.length === 0 ? (
+            <tbody className="divide-y divide-pos-border/50 text-sm font-medium text-text-secondary">
+              {paginatedAccounts.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center text-slate-400">
-                    <div className="flex flex-col items-center justify-center p-6">
-                      <AlertCircle className="text-slate-300 mb-2" size={32} />
-                      <p className="font-bold text-sm text-slate-500">No Credit Accounts Found</p>
-                      <p className="text-[11px] text-slate-400 mt-1">Try refining your search terms or create a credit account for a registered customer.</p>
+                  <td colSpan={7} className="px-6 py-20 text-center text-slate-400">
+                    <div className="flex flex-col items-center justify-center p-6 max-w-sm mx-auto">
+                      <div className="p-3.5 rounded-full bg-slate-100 text-slate-400 border border-slate-200 mb-2">
+                        <AlertCircle size={28} />
+                      </div>
+                      <p className="font-bold text-slate-750 text-sm">No Credit Accounts Found</p>
+                      <p className="text-[11px] text-slate-400 mt-1 leading-relaxed">Try refining your search terms or create a credit account for a registered customer.</p>
                     </div>
                   </td>
                 </tr>
               ) : (
-                filteredAccounts.map((acc, index) => {
+                paginatedAccounts.map((acc) => {
                   const usedPercentage = acc.creditLimit > 0 ? Math.min(100, Math.max(0, (acc.outstanding / acc.creditLimit) * 100)) : 0;
                   return (
-                    <tr key={acc.customerId} className="hover:bg-slate-50/50 transition-colors">
+                    <tr key={acc.customerId} className="hover:bg-slate-50/40 transition-colors text-sm font-medium text-text-secondary">
                       {/* Name & Contact */}
-                      <td className="px-6 py-4.5">
+                      <td className="p-4">
                         <div>
-                          <div className="font-extrabold text-slate-800 text-sm flex items-center gap-1.5">
+                          <div className="font-semibold text-slate-800 text-sm">
                             {acc.customerName}
                           </div>
-                          <div className="text-[11px] text-slate-400 font-semibold mt-1 flex items-center gap-1 font-mono uppercase">
-                            <Phone size={10} />
+                          <div className="text-[10px] text-slate-400 font-semibold mt-1 flex items-center gap-1 font-mono uppercase">
+                            <Phone size={10} className="text-brand-primary" />
                             {acc.customerMobile}
                           </div>
                         </div>
                       </td>
 
                       {/* Credit Limit */}
-                      <td className="px-6 py-4.5 text-right font-extrabold text-slate-700 font-mono">
+                      <td className="p-4 text-right font-bold text-slate-700 font-mono whitespace-nowrap">
                         ₹{acc.creditLimit.toFixed(2)}
                       </td>
 
                       {/* Cumulative Credit given */}
-                      <td className="px-6 py-4.5 text-right text-slate-600 font-mono font-semibold">
+                      <td className="p-4 text-right text-slate-600 font-mono font-semibold whitespace-nowrap">
                         ₹{(acc.creditGiven || 0).toFixed(2)}
                       </td>
 
                       {/* Payments made */}
-                      <td className="px-6 py-4.5 text-right text-emerald-600 font-mono font-semibold">
+                      <td className="p-4 text-right text-emerald-750 font-mono font-semibold whitespace-nowrap">
                         ₹{(acc.paymentsReceived || 0).toFixed(2)}
                       </td>
 
                       {/* Outstanding */}
-                      <td className="px-6 py-4.5 text-right font-mono font-black">
-                        <span className={acc.outstanding > 0 ? "text-rose-600" : "text-emerald-600"}>
+                      <td className="p-4 text-right font-mono font-semibold whitespace-nowrap">
+                        <span className={acc.outstanding > 0 ? "text-brand-danger" : "text-emerald-700"}>
                           ₹{acc.outstanding.toFixed(2)}
                         </span>
                       </td>
 
                       {/* Remaining Progress or bar */}
-                      <td className="px-6 py-4.5 min-w-[150px]">
+                      <td className="p-4 min-w-[150px]">
                         <div>
                           <div className="flex items-center justify-between text-[10px] font-bold text-slate-400 mb-1">
                             <span>Limit Used</span>
                             <span>{usedPercentage.toFixed(0)}%</span>
                           </div>
-                          <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                          <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden border border-slate-100">
                             <div 
                               className={`h-full rounded-full transition-all duration-300
-                                ${usedPercentage > 85 ? "bg-rose-500" : usedPercentage > 50 ? "bg-amber-500" : "bg-emerald-500"}`}
+                                ${usedPercentage > 85 ? "bg-brand-danger" : usedPercentage > 50 ? "bg-brand-warning" : "bg-brand-success"}`}
                               style={{ width: `${usedPercentage}%` }}
                             />
                           </div>
@@ -504,7 +536,7 @@ const DepositAccounts = () => {
                       </td>
 
                       {/* Operations */}
-                      <td className="px-6 py-4.5 text-center">
+                      <td className="p-4 text-center">
                         <div className="flex items-center justify-center gap-1.5">
                           {/* Ledger */}
                           <button
@@ -513,7 +545,7 @@ const DepositAccounts = () => {
                               setSelectedAccount(acc);
                               setShowLedgerModal(true);
                             }}
-                            className="h-8 w-8 text-slate-500 hover:text-slate-700 hover:bg-slate-150 border border-slate-200 bg-white rounded-md flex items-center justify-center cursor-pointer transition-all shadow-5xs"
+                            className="h-8 w-8 text-slate-500 hover:text-slate-700 hover:bg-slate-100 border border-pos-border bg-white rounded flex items-center justify-center cursor-pointer transition-all shadow-5xs"
                             title="View Transaction History"
                           >
                             <FileText size={13} strokeWidth={2.5} />
@@ -527,7 +559,7 @@ const DepositAccounts = () => {
                               setLimitForm({ creditLimit: acc.creditLimit.toString() });
                               setShowLimitModal(true);
                             }}
-                            className="h-8 w-8 text-amber-600 hover:text-amber-700 hover:bg-amber-50 border border-amber-200 bg-white rounded-md flex items-center justify-center cursor-pointer transition-all shadow-5xs"
+                            className="h-8 w-8 text-brand-warning hover:text-brand-warning/90 hover:bg-amber-50/50 border border-pos-border bg-white rounded flex items-center justify-center cursor-pointer transition-all shadow-5xs"
                             title="Adjust Limit"
                           >
                             <Edit size={13} strokeWidth={2.5} />
@@ -540,7 +572,7 @@ const DepositAccounts = () => {
                               setSelectedAccount(acc);
                               setShowPaymentModal(true);
                             }}
-                            className="h-8 px-2.5 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-700 rounded-md text-[10px] font-extrabold flex items-center gap-1 cursor-pointer transition-colors shadow-5xs"
+                            className="h-8 px-3 bg-emerald-50 hover:bg-emerald-100 border border-emerald-250 text-emerald-700 rounded text-[10px] font-bold flex items-center gap-1 cursor-pointer transition-colors shadow-5xs"
                             title="Collect Cash Deposit"
                           >
                             <CreditCard size={11} strokeWidth={2.5} />
@@ -557,13 +589,94 @@ const DepositAccounts = () => {
           </table>
         </div>
 
+        {/* Summary Footer on Filtered Amount with Pagination Controls */}
+        <div className="bg-slate-50/50 p-4 border-t border-pos-border flex flex-col sm:flex-row justify-between items-center text-xs font-bold text-slate-600 gap-2 select-none border-0">
+          {totalRecords > 0 ? (
+            <span>
+              Showing <span className="font-extrabold text-slate-700">{startIndex + 1}</span> to{" "}
+              <span className="font-extrabold text-slate-700">
+                {Math.min(totalRecords, startIndex + itemsPerPage)}
+              </span>{" "}
+              of <span className="font-extrabold text-slate-700">{totalRecords}</span> entries (Filtered from {accounts.length} total)
+            </span>
+          ) : (
+            <span>Showing 0 of 0 entries</span>
+          )}
+
+          {totalRecords > 0 && (
+            <div className="flex items-center gap-1">
+              {/* Chevron Back control */}
+              <button
+                type="button"
+                onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                disabled={currentPage === 1}
+                className="h-7 w-7 border border-[#eee] bg-white text-slate-500 rounded disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-200/60 font-sans font-bold flex items-center justify-center cursor-pointer transition-colors"
+                title="Previous Page"
+              >
+                <ChevronLeft size={12} strokeWidth={3} />
+              </button>
+
+              {/* Page indexes */}
+              {Array.from({ length: totalPages }, (_, idx) => idx + 1).map((page) => {
+                const isFirst = page === 1;
+                const isLast = page === totalPages;
+                const isNearCurrent = Math.abs(page - currentPage) <= 1;
+
+                if (totalPages > 5 && !isFirst && !isLast && !isNearCurrent) {
+                  if (page === 2 && currentPage > 3) {
+                    return (
+                      <span key="ellipsis-start" className="px-1 text-slate-300 font-extrabold select-none">
+                        ...
+                      </span>
+                    );
+                  }
+                  if (page === totalPages - 1 && currentPage < totalPages - 2) {
+                    return (
+                      <span key="ellipsis-end" className="px-1 text-slate-300 font-extrabold select-none">
+                        ...
+                      </span>
+                    );
+                  }
+                  return null;
+                }
+
+                const isActive = page === currentPage;
+                return (
+                  <button
+                    key={page}
+                    type="button"
+                    onClick={() => setCurrentPage(page)}
+                    className={`h-7 w-7 flex items-center justify-center rounded text-xs transition-all border cursor-pointer ${
+                      isActive
+                        ? "bg-brand-primary border-brand-primary text-white font-bold"
+                        : "bg-white border-pos-border text-slate-600 hover:bg-slate-100"
+                    }`}
+                  >
+                    {page}
+                  </button>
+                );
+              })}
+
+              {/* Chevron Next control */}
+              <button
+                type="button"
+                onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                disabled={currentPage === totalPages}
+                className="h-7 w-7 border border-[#eee] bg-white text-slate-500 rounded disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-200/60 font-sans font-bold flex items-center justify-center cursor-pointer transition-colors"
+                title="Next Page"
+              >
+                <ChevronRight size={12} strokeWidth={3} />
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* MODAL 1: RECORD CUSTOMER DEPOSIT PAYMENT / SETTLEMENT */}
       {showPaymentModal && selectedAccount && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-          <div className="bg-white rounded-xl shadow-lg border border-slate-100 w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-150">
-            <div className="bg-slate-50 border-b border-slate-100 p-4.5 px-5 flex items-center justify-between">
+          <div className="bg-white rounded-2xl shadow-lg border border-pos-border w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+            <div className="bg-slate-50 border-b border-pos-border p-4.5 px-5 flex items-center justify-between">
               <div>
                 <h3 className="text-sm font-black text-slate-800 uppercase tracking-wider">Collect Credit Payment</h3>
                 <p className="text-[11px] text-slate-400 mt-0.5 font-bold">RECEIVE SETTLEMENT FOR {selectedAccount.customerName.toUpperCase()}</p>
@@ -571,7 +684,7 @@ const DepositAccounts = () => {
               <button
                 type="button"
                 onClick={() => setShowPaymentModal(false)}
-                className="text-slate-450 hover:text-slate-700 bg-slate-100 hover:bg-slate-200 p-1.5 rounded-full border-0 cursor-pointer transition-colors"
+                className="text-slate-400 hover:text-slate-700 bg-slate-100 hover:bg-slate-200 p-1.5 rounded-full border-0 cursor-pointer transition-colors"
               >
                 <X size={15} />
               </button>
@@ -579,14 +692,14 @@ const DepositAccounts = () => {
             
             <form onSubmit={handleRecordPayment} className="p-5 space-y-4">
               
-              <div className="bg-rose-50/50 border border-rose-100 rounded-lg p-3 text-xs flex justify-between items-center font-bold text-rose-800 mb-1">
+              <div className="bg-rose-50/50 border border-rose-150 rounded-xl p-3.5 text-xs flex justify-between items-center font-bold text-brand-danger mb-1">
                 <span>Account Credit Due:</span>
-                <span className="font-black text-sm">₹{selectedAccount.outstanding.toFixed(2)}</span>
+                <span className="font-black text-sm font-mono">₹{selectedAccount.outstanding.toFixed(2)}</span>
               </div>
 
               {/* Amount to Pay */}
-              <div>
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Payment Amount (₹) *</label>
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Payment Amount (₹) *</label>
                 <input
                   type="number"
                   min="0.01"
@@ -595,17 +708,17 @@ const DepositAccounts = () => {
                   onChange={(e) => setPaymentForm({ ...paymentForm, amount: e.target.value })}
                   placeholder="0.00"
                   required
-                  className="w-full h-10 bg-slate-50 border border-slate-200 rounded-lg px-3.5 text-sm font-extrabold text-slate-800 outline-none focus:bg-white focus:border-emerald-500 transition-all font-mono"
+                  className="w-full text-xs font-bold text-slate-800 bg-slate-50 border border-pos-border rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-brand-primary font-mono placeholder:font-sans placeholder:text-slate-400 placeholder:font-medium"
                 />
               </div>
 
               {/* Payment Method */}
-              <div>
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Collect Via Method</label>
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Collect Via Method</label>
                 <select
                   value={paymentForm.paymentMethod}
                   onChange={(e) => setPaymentForm({ ...paymentForm, paymentMethod: e.target.value })}
-                  className="w-full h-10 bg-slate-50 border border-slate-200 rounded-lg px-3 text-xs font-bold text-slate-700 outline-none focus:bg-white focus:border-emerald-500 transition-all cursor-pointer"
+                  className="w-full text-xs font-bold text-slate-700 bg-slate-50 border border-pos-border rounded-xl px-3 py-2.5 focus:outline-none focus:border-brand-primary cursor-pointer"
                 >
                   <option value="CASH">CASH</option>
                   <option value="UPI">UPI / PAYTM / PHONEPE</option>
@@ -615,29 +728,29 @@ const DepositAccounts = () => {
               </div>
 
               {/* Description */}
-              <div>
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Internal Reference / Note</label>
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block font-sans">Internal Reference / Note</label>
                 <input
                   type="text"
                   value={paymentForm.description}
                   onChange={(e) => setPaymentForm({ ...paymentForm, description: e.target.value })}
                   placeholder="Eg: Handed cash on register desk"
-                  className="w-full h-10 bg-slate-50 border border-slate-200 rounded-lg px-3.5 text-xs font-semibold text-slate-700 outline-none focus:bg-white focus:border-emerald-500 transition-all"
+                  className="w-full text-xs font-semibold text-slate-800 bg-slate-50 border border-pos-border rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-brand-primary"
                 />
               </div>
 
               {/* Submit / Cancel Buttons */}
-              <div className="flex gap-2.5 pt-2 border-t border-slate-100 flex-row">
+              <div className="flex gap-2.5 pt-4 border-t border-pos-border flex-row">
                 <button
                   type="button"
                   onClick={() => setShowPaymentModal(false)}
-                  className="flex-1 h-10 bg-slate-100 hover:bg-slate-250 border border-slate-200 text-slate-600 rounded-lg text-xs font-extrabold cursor-pointer transition-all"
+                  className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 border border-pos-border text-slate-600 rounded-xl text-xs font-extrabold cursor-pointer transition-all"
                 >
                   CANCEL
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 h-10 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-extrabold flex items-center justify-center gap-1 cursor-pointer transition-all border-0 shadow-xs"
+                  className="flex-1 py-2.5 bg-brand-primary hover:bg-brand-primary/95 text-white rounded-xl text-xs font-extrabold flex items-center justify-center gap-1 cursor-pointer transition-all border-0 shadow-xs"
                 >
                   <CheckCircle size={14} />
                   CONFIRM RECEIPT
@@ -652,8 +765,8 @@ const DepositAccounts = () => {
       {/* MODAL 2: ADJUST CUSTOMER CREDIT LIMIT */}
       {showLimitModal && selectedAccount && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-          <div className="bg-white rounded-xl shadow-lg border border-slate-100 w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-150">
-            <div className="bg-slate-50 border-b border-slate-100 p-4.5 px-5 flex items-center justify-between">
+          <div className="bg-white rounded-2xl shadow-lg border border-pos-border w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+            <div className="bg-slate-50 border-b border-pos-border p-4.5 px-5 flex items-center justify-between">
               <div>
                 <h3 className="text-sm font-black text-slate-800 uppercase tracking-wider">Adjust Credit Limit</h3>
                 <p className="text-[11px] text-slate-400 mt-0.5 font-bold">SET ALLOWED LIMIT FOR {selectedAccount.customerName.toUpperCase()}</p>
@@ -661,7 +774,7 @@ const DepositAccounts = () => {
               <button
                 type="button"
                 onClick={() => setShowLimitModal(false)}
-                className="text-slate-450 hover:text-slate-700 bg-slate-100 hover:bg-slate-200 p-1.5 rounded-full border-0 cursor-pointer transition-colors"
+                className="text-slate-400 hover:text-slate-700 bg-slate-100 hover:bg-slate-200 p-1.5 rounded-full border-0 cursor-pointer transition-colors"
               >
                 <X size={15} />
               </button>
@@ -669,14 +782,14 @@ const DepositAccounts = () => {
             
             <form onSubmit={handleUpdateLimit} className="p-5 space-y-4">
               
-              <div className="bg-blue-50/50 border border-blue-100 rounded-lg p-3 text-xs flex justify-between items-center font-bold text-blue-800 mb-1">
+              <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-3.5 text-xs flex justify-between items-center font-bold text-blue-800 mb-1">
                 <span>Current Outstanding Due:</span>
-                <span className="font-black">₹{selectedAccount.outstanding.toFixed(2)}</span>
+                <span className="font-extrabold font-mono">₹{selectedAccount.outstanding.toFixed(2)}</span>
               </div>
 
               {/* Limit input */}
-              <div>
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">New Credit Limit Total (₹) *</label>
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">New Credit Limit Total (₹) *</label>
                 <input
                   type="number"
                   min="0"
@@ -685,25 +798,25 @@ const DepositAccounts = () => {
                   onChange={(e) => setLimitForm({ ...limitForm, creditLimit: e.target.value })}
                   placeholder="0"
                   required
-                  className="w-full h-10 bg-slate-50 border border-slate-200 rounded-lg px-3.5 text-sm font-extrabold text-slate-800 outline-none focus:bg-white focus:border-blue-500 transition-all font-mono"
+                  className="w-full text-xs font-bold text-slate-800 bg-slate-50 border border-pos-border rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-brand-primary font-mono placeholder:font-sans placeholder:text-slate-400 placeholder:font-medium"
                 />
-                <p className="text-[9.5px] text-slate-450 mt-1.5 leading-relaxed font-medium">
+                <p className="text-[10px] text-slate-400 mt-1.5 leading-relaxed font-medium">
                   The client will not be allowed to buy items on POS layout exceeding this numeric state limit.
                 </p>
               </div>
 
               {/* Submit Buttons */}
-              <div className="flex gap-2.5 pt-2 border-t border-slate-100 flex-row">
+              <div className="flex gap-2.5 pt-4 border-t border-pos-border flex-row">
                 <button
                   type="button"
                   onClick={() => setShowLimitModal(false)}
-                  className="flex-1 h-10 bg-slate-100 hover:bg-slate-250 border border-slate-200 text-slate-600 rounded-lg text-xs font-extrabold cursor-pointer transition-all"
+                  className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 border border-pos-border text-slate-600 rounded-xl text-xs font-extrabold cursor-pointer transition-all"
                 >
                   CANCEL
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 h-10 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-extrabold flex items-center justify-center gap-1 cursor-pointer transition-all border-0 shadow-xs"
+                  className="flex-1 py-2.5 bg-brand-primary hover:bg-brand-primary/95 text-white rounded-xl text-xs font-extrabold flex items-center justify-center gap-1 cursor-pointer transition-all border-0 shadow-xs"
                 >
                   <CheckCircle size={14} />
                   UPDATE LIMIT
@@ -718,16 +831,16 @@ const DepositAccounts = () => {
       {/* MODAL 3: ENABLE/OPEN CREDIT FOR EXISTING CUSTOMER */}
       {showOpenAccountModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-          <div className="bg-white rounded-xl shadow-lg border border-slate-100 w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-150">
-            <div className="bg-slate-50 border-b border-slate-100 p-4.5 px-5 flex items-center justify-between">
+          <div className="bg-white rounded-2xl shadow-lg border border-pos-border w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+            <div className="bg-slate-50 border-b border-pos-border p-4.5 px-5 flex items-center justify-between">
               <div>
-                <h3 className="text-sm font-black text-slate-800 uppercase tracking-wider">Open Credit account</h3>
+                <h3 className="text-sm font-black text-slate-800 uppercase tracking-wider">Open Credit Account</h3>
                 <p className="text-[11px] text-slate-400 mt-0.5 font-bold">ENABLE CREDIT LINE FOR IN-HOUSE CLIENTS</p>
               </div>
               <button
                 type="button"
                 onClick={() => setShowOpenAccountModal(false)}
-                className="text-slate-450 hover:text-slate-700 bg-slate-100 hover:bg-slate-200 p-1.5 rounded-full border-0 cursor-pointer transition-colors"
+                className="text-slate-400 hover:text-slate-700 bg-slate-100 hover:bg-slate-200 p-1.5 rounded-full border-0 cursor-pointer transition-colors"
               >
                 <X size={15} />
               </button>
@@ -736,13 +849,13 @@ const DepositAccounts = () => {
             <form onSubmit={handleOpenAccount} className="p-5 space-y-4">
               
               {/* Choose Customer */}
-              <div>
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1 font-sans">Select Customer *</label>
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Select Customer *</label>
                 <select
                   value={openAccountForm.customerId}
                   onChange={(e) => setOpenAccountForm({ ...openAccountForm, customerId: e.target.value })}
                   required
-                  className="w-full h-10 bg-slate-50 border border-slate-200 rounded-lg px-2 text-xs font-bold text-slate-700 outline-none focus:bg-white focus:border-emerald-500 transition-all cursor-pointer"
+                  className="w-full text-xs font-bold text-slate-700 bg-slate-50 border border-pos-border rounded-xl px-2 py-2.5 focus:outline-none focus:border-brand-primary cursor-pointer"
                 >
                   <option value="">-- Choose Registered Contact --</option>
                   {customers
@@ -754,15 +867,15 @@ const DepositAccounts = () => {
                     ))}
                 </select>
                 {customers.filter(c => !accounts.some(acc => acc.customerId === c.id)).length === 0 && (
-                  <p className="text-[9.5px] text-rose-500 font-semibold mt-1">
+                  <p className="text-[10px] text-brand-danger font-bold mt-1">
                     * All currently registered clients have active credit layouts.
                   </p>
                 )}
               </div>
 
               {/* Set Limit */}
-              <div>
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Allowed Credit Ceiling (₹) *</label>
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Allowed Credit Ceiling (₹) *</label>
                 <input
                   type="number"
                   min="1"
@@ -771,23 +884,23 @@ const DepositAccounts = () => {
                   onChange={(e) => setOpenAccountForm({ ...openAccountForm, creditLimit: e.target.value })}
                   placeholder="Eg: 10000"
                   required
-                  className="w-full h-10 bg-slate-50 border border-slate-200 rounded-lg px-3.5 text-sm font-extrabold text-slate-800 outline-none focus:bg-white focus:border-emerald-500 transition-all font-mono"
+                  className="w-full text-xs font-bold text-slate-800 bg-slate-50 border border-pos-border rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-brand-primary font-mono placeholder:font-sans placeholder:text-slate-400 placeholder:font-medium"
                 />
               </div>
 
               {/* Submit Buttons */}
-              <div className="flex gap-2.5 pt-2 border-t border-slate-100 flex-row">
+              <div className="flex gap-2.5 pt-4 border-t border-pos-border flex-row">
                 <button
                   type="button"
                   onClick={() => setShowOpenAccountModal(false)}
-                  className="flex-1 h-10 bg-slate-100 hover:bg-slate-250 border border-slate-200 text-slate-600 rounded-lg text-xs font-extrabold cursor-pointer transition-all"
+                  className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 border border-pos-border text-slate-600 rounded-xl text-xs font-extrabold cursor-pointer transition-all"
                 >
                   CANCEL
                 </button>
                 <button
                   type="submit"
                   disabled={customers.filter(c => !accounts.some(acc => acc.customerId === c.id)).length === 0}
-                  className="flex-1 h-10 bg-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-emerald-700 text-white rounded-lg text-xs font-extrabold flex items-center justify-center gap-1 cursor-pointer transition-all border-0 shadow-xs"
+                  className="flex-1 py-2.5 bg-brand-primary disabled:opacity-50 disabled:cursor-not-allowed hover:bg-brand-primary/95 text-white rounded-xl text-xs font-extrabold flex items-center justify-center gap-1 cursor-pointer transition-all border-0 shadow-xs"
                 >
                   <CheckCircle size={14} />
                   ENABLE ACCOUNT
@@ -802,8 +915,8 @@ const DepositAccounts = () => {
       {/* MODAL 4: DETAILED LEDGER TRANSACTION LOG / AUDIT HISTORY */}
       {showLedgerModal && selectedAccount && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-          <div className="bg-white rounded-xl shadow-lg border border-slate-100 w-full max-w-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
-            <div className="bg-slate-50 border-b border-slate-100 p-4.5 px-5 flex items-center justify-between">
+          <div className="bg-white rounded-2xl shadow-lg border border-pos-border w-full max-w-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+            <div className="bg-slate-50 border-b border-pos-border p-4.5 px-5 flex items-center justify-between">
               <div>
                 <h3 className="text-sm font-black text-slate-800 uppercase tracking-wider">Debit & Credit Ledger</h3>
                 <p className="text-[11px] text-slate-400 mt-0.5 font-bold">LEDGER LOGS OF {selectedAccount.customerName.toUpperCase()}</p>
@@ -811,61 +924,61 @@ const DepositAccounts = () => {
               <button
                 type="button"
                 onClick={() => setShowLedgerModal(false)}
-                className="text-slate-450 hover:text-slate-700 bg-slate-100 hover:bg-slate-200 p-1.5 rounded-full border-0 cursor-pointer transition-colors"
+                className="text-slate-400 hover:text-slate-700 bg-slate-100 hover:bg-slate-200 p-1.5 rounded-full border-0 cursor-pointer transition-colors"
               >
                 <X size={15} />
               </button>
             </div>
             
-            <div className="p-5">
+            <div className="p-5 space-y-4">
               
               {/* Account Quick Stats Box */}
-              <div className="grid grid-cols-3 gap-2.5 bg-slate-50 p-3.5 border border-slate-100 rounded-xl mb-4.5">
+              <div className="grid grid-cols-3 gap-3.5 bg-slate-50 p-4 border border-pos-border rounded-xl">
                 <div>
                   <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Allowed Limit</span>
-                  <span className="text-sm font-extrabold text-slate-700 mt-0.5 font-mono">₹{selectedAccount.creditLimit.toFixed(2)}</span>
+                  <span className="text-sm font-bold text-slate-700 mt-0.5 block font-mono">₹{selectedAccount.creditLimit.toFixed(2)}</span>
                 </div>
                 <div>
                   <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Deposited Pay</span>
-                  <span className="text-sm font-extrabold text-emerald-600 mt-0.5 font-mono">₹{selectedAccount.paymentsReceived.toFixed(2)}</span>
+                  <span className="text-sm font-bold text-emerald-700 mt-0.5 block font-mono">₹{selectedAccount.paymentsReceived.toFixed(2)}</span>
                 </div>
                 <div>
                   <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Outstanding Due</span>
-                  <span className={`text-sm font-black mt-0.5 font-mono ${selectedAccount.outstanding > 0 ? "text-rose-600" : "text-emerald-600"}`}>
+                  <span className={`text-sm font-black mt-0.5 block font-mono ${selectedAccount.outstanding > 0 ? "text-brand-danger" : "text-emerald-700"}`}>
                     ₹{selectedAccount.outstanding.toFixed(2)}
                   </span>
                 </div>
               </div>
 
               {/* Transactions List */}
-              <div className="border border-slate-150 rounded-xl overflow-hidden">
-                <div className="bg-slate-100 px-4 py-2.5 text-[10px] font-bold text-slate-500 uppercase tracking-wider grid grid-cols-12 gap-2">
-                  <div className="col-span-1 text-center">ID</div>
+              <div className="border border-pos-border rounded-xl overflow-hidden">
+                <div className="bg-slate-50 px-4 py-2.5 text-[10px] font-bold text-slate-500 uppercase tracking-wider grid grid-cols-12 gap-2 border-b border-pos-border">
+                  <div className="col-span-2 text-center font-mono">ID</div>
                   <div className="col-span-3">Timestamp</div>
                   <div className="col-span-2 text-center">Type</div>
-                  <div className="col-span-4 select-none">Notes / Ref</div>
+                  <div className="col-span-3 select-none">Notes / Ref</div>
                   <div className="col-span-2 text-right">Amount (₹)</div>
                 </div>
 
-                <div className="overflow-y-auto max-h-[250px] divide-y divide-slate-100 text-[11px] font-semibold text-slate-600">
+                <div className="overflow-y-auto max-h-[250px] divide-y divide-pos-border text-[11px] font-semibold text-slate-600 bg-white">
                   {(!selectedAccount.transactions || selectedAccount.transactions.length === 0) ? (
-                    <div className="p-8 text-center text-slate-400">
-                      No transactions recorded yet.
+                    <div className="p-10 text-center text-slate-400 font-medium">
+                      No debit or credit transactions recorded yet.
                     </div>
                   ) : (
                     selectedAccount.transactions.map((tx) => (
-                      <div key={tx.id} className="hover:bg-slate-50/50 px-4 py-3.5 grid grid-cols-12 gap-2 uppercase font-sans tracking-wide">
-                        <div className="col-span-1 text-center font-mono text-[10px] text-slate-400 font-bold">{tx.id}</div>
-                        <div className="col-span-3 text-slate-500 text-[10px]">{tx.date}</div>
+                      <div key={tx.id} className="hover:bg-slate-50/50 px-4 py-3 grid grid-cols-12 gap-2 uppercase font-sans tracking-wide items-center">
+                        <div className="col-span-2 text-center font-mono text-[10px] text-slate-400 font-bold">{tx.id}</div>
+                        <div className="col-span-3 text-slate-500 text-[10px] font-semibold font-mono">{tx.date}</div>
                         <div className="col-span-2 text-center">
                           <span className={`inline-block text-[9px] font-extrabold px-1.5 py-0.5 rounded
-                            ${tx.type === "CREDIT" ? "bg-orange-50 text-orange-600" : "bg-emerald-50 text-emerald-600"}`}>
+                            ${tx.type === "CREDIT" ? "bg-orange-50 text-orange-600 border border-orange-100" : "bg-emerald-50 text-emerald-700 border border-emerald-150"}`}>
                             {tx.type}
                           </span>
                         </div>
-                        <div className="col-span-4 text-slate-700 font-sans truncate normal-case" title={tx.description}>{tx.description}</div>
+                        <div className="col-span-3 text-slate-700 font-sans truncate normal-case font-medium" title={tx.description}>{tx.description}</div>
                         <div className="col-span-2 text-right font-bold font-mono">
-                          <span className={tx.type === "CREDIT" ? "text-rose-600" : "text-emerald-600"}>
+                          <span className={tx.type === "CREDIT" ? "text-brand-danger" : "text-emerald-700"}>
                             {tx.type === "CREDIT" ? "+" : "-"}₹{tx.amount.toFixed(2)}
                           </span>
                         </div>
@@ -876,11 +989,11 @@ const DepositAccounts = () => {
               </div>
 
               {/* print layout bottom */}
-              <div className="mt-5 pt-3.5 border-t border-slate-100 flex justify-end">
+              <div className="pt-3 border-t border-pos-border flex justify-end">
                 <button
                   type="button"
                   onClick={() => setShowLedgerModal(false)}
-                  className="h-10 px-4 bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-600 rounded-lg text-xs font-extrabold cursor-pointer transition-all"
+                  className="py-2.5 px-4 bg-slate-100 hover:bg-slate-200 border border-pos-border text-slate-600 rounded-xl text-xs font-extrabold cursor-pointer transition-all"
                 >
                   CLOSE LEDGER
                 </button>

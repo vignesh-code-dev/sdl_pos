@@ -16,15 +16,15 @@ const StockCount = () => {
   const [stockStatusFilter, setStockStatusFilter] = useState("All");
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  // டேட்டாவை லோட் செய்யும் பங்க்ஷன்
+  // Function to load the inventory data
   const loadInventoryData = () => {
     setIsRefreshing(true);
     try {
       const savedProducts = localStorage.getItem("billmate_products");
       const parsedProducts = savedProducts ? JSON.parse(savedProducts) : [];
 
-      // புதிய பில்லிங் மற்றும் விற்பனை மெட்ரிக்ஸ்களை சாம்பிள் டேட்டாவாக இணைக்கிறோம்
-      // (பின்னாலில் பில் போடும் டேட்டாவுடன் இதை எளிதாக இணைத்துக் கொள்ளலாம்)
+      // We attach new billing and sales metrics as sample data
+      // (This can be easily integrated with actual billing data later)
       const mappedProducts = parsedProducts.map((p) => {
         const currentStock =
           p.currentStock !== undefined
@@ -32,7 +32,7 @@ const StockCount = () => {
             : Math.floor(Math.random() * 100);
         const minStock = p.minStock !== undefined ? p.minStock : 10;
 
-        // 30 நாட்களில் விற்கப்பட்ட அளவு (சாம்பிள்)
+        // Quantity sold in the last 30 days (sample)
         const qtySold30D =
           p.qtySold30D !== undefined
             ? p.qtySold30D
@@ -45,7 +45,7 @@ const StockCount = () => {
         const profit30D =
           qtySold30D * ((p.sellingPrice || 0) - (p.costPrice || 0));
 
-        // கடைசியாக விற்கப்பட்ட நாள் (Sample Date format: YYYY-MM-DD)
+        // Last sold date (Sample Date format: YYYY-MM-DD)
         const lastSold =
           p.lastSold || (qtySold30D > 0 ? "2026-06-08" : "No Sales");
 
@@ -72,7 +72,7 @@ const StockCount = () => {
     loadInventoryData();
   }, []);
 
-  // --- KPI கணக்கீடுகள் ---
+  // --- KPI Calculations ---
   const totalProducts = products.length;
   const lowStockProducts = products.filter(
     (p) => p.currentStock > 0 && p.currentStock <= p.minStock,
@@ -85,7 +85,7 @@ const StockCount = () => {
     0,
   );
 
-  // --- ஃபில்டர் லாஜிக் ---
+  // --- Filter Logic ---
   const filteredProducts = products.filter((p) => {
     const matchesSearch =
       p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||

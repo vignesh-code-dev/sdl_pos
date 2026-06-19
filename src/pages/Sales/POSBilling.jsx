@@ -24,8 +24,8 @@
     Smartphone,
     Download,
   } from "lucide-react";
-  import InvoiceModal from "../../components/InvoiceModal";
-  import AddCustomerModal from "../../components/AddCustomerModal";
+  import InvoiceModal from "../../components/invoices/InvoiceModal";
+  import AddCustomerModal from "../../components/people/AddCustomerModal";
 
   const POSBilling = () => {
     const [products, setProducts] = useState([]);
@@ -560,20 +560,20 @@
             {/* Cart Stats */}
             <div className="grid grid-cols-4 gap-3">
               <div className="bg-white rounded p-4 border border-gray-150 shadow-2xs">
-                <div className="text-[12px] font-bold text-gray-500 uppercase tracking-wider">ITEMS</div>
-                <div className="text-xl font-bold text-gray-900 mt-1">{totalItems}</div>
+                <div className="text-[13px] font-bold text-gray-500 uppercase tracking-wider">ITEMS</div>
+                <div className="text-3xl font-bold text-gray-900 mt-1">{totalItems}</div>
               </div>
               <div className="bg-white rounded p-4 border border-gray-150 shadow-2xs">
-                <div className="text-[12px] font-bold text-gray-500 uppercase tracking-wider">QUANTITY</div>
-                <div className="text-xl font-bold text-gray-900 mt-1">{Number(totalQty.toFixed(3))}</div>
+                <div className="text-[13px] font-bold text-gray-500 uppercase tracking-wider">QUANTITY</div>
+                <div className="text-3xl font-bold text-gray-900 mt-1">{Number(totalQty.toFixed(3))}</div>
               </div>
               <div className="bg-white rounded p-4 border border-gray-150 shadow-2xs">
-                <div className="text-[12px] font-bold text-gray-500 uppercase tracking-wider">SUBTOTAL</div>
-                <div className="text-xl font-bold text-emerald-600 mt-1">₹{subtotal.toFixed(2)}</div>
+                <div className="text-[13px] font-bold text-gray-500 uppercase tracking-wider">SUBTOTAL</div>
+                <div className="text-3xl font-bold text-emerald-600 mt-1">₹{subtotal.toFixed(2)}</div>
               </div>
               <div className="bg-white rounded p-4 border border-gray-150 shadow-2xs">
-                <div className="text-[12px] font-bold text-gray-500 uppercase tracking-wider">DISCOUNT</div>
-                <div className="text-xl font-bold text-red-600 mt-1">₹{totalDiscount.toFixed(2)}</div>
+                <div className="text-[13px] font-bold text-gray-500 uppercase tracking-wider">DISCOUNT</div>
+                <div className="text-3xl font-bold text-red-600 mt-1">₹{totalDiscount.toFixed(2)}</div>
               </div>
             </div>
               
@@ -608,10 +608,10 @@
                       <div key={item.sku} className="cart-row border-b border-gray-100 last:border-b-0 px-6 py-4.5 grid grid-cols-12 gap-4 items-center hover:bg-slate-50/40 transition-colors">
                         <div className="col-span-1 text-[15px] text-gray-800 font-bold text-center">{idx + 1}</div>
                         <div className="col-span-3 text-left">
-                          <div className="text-[14px] font-bold text-slate-800 leading-tight">{item.name}</div>
-                          <div className="text-[10px] text-slate-400 mt-0.5 font-semibold uppercase tracking-wider">{item.sku}</div>
+                          <div className="text-[16px] font-bold text-slate-800 leading-tight">{item.name}</div>
+                          <div className="text-[11px] text-slate-500 mt-0.5 font-semibold uppercase tracking-wider">{item.sku}</div>
                         </div>
-                        <div className="col-span-1 text-center text-[14px] font-bold text-slate-700">{item.rate.toFixed(2)}</div>
+                        <div className="col-span-1 text-center text-[16px] font-bold text-slate-700">{item.rate.toFixed(2)}</div>
                         <div className="col-span-2">
                           <div className="flex items-center justify-center">
                             <div className="flex items-center border border-gray-250 rounded bg-white h-8 overflow-hidden shadow-2xs hover:border-gray-400 transition-colors">
@@ -624,7 +624,7 @@
                                 step={isDecimalUnit(item.unit || item.unitType) ? "any" : "1"} 
                                 value={item.quantity}
                                 onChange={(e) => handleQtyDirectChange(item.sku, e.target.value)}
-                                className="w-8 text-center text-xs font-bold text-gray-800 bg-transparent border-0 outline-none p-0 focus:ring-0 select-all" />
+                                className="w-8 text-center text-[14px] font-bold text-gray-800 bg-transparent border-0 outline-none p-0 focus:ring-0 select-all" />
                               <button type="button" onClick={() => updateQuantity(item.sku, 1)}
                                 className="w-7 h-full flex items-center justify-center hover:bg-slate-50 text-slate-400 hover:text-slate-700 transition-colors border-l border-gray-250 cursor-pointer text-xs font-semibold">
                                 <Plus size={10} strokeWidth={3} />
@@ -632,20 +632,20 @@
                             </div>
                           </div>
                         </div>
-                        <div className="col-span-1 text-center text-[11px] font-extrabold text-slate-500 uppercase tracking-wider">{item.unit || "PCS"}</div>
+                        <div className="col-span-1 text-center text-[14px] font-bold text-slate-500 uppercase tracking-wider">{item.unit || "PCS"}</div>
                         <div className="col-span-1 text-center flex justify-center">
                           <input type="number" min="0" max="100" value={item.discount || 0}
                             onChange={(e) => updateLineDiscount(item.sku, e.target.value)}
-                            className="w-12 text-center text-xs text-red-600 font-extrabold bg-white border border-red-300 rounded-md py-1 px-1 outline-none focus:border-red-500 transition-colors" />
+                            className="w-12 text-center text-[14px] text-red-600 font-extrabold bg-white border border-red-300 rounded py-1 px-1 outline-none focus:border-red-500 transition-colors" />
                         </div>
-                        <div className="col-span-1 text-center text-[14px] text-slate-700 font-bold">{(item.tax || 0).toFixed(2)}</div>
-                        <div className="col-span-1 pr-1 text-right text-[14px] font-bold text-slate-800">{calculateLineTotal(item).toFixed(2)}</div>
+                        <div className="col-span-1 text-center text-[16px] text-slate-700 font-bold">{(item.tax || 0).toFixed(2)}</div>
+                        <div className="col-span-1 pr-1 text-right text-[16px] font-bold text-slate-800">{calculateLineTotal(item).toFixed(2)}</div>
                         <div className="col-span-1 text-center">
                           <div className="flex items-center justify-center">
                             <button type="button" onClick={() => removeItem(item.sku)}
-                              className="w-8 h-8 rounded-md border border-red-300 bg-white hover:bg-red-50 text-red-500 hover:text-red-700 flex items-center justify-center cursor-pointer transition-all shadow-2xs"
+                              className="w-7 h-7 rounded border border-red-300 bg-white hover:bg-red-50 text-red-500 hover:text-red-700 flex items-center justify-center cursor-pointer transition-all shadow-2xs"
                               title="Remove Item">
-                              <Trash2 size={13} strokeWidth={2.5} />
+                              <X size={13} strokeWidth={2.5} />
                             </button>
                           </div>
                         </div>
@@ -791,27 +791,28 @@
 
               {/* Totals */}
               <div className="bg-slate-50/80 rounded p-4 space-y-2 border border-slate-150">
-                <div className="flex justify-between items-center text-[13px] font-semibold text-slate-500">
+                <div className="flex justify-between items-center text-[15px] font-semibold text-slate-500">
                   <span>Item Subtotal</span>
                   <span className="font-bold text-[14px] text-slate-800">₹{subtotal.toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between items-center text-[13px] font-semibold text-slate-500">
-                  <span>Discounts</span>
-                  <span className="font-bold text-[14px] text-emerald-600">-₹{totalLineDiscount.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between items-center text-[13px] font-semibold text-slate-500">
+                <div className="flex justify-between items-center text-[15px] font-semibold text-slate-500">
                   <span>Tax (Integrated GST)</span>
                   <span className="font-bold text-[14px] text-slate-800">₹{totalTax.toFixed(2)}</span>
                 </div>
+                <div className="flex justify-between items-center text-[15px] font-semibold text-slate-500">
+                  <span>Discounts</span>
+                  <span className="font-bold text-[14px] text-red-600">-₹{totalLineDiscount.toFixed(2)}</span>
+                </div>
+                
                 {globalDiscount > 0 && (
-                  <div className="flex justify-between items-center text-xs font-semibold text-slate-500 border-t border-slate-200/60 pt-2">
+                  <div className="flex justify-between items-center text-[15px] font-semibold text-slate-500 border-t border-slate-200/60 pt-2">
                     <span>Flat Savings</span>
-                    <span className="font-extrabold text-emerald-600">-₹{globalDiscount.toFixed(2)}</span>
+                    <span className="font-extrabold text-red-600">-₹{globalDiscount.toFixed(2)}</span>
                   </div>
                 )}
                 <div className="flex justify-between items-center border-t border-slate-250 pt-3 ">
-                  <span className="text-[15px] font-black text-slate-700 uppercase">GRAND PAYABLE</span>
-                  <span className="text-[17px] font-black text-emerald-600">₹{grandTotal.toFixed(2)}</span>
+                  <span className="text-[16px] font-black text-slate-700 uppercase">GRAND PAYABLE</span>
+                  <span className="text-[18px] font-black text-emerald-600">₹{grandTotal.toFixed(2)}</span>
                 </div>
               </div>
             </div>

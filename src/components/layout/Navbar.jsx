@@ -8,7 +8,7 @@ import {
   ChevronDown,
   User,
 } from "lucide-react";
-import { useAuth } from "../context/AuthContext"; // ➡️ Original authentication hook
+import { useAuth } from "../../context/AuthContext"; // ➡️ Original authentication hook
 
 const Navbar = () => {
   // ➡️ Get required details from global context

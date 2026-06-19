@@ -12,12 +12,12 @@ import {
 
 const StockHistory = () => {
   const [movementLog, setMovementLog] = useState([]);
-  const [products, setProducts] = useState([]); // தயாரிப்புகள் பட்டியல்
+  const [products, setProducts] = useState([]); // Products list
   const [searchQuery, setSearchQuery] = useState("");
   const [userFilter, setUserFilter] = useState("All");
 
   useEffect(() => {
-    // 1. அனைத்து தயாரிப்புகளையும் எடுத்தல் (SKU Fallback-காக)
+    // 1. Fetch all products (for SKU fallback)
     const savedProducts = localStorage.getItem("billmate_products");
     let mappedProducts = [];
     if (savedProducts) {
@@ -25,36 +25,36 @@ const StockHistory = () => {
       setProducts(mappedProducts);
     }
 
-    // 2. ஸ்டாக் என்ட்ரிகளை எடுத்தல்
+    // 2. Fetch stock entries
     const savedEntries = localStorage.getItem("billmate_stock_entries");
     if (savedEntries) {
       setMovementLog(JSON.parse(savedEntries));
     }
   }, []);
 
-  // --- Summary KPI கணக்கீடுகள் ---
+  // --- Summary KPI Calculations ---
   const totalEntries = movementLog.length;
 
-  // தனித்துவமான தயாரிப்புகளின் எண்ணிக்கை
+  // Count of unique products
   const uniqueProductsCount = new Set(
     movementLog.map((item) => item.sku || item.selectedProductId || item.name),
   ).size;
 
-  // மொத்தமாக சேர்க்கப்பட்ட ஸ்டாக்கின் அளவு
+  // Total stock quantity added
   const totalQuantityAdded = movementLog.reduce(
     (acc, item) => acc + Number(item.qty || 0),
     0,
   );
 
-  // --- யுசர் ஃபில்டருக்கான பட்டியல் தயாரிப்பு ---
+  // --- User filter list preparation ---
   const dynamicUsers = [
     "All",
     ...new Set(movementLog.map((item) => item.entryBy)),
   ];
 
-  // --- சர்ச் & ஃபில்டர் லாஜிக் ---
+  // --- Search & Filter Logic ---
   const filteredLogs = movementLog.filter((log) => {
-    // பழைய தரவாக இருந்தால், தயாரிப்புகள் லிஸ்டில் இருந்து அதன் SKU-வை தேடுதல்
+    // In case of older data, seek the product SKU from the products list
     const matchedProduct = products.find(
       (p) =>
         p.name === log.name ||
@@ -190,7 +190,7 @@ const StockHistory = () => {
             </thead>
             <tbody className="divide-y divide-pos-border text-[13px] text-slate-700">
               {filteredLogs.map((log) => {
-                // பழைய என்ட்ரிகளுக்கு தயாரிப்புகள் லிஸ்டில் இருந்து SKU எடுக்கும் மேப்பிங் லாஜிக்
+                // Mapping logic to fetch SKU from product list for older entries
                 const targetProduct = products.find(
                   (p) =>
                     p.name === log.name ||

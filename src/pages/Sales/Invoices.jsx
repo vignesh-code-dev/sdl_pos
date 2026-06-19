@@ -22,12 +22,14 @@ import {
   RotateCcw,
   Save,
   CreditCard,
-  ShoppingBag
+  ShoppingBag,
+  ChevronLeft,
+  ChevronRight
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
-import InvoiceModal from "../../components/InvoiceModal";
-import EditInvoiceModal from "../../components/EditInvoiceModal";
-import ReturnInvoiceModal from "../../components/ReturnInvoiceModal";
+import InvoiceModal from "../../components/invoices/InvoiceModal";
+import EditInvoiceModal from "../../components/invoices/EditInvoiceModal";
+import ReturnInvoiceModal from "../../components/invoices/ReturnInvoiceModal";
 
 const Invoices = () => {
   const { shopInfo } = useAuth();
@@ -41,6 +43,15 @@ const Invoices = () => {
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
+
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 8;
+
+  // Reset pagination to first page upon filter modifications
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, dateFrom, dateTo, statusFilter]);
 
   // 3. UI Dialog States
   const [selectedInvoice, setSelectedInvoice] = useState(null);
@@ -255,6 +266,12 @@ const Invoices = () => {
     .filter((inv) => inv.status !== "Cancelled")
     .reduce((sum, inv) => sum + (parseFloat(inv.balance) || 0), 0);
 
+  // Pagination slice and total counts metadata
+  const totalFilteredCount = filteredInvoices.length;
+  const totalPages = Math.ceil(totalFilteredCount / itemsPerPage) || 1;
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedInvoices = filteredInvoices.slice(startIndex, startIndex + itemsPerPage);
+
   // CSV Export for external reporting
   const handleCSVExport = () => {
     if (filteredInvoices.length === 0) {
@@ -440,12 +457,12 @@ const Invoices = () => {
       {/* ──────────────────────────────────────────────────────────────
           TOP ACTION BAR: Header Panel, Quick Filters
           ────────────────────────────────────────────────────────────── */}
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 bg-pos-card border border-pos-border p-5 rounded-2xl shadow-sm">
-        <div>
-          <h1 className="text-xl font-black text-brand-primary tracking-tight">
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 bg-pos-card border border-pos-border p-5 rounded shadow-sm">
+        <div className="space-y-1">
+          <h1 className="text-3xl font-bold tracking-tight text-brand-primary">
             Invoice & Returns Registry
           </h1>
-          <p className="text-xs text-slate-400 mt-0.5">
+          <p className="text-xs text-text-muted mt-1 font-medium">
             Audit historic orders, execute returns, manage balances, and generate CSV reports.
           </p>
         </div>
@@ -453,10 +470,10 @@ const Invoices = () => {
         <div className="flex flex-wrap items-center gap-2.5">
           <button
             onClick={handleCSVExport}
-            className="flex items-center gap-1.5 text-xs font-bold bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-100 px-4 py-2.5 rounded-xl transition-all shadow-sm cursor-pointer"
+            className="flex items-center gap-1.5 text-sm font-semibold bg-white border border-brand-primary hover:bg-brand-primary/5 text-brand-primary px-4 py-2.5 rounded transition-all cursor-pointer"
           >
             <Download size={14} />
-            CSV Export
+            Export CSV
           </button>
         </div>
       </div>
@@ -467,45 +484,45 @@ const Invoices = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         
         {/* Metric 1 */}
-        <div className="bg-pos-card border border-pos-border p-5 rounded-2xl shadow-sm flex items-center justify-between">
-          <div className="space-y-1">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Gross Filtered Receipts</span>
-            <span className="text-xl font-black text-slate-800 font-mono">₹{totalInvoicesValue.toFixed(2)}</span>
+        <div className="bg-pos-card border border-pos-border p-5 rounded shadow-xs flex items-center justify-between">
+          <div className="space-y-2">
+            <span className="text-xs py-1 text-slate-500 uppercase tracking-widest block font-bold select-none">Gross Filtered Receipts</span>
+            <span className="text-3xl font-semibold text-slate-800 font-mono">₹{totalInvoicesValue.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
           </div>
-          <div className="p-3 rounded-xl bg-emerald-50 text-brand-primary border border-emerald-100 font-bold">
+          <div className="p-3 rounded-xl bg-teal-50 text-brand-primary border border-teal-100 font-semibold text-sm">
             <FileText size={20} />
           </div>
         </div>
 
         {/* Metric 2 */}
-        <div className="bg-pos-card border border-pos-border p-5 rounded-2xl shadow-sm flex items-center justify-between">
-          <div className="space-y-1">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Active Invoices</span>
-            <span className="text-xl font-black text-slate-800 font-mono">{totalInvoicesCount - totalCancelledCount}</span>
+        <div className="bg-pos-card border border-pos-border p-5 rounded shadow-xs flex items-center justify-between">
+          <div className="space-y-2">
+            <span className="text-xs uppercase text-slate-500 tracking-widest block font-bold select-none">Active Invoices</span>
+            <span className="text-3xl font-semibold text-slate-800 font-mono">{totalInvoicesCount - totalCancelledCount}</span>
           </div>
-          <div className="p-3 rounded-xl bg-teal-50 text-teal-600 border border-teal-100">
+          <div className="p-3 rounded-xl bg-sky-50 text-sky-600 border border-sky-100 font-semibold text-sm">
             <CheckCircle2 size={20} />
           </div>
         </div>
 
         {/* Metric 3 */}
-        <div className="bg-pos-card border border-pos-border p-5 rounded-2xl shadow-sm flex items-center justify-between">
-          <div className="space-y-1">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Cancelled Count</span>
-            <span className="text-xl font-black text-slate-800 font-mono">{totalCancelledCount}</span>
+        <div className="bg-pos-card border border-pos-border p-5 rounded shadow-xs flex items-center justify-between">
+          <div className="space-y-2">
+            <span className="text-xs uppercase text-slate-500 tracking-widest block font-bold select-none">Cancelled Count</span>
+            <span className="text-3xl font-bold text-slate-800 font-mono">{totalCancelledCount}</span>
           </div>
-          <div className="p-3 rounded-xl bg-rose-50 text-brand-danger border border-rose-100">
+          <div className="p-3 rounded-xl bg-rose-50 text-brand-danger border border-rose-100 font-semibold text-sm">
             <XCircle size={20} />
           </div>
         </div>
 
         {/* Metric 4 */}
-        <div className="bg-pos-card border border-pos-border p-5 rounded-2xl shadow-sm flex items-center justify-between">
-          <div className="space-y-1">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Outstanding Balance</span>
-            <span className="text-xl font-black text-brand-danger font-mono">₹{totalOutstandingBalance.toFixed(2)}</span>
+        <div className="bg-pos-card border border-pos-border p-5 rounded shadow-xs flex items-center justify-between">
+          <div className="space-y-2">
+            <span className="text-xs uppercase text-slate-500 tracking-widest block font-bold select-none">Outstanding Balance</span>
+            <span className="text-3xl font-bold text-brand-danger font-mono">₹{totalOutstandingBalance.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
           </div>
-          <div className="p-3 rounded-xl bg-rose-50 border border-rose-100 text-brand-danger">
+          <div className="p-3 rounded-xl bg-rose-50 border border-rose-100 text-brand-danger font-semibold text-sm">
             <AlertTriangle size={20} />
           </div>
         </div>
@@ -515,12 +532,12 @@ const Invoices = () => {
       {/* ──────────────────────────────────────────────────────────────
           FILTERS DOCK
           ────────────────────────────────────────────────────────────── */}
-      <div className="bg-pos-card border border-pos-border p-5 rounded-2xl shadow-sm grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+      <div className="bg-pos-card border border-pos-border p-5 rounded shadow-xs grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
         
         {/* Multi Search */}
         <div className="space-y-1.5">
-          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wide flex items-center gap-1">
-            <Search size={11} className="text-brand-primary" />
+          <label className="text-xs font-bold text-slate-500 uppercase tracking-wide uppercase tracking-wider py-1 flex items-center gap-1.5 select-none">
+            <Search size={11.5} className="text-brand-primary" />
             <span>Search Identifier</span>
           </label>
           <input
@@ -528,50 +545,50 @@ const Invoices = () => {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Invoice ID, customer..."
-            className="w-full text-xs font-semibold text-slate-800 placeholder-slate-400 bg-slate-50 border border-pos-border rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-brand-primary"
+            className="w-full text-sm font-semibold text-slate-800 bg-[#f8fafc] border border-pos-border rounded px-3.5 py-3 focus:outline-none focus:border-brand-primary focus:bg-white transition-all placeholder:text-slate-400 placeholder:font-medium height-[42px]"
           />
         </div>
 
         {/* Date From */}
         <div className="space-y-1.5">
-          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wide flex items-center gap-1">
-            <Calendar size={11} className="text-brand-primary" />
+          <label className="text-xs font-bold text-slate-500 uppercase tracking-wide uppercase tracking-wider py-1 flex items-center gap-1.5 select-none">
+            <Calendar size={11.5} className="text-brand-primary" />
             <span>Date From</span>
           </label>
           <input
             type="date"
             value={dateFrom}
             onChange={(e) => setDateFrom(e.target.value)}
-            className="w-full text-xs font-semibold text-slate-800 bg-slate-50 border border-pos-border rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-brand-primary font-mono"
+            className="w-full text-sm font-semibold text-slate-800 bg-[#f8fafc] border border-pos-border rounded px-3.5 py-3 focus:outline-none focus:border-brand-primary focus:bg-white transition-all font-mono"
           />
         </div>
 
         {/* Date To */}
         <div className="space-y-1.5">
-          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wide flex items-center gap-1">
-            <Calendar size={11} className="text-brand-primary" />
+          <label className="text-xs font-bold text-slate-500 uppercase tracking-wide uppercase tracking-wider py-1 flex items-center gap-1.5 select-none">
+            <Calendar size={11.5} className="text-brand-primary" />
             <span>Date To</span>
           </label>
           <input
             type="date"
             value={dateTo}
             onChange={(e) => setDateTo(e.target.value)}
-            className="w-full text-xs font-semibold text-slate-800 bg-slate-50 border border-pos-border rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-brand-primary font-mono"
+            className="w-full text-sm font-semibold text-slate-800 bg-[#f8fafc] border border-pos-border rounded px-3.5 py-3 focus:outline-none focus:border-brand-primary focus:bg-white transition-all font-mono"
           />
         </div>
 
         {/* Status Filter */}
         <div className="space-y-1.5">
-          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wide flex items-center gap-1">
-            <Filter size={11} className="text-brand-primary" />
+          <label className="text-xs font-bold text-slate-500 uppercase tracking-wide uppercase tracking-wider py-1 flex items-center gap-1.5 select-none">
+            <Filter size={11.5} className="text-brand-primary" />
             <span>Status Filter</span>
           </label>
-          <div className="flex bg-slate-50 border border-pos-border rounded-xl p-1 justify-between">
+          <div className="flex bg-[#f8fafc] border border-pos-border rounded p-1 justify-between">
             {["All", "Active", "Cancelled"].map((st) => (
               <button
                 key={st}
                 onClick={() => setStatusFilter(st)}
-                className={`flex-1 text-center py-1.5 text-[10px] font-extrabold rounded-lg transition-colors cursor-pointer ${
+                className={`flex-1 text-center py-1.5 text-[13px] font-bold rounded transition-colors cursor-pointer border-0 ${
                   statusFilter === st
                     ? "bg-brand-primary text-white shadow-xs"
                     : "text-slate-400 hover:text-slate-700"
@@ -588,26 +605,26 @@ const Invoices = () => {
       {/* ──────────────────────────────────────────────────────────────
           DATA TABLE
           ────────────────────────────────────────────────────────────── */}
-      <div className="bg-pos-card border border-pos-border rounded-2xl shadow-sm overflow-hidden">
+      <div className="bg-pos-card border border-pos-border rounded shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead className="bg-slate-50 text-[10px] text-slate-500 font-extrabold uppercase tracking-wider border-b border-pos-border">
-              <tr>
-                <th className="py-4 px-5">Invoice No</th>
-                <th className="py-4 px-4">Date</th>
-                <th className="py-4 px-4">Customer</th>
-                <th className="py-4 px-3 text-center">Items</th>
-                <th className="py-4 px-3 text-right">Returns</th>
-                <th className="py-4 px-4 text-right">Grand Total (₹)</th>
-                <th className="py-4 px-4 text-right">Paid (₹)</th>
-                <th className="py-4 px-3 text-right">Balance (₹)</th>
-                <th className="py-4 px-4">Payment Method</th>
-                <th className="py-4 px-4 text-center">Status</th>
-                <th className="py-4 px-5 text-center">Actions</th>
+          <table className="w-full text-left border-collapse min-w-[1020px]">
+            <thead>
+              <tr className="border-b border-pos-border text-white uppercase text-xs font-semibold tracking-wider bg-emerald-600">
+                <th className="p-4 text-xs font-semibold uppercase">Invoice No</th>
+                <th className="p-4 text-xs font-semibold uppercase">Date</th>
+                <th className="p-4 text-xs font-semibold uppercase">Customer</th>
+                <th className="p-4 text-center text-xs font-semibold uppercase w-20 font-sans font-bold">Items</th>
+                <th className="p-4 text-right text-xs font-semibold uppercase">Returns</th>
+                <th className="p-4 text-right text-xs font-semibold uppercase">Grand Total (₹)</th>
+                <th className="p-4 text-right text-xs font-semibold uppercase">Paid (₹)</th>
+                <th className="p-4 text-center text-xs font-semibold uppercase">Balance (₹)</th>
+                <th className="p-4 text-xs font-semibold uppercase">Payment Method</th>
+                <th className="p-4 text-center text-xs font-semibold uppercase">Status</th>
+                <th className="p-4 text-center text-xs font-semibold uppercase w-32">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-pos-border bg-white text-xs">
-              {filteredInvoices.length === 0 ? (
+            <tbody className="divide-y divide-pos-border/50 text-sm font-medium text-text-secondary">
+              {paginatedInvoices.length === 0 ? (
                 <tr>
                   <td colSpan="11" className="text-center py-20 text-slate-400 font-semibold font-sans">
                     <div className="flex flex-col items-center gap-2 max-w-sm mx-auto">
@@ -622,7 +639,7 @@ const Invoices = () => {
                   </td>
                 </tr>
               ) : (
-                filteredInvoices.map((inv, idx) => {
+                paginatedInvoices.map((inv, idx) => {
                   const lineItemsCount = inv.items ? inv.items.reduce((sum, item) => sum + parseFloat(item.quantity || 0), 0) : 0;
                   const totalRefunds = inv.returns ? inv.returns.reduce((sum, ret) => sum + ret.refundAmount, 0) : 0;
                   const paidVal = inv.paidAmount !== undefined ? inv.paidAmount : inv.grandTotal;
@@ -641,7 +658,7 @@ const Invoices = () => {
                       </td>
 
                       {/* Date */}
-                      <td className="py-3.5 px-4 text-slate-500 font-medium whitespace-nowrap">
+                      <td className="py-3.5 px-2 text-[14px] text-slate-500  whitespace-nowrap">
                         {inv.date}
                       </td>
 
@@ -659,14 +676,14 @@ const Invoices = () => {
                       </td>
 
                       {/* Returns Refund status */}
-                      <td className={`py-3.5 px-3 text-right font-semibold font-mono whitespace-nowrap ${
+                      <td className={`py-3.5 px-3 text-center font-semibold font-mono whitespace-nowrap ${
                         totalRefunds > 0 ? "text-rose-600 font-bold" : "text-slate-400"
                       }`}>
                         {totalRefunds > 0 ? `-₹${totalRefunds.toFixed(2)}` : "₹0.00"}
                       </td>
 
                       {/* Grand Total */}
-                      <td className="py-3.5 px-4 text-right font-black text-slate-800 font-mono whitespace-nowrap">
+                      <td className="py-3.5 px-4 text-center font-black text-slate-800 font-mono whitespace-nowrap">
                         ₹{inv.grandTotal.toFixed(2)}
                       </td>
 
@@ -676,14 +693,14 @@ const Invoices = () => {
                       </td>
 
                       {/* Balance */}
-                      <td className={`py-3.5 px-3 text-right font-bold font-mono whitespace-nowrap ${
+                      <td className={`py-3.5 px-3 text-center font-bold font-mono whitespace-nowrap ${
                         balanceVal > 0 ? "text-brand-danger" : "text-slate-400"
                       }`}>
                         ₹{balanceVal.toFixed(2)}
                       </td>
 
                       {/* Method */}
-                      <td className="py-3.5 px-4">
+                      <td className="py-3.5 px-4 text-center">
                         <span className={`inline-block font-mono font-bold px-2 py-1 rounded text-[10px] uppercase ${
                           inv.paymentMethod === "CASH" ? "bg-amber-50 text-amber-700 border border-amber-200" :
                           inv.paymentMethod === "CARD" ? "bg-indigo-50 text-indigo-700 border border-indigo-200" :
@@ -780,6 +797,88 @@ const Invoices = () => {
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* Summary Footer with Pagination Controls */}
+        <div className="bg-slate-50/50 p-4 border-t border-pos-border flex flex-col sm:flex-row justify-between items-center text-xs font-bold text-slate-600 gap-2 select-none border-0 no-print">
+          {totalFilteredCount > 0 ? (
+            <span>
+              Showing <span className="font-extrabold text-slate-700">{startIndex + 1}</span> to{" "}
+              <span className="font-extrabold text-slate-700">
+                {Math.min(totalFilteredCount, startIndex + itemsPerPage)}
+              </span>{" "}
+              of <span className="font-extrabold text-slate-700">{totalFilteredCount}</span> entries (Filtered from {invoices.length} total)
+            </span>
+          ) : (
+            <span>Showing 0 of 0 entries</span>
+          )}
+
+          {totalFilteredCount > 0 && (
+            <div className="flex items-center gap-1">
+              {/* Chevron Back control */}
+              <button
+                type="button"
+                onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                disabled={currentPage === 1}
+                className="h-7 w-7 border border-[#eee] bg-white text-slate-500 rounded disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-200/60 font-sans font-bold flex items-center justify-center cursor-pointer transition-colors"
+                title="Previous Page"
+              >
+                <ChevronLeft size={12} strokeWidth={3} />
+              </button>
+
+              {/* Page indexes */}
+              {Array.from({ length: totalPages }, (_, idx) => idx + 1).map((page) => {
+                const isFirst = page === 1;
+                const isLast = page === totalPages;
+                const isNearCurrent = Math.abs(page - currentPage) <= 1;
+
+                if (totalPages > 5 && !isFirst && !isLast && !isNearCurrent) {
+                  if (page === 2 && currentPage > 3) {
+                    return (
+                      <span key="ellipsis-start" className="px-1 text-slate-300 font-extrabold select-none">
+                        ...
+                      </span>
+                    );
+                  }
+                  if (page === totalPages - 1 && currentPage < totalPages - 2) {
+                    return (
+                      <span key="ellipsis-end" className="px-1 text-slate-300 font-extrabold select-none">
+                        ...
+                      </span>
+                    );
+                  }
+                  return null;
+                }
+
+                const isActive = page === currentPage;
+                return (
+                  <button
+                    key={page}
+                    type="button"
+                    onClick={() => setCurrentPage(page)}
+                    className={`h-7 w-7 flex items-center justify-center rounded text-xs transition-all border cursor-pointer ${
+                      isActive
+                        ? "bg-brand-primary border-brand-primary text-white font-bold"
+                        : "bg-white border-pos-border text-slate-600 hover:bg-slate-100"
+                    }`}
+                  >
+                    {page}
+                  </button>
+                );
+              })}
+
+              {/* Chevron Next control */}
+              <button
+                type="button"
+                onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                disabled={currentPage === totalPages}
+                className="h-7 w-7 border border-[#eee] bg-white text-slate-500 rounded disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-200/60 font-sans font-bold flex items-center justify-center cursor-pointer transition-colors"
+                title="Next Page"
+              >
+                <ChevronRight size={12} strokeWidth={3} />
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
