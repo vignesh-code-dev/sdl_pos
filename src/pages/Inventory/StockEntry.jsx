@@ -11,7 +11,6 @@ import {
 } from "lucide-react";
 
 const StockEntry = () => {
-  // பார்ம் ஸ்டேட்ஸ் (Form States)
   const [products, setProducts] = useState([]);
   const [selectedProductId, setSelectedProductId] = useState("");
   const [quantity, setQuantity] = useState("");
@@ -19,15 +18,13 @@ const StockEntry = () => {
   const [purchasePrice, setPurchasePrice] = useState("");
   const [sellingPrice, setSellingPrice] = useState("");
   const [supplierNote, setSupplierNote] = useState("");
-  const [entryMode, setEntryMode] = useState("manual"); // manual அல்லது barcode
+  const [entryMode, setEntryMode] = useState("manual");
   const [barcodeInput, setBarcodeInput] = useState("");
 
-  // சமீபத்திய என்ட்ரிகள் ஸ்டேட் (Recent Entries State)
   const [recentEntries, setRecentEntries] = useState([]);
   const [successMessage, setSuccessMessage] = useState("");
 
   useEffect(() => {
-    // லோக்கல் ஸ்டோரேஜில் இருந்து தயாரிப்புகள் மற்றும் முந்தைய என்ட்ரிகளை எடுத்தல்
     const savedProducts = localStorage.getItem("billmate_products");
     if (savedProducts) setProducts(JSON.parse(savedProducts));
 
@@ -37,7 +34,6 @@ const StockEntry = () => {
     }
   }, []);
 
-  // பார்ம் சப்மிட் செய்யும் லாஜிக்
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!selectedProductId || !quantity || !purchasePrice) {
@@ -45,21 +41,19 @@ const StockEntry = () => {
       return;
     }
 
-    // தற்போதைய தயாரிப்பைக் கண்டறிதல்
     const updatedProducts = products.map((prod) => {
       if (prod.sku === selectedProductId || prod.id === selectedProductId) {
         const currentStock = Number(prod.currentStock || 0) + Number(quantity);
         return {
           ...prod,
           currentStock: currentStock,
-          costPrice: Number(purchasePrice), // புதிய வாங்குதல் விலை அப்டேட்
-          sellingPrice: sellingPrice ? Number(sellingPrice) : prod.sellingPrice, //விருப்பப்பட்டால் விற்பனை விலை அப்டேட்
+          costPrice: Number(purchasePrice),
+          sellingPrice: sellingPrice ? Number(sellingPrice) : prod.sellingPrice,
         };
       }
       return prod;
     });
 
-    // தயாரிப்பு பெயர் அறிதல் (என்ட்ரி பேனலுக்காக)
     const currentProd = products.find(
       (p) => p.sku === selectedProductId || p.id === selectedProductId,
     );
@@ -69,38 +63,33 @@ const StockEntry = () => {
       const date = new Date(dateString);
       if (isNaN(date.getTime())) return dateString;
 
-      // 'en-GB' லோக்கல் தானாகவே DD/MM/YYYY வடிவம் தரும், அதை நாம் '-' ஆக மாற்றுகிறோம்
       return new Intl.DateTimeFormat("en-GB").format(date).replace(/\//g, "-");
     };
 
-    // புதிய என்ட்ரி டேட்டா உருவாக்குதல் (SKU மற்றும் Notes பிழைகள் இங்கே சரி செய்யப்பட்டுள்ளன)
     const newEntry = {
       id: Date.now(),
       name: currentProd ? currentProd.name : "Unknown Product",
-      sku: currentProd ? currentProd.sku : selectedProductId, // SKU வை நேரடியாக இணைத்தல்
+      sku: currentProd ? currentProd.sku : selectedProductId,
       qty: Number(quantity),
       unit: unit,
       buyPrice: Number(purchasePrice),
-      entryBy: "Admin", // தற்போதைய பயனர்
-      notes: supplierNote, // சப்ளையர் குறிப்பை 'notes' என்ற பெயரில் சேமித்தல்
-      date: formatDateIntl(new Date().toISOString()), // சரியான தேதி வடிவமைப்பு
+      entryBy: "Admin",
+      notes: supplierNote,
+      date: formatDateIntl(new Date().toISOString()),
     };
 
     const finalEntries = [newEntry, ...recentEntries];
 
-    // லோக்கல் ஸ்டோரேஜில் சேமித்தல் (முழு வரலாறும் சேமிப்பில் இருக்கும்)
     localStorage.setItem("billmate_products", JSON.stringify(updatedProducts));
     localStorage.setItem(
       "billmate_stock_entries",
       JSON.stringify(finalEntries),
     );
 
-    // ஸ்டேட்களை புதுப்பித்தல்
     setProducts(updatedProducts);
     setRecentEntries(finalEntries);
     setSuccessMessage("Stock replenished successfully!");
 
-    // பார்மை ரீசெட் செய்தல்
     setSelectedProductId("");
     setQuantity("");
     setPurchasePrice("");
@@ -111,7 +100,6 @@ const StockEntry = () => {
     setTimeout(() => setSuccessMessage(""), 3000);
   };
 
-  // பார்கோடு ஸ்கேன் செய்யும் போலி செயல்பாடு (Simulated Barcode Scan)
   const handleBarcodeSubmit = (e) => {
     e.preventDefault();
     const foundProduct = products.find((p) => p.sku === barcodeInput);
@@ -126,22 +114,16 @@ const StockEntry = () => {
 
   return (
     <div className="p-5 grid grid-cols-1 lg:grid-cols-3 gap-5 bg-pos-bg text-slate-900 font-sans min-h-[calc(100vh-70px)]">
-      {/* இடது மற்றும் நடுப்பகுதி: STOCK ENTRY FORM */}
       <div className="lg:col-span-2 bg-white border border-pos-border rounded p-5 shadow-xs flex flex-col justify-between">
         <div>
-          {/* தலைப்பு */}
           <div className="flex items-center justify-between border-b border-pos-border pb-3 mb-4">
             <div>
-              <h2 className="text-lg font-bold text-brand-primary flex items-center gap-2">
+              <h2 className="text-lg font-bold text-brand-500 flex items-center gap-2">
                 <PlusCircle size={20} className="text-brand-primary" /> Stock
                 Entry (Restocking)
               </h2>
-              <p className="text-xs text-text-secondary font-medium">
-                Add new stock via manual entry or barcode scan
-              </p>
             </div>
 
-            {/* என்ட்ரி மோடு சுவிட்ச் */}
             <div className="flex border border-pos-border rounded overflow-hidden p-0.5 bg-slate-50">
               <button
                 onClick={() => setEntryMode("manual")}
@@ -158,7 +140,6 @@ const StockEntry = () => {
             </div>
           </div>
 
-          {/* பார்கோடு ஸ்கேனர் உள்ளீடு */}
           {entryMode === "barcode" && (
             <form
               onSubmit={handleBarcodeSubmit}
@@ -181,22 +162,20 @@ const StockEntry = () => {
             </form>
           )}
 
-          {/* வெற்றி அறிவிப்பு */}
           {successMessage && (
             <div className="mb-4 bg-emerald-50 text-emerald-700 p-2.5 rounded text-xs font-bold flex items-center gap-2 border border-emerald-100 animate-pulse">
               <CheckCircle2 size={16} /> {successMessage}
             </div>
           )}
 
-          {/* முதன்மைப் படிவம் (Main Form) */}
           <form
             onSubmit={handleSubmit}
             className="grid grid-cols-1 sm:grid-cols-2 gap-4"
           >
             {/* Select Product */}
             <div className="sm:col-span-2">
-              <label className="block text-[11px] font-black uppercase tracking-wider text-text-secondary mb-1">
-                Select Product <span className="text-rose-500">*</span>
+              <label className="block text-sm font-medium uppercase tracking-wider text-text-secondary mb-1">
+                Select Product
               </label>
               <select
                 value={selectedProductId}
@@ -208,7 +187,7 @@ const StockEntry = () => {
                   );
                   if (p) setPurchasePrice(p.costPrice || "");
                 }}
-                className="w-full text-xs bg-pos-bg border border-pos-border rounded px-3 py-2.5 font-bold text-slate-700 focus:outline-none focus:border-brand-primary"
+                className="w-full text-xs bg-pos-bg border border-pos-border rounded px-3 py-2.5 text-text-primary focus:outline-none focus:border-brand-primary"
                 required
               >
                 <option value="">-- Choose a Product --</option>
@@ -220,10 +199,9 @@ const StockEntry = () => {
               </select>
             </div>
 
-            {/* Quantity to Add */}
             <div>
-              <label className="block text-[11px] font-black uppercase tracking-wider text-text-secondary mb-1">
-                Quantity to Add <span className="text-rose-500">*</span>
+              <label className="block text-sm font-medium uppercase tracking-wider text-text-secondary mb-1">
+                Quantity to Add
               </label>
               <div className="relative flex items-center">
                 <Layers size={14} className="absolute left-3 text-slate-400" />
@@ -232,7 +210,7 @@ const StockEntry = () => {
                   placeholder="0"
                   value={quantity}
                   onChange={(e) => setQuantity(e.target.value)}
-                  className="w-full text-sm bg-pos-bg border border-pos-border rounded pl-9 pr-3 py-2.5 font-mono font-bold focus:outline-none focus:border-brand-primary"
+                  className="w-full text-sm bg-pos-bg border border-pos-border rounded pl-9 pr-3 py-2.5 font-mono focus:outline-none focus:border-brand-500/50"
                   min="1"
                   required
                 />
@@ -241,13 +219,13 @@ const StockEntry = () => {
 
             {/* QTY Entered As (Units) */}
             <div>
-              <label className="block text-[11px] font-black uppercase tracking-wider text-text-secondary mb-1">
-                QTY Entered As <span className="text-rose-500">*</span>
+              <label className="block text-sm font-medium uppercase tracking-wider text-text-secondary mb-1">
+                QTY Entered As
               </label>
               <select
                 value={unit}
                 onChange={(e) => setUnit(e.target.value)}
-                className="w-full text-sm bg-pos-bg border border-pos-border rounded px-3 py-2.5 font-bold text-slate-600 focus:outline-none focus:border-brand-primary"
+                className="w-full text-sm bg-pos-bg border border-pos-border rounded px-3 py-2.5 text-text-primary focus:outline-none focus:border-brand-500/50"
               >
                 <option value="pcs">Pieces (pcs)</option>
                 <option value="kg">Kilograms (kg)</option>
@@ -258,8 +236,8 @@ const StockEntry = () => {
 
             {/* New Purchase Price */}
             <div>
-              <label className="block text-[11px] font-black uppercase tracking-wider text-text-secondary mb-1">
-                New Purchase Price (₹) <span className="text-rose-500">*</span>
+              <label className="block text-sm font-medium uppercase tracking-wider text-text-secondary mb-1">
+                New Purchase Price (₹)
               </label>
               <div className="relative flex items-center">
                 <span className="absolute left-3 text-xs font-bold text-slate-400">
@@ -270,7 +248,7 @@ const StockEntry = () => {
                   placeholder="0.00"
                   value={purchasePrice}
                   onChange={(e) => setPurchasePrice(e.target.value)}
-                  className="w-full text-sm bg-pos-bg border border-pos-border rounded pl-8 pr-3 py-2.5 font-mono font-bold text-slate-800 focus:outline-none focus:border-brand-primary"
+                  className="w-full text-sm bg-pos-bg border border-pos-border rounded pl-8 pr-3 py-2.5 font-mono text-text-primay focus:outline-none focus:border-brand-500/50"
                   step="0.01"
                   required
                 />
@@ -279,7 +257,7 @@ const StockEntry = () => {
 
             {/* Update Selling Price */}
             <div>
-              <label className="block text-[11px] font-black uppercase tracking-wider text-text-secondary mb-1">
+              <label className="block text-sm font-medium uppercase tracking-wider text-text-secondary mb-1">
                 Update Selling Price (₹){" "}
                 <span className="text-slate-400">(Optional)</span>
               </label>
@@ -292,7 +270,7 @@ const StockEntry = () => {
                   placeholder=" "
                   value={sellingPrice}
                   onChange={(e) => setSellingPrice(e.target.value)}
-                  className="w-full text-sm bg-pos-bg border border-pos-border rounded pl-8 pr-3 py-2.5 font-mono font-bold text-slate-800 focus:outline-none focus:border-brand-primary"
+                  className="w-full text-sm bg-pos-bg border border-pos-border rounded pl-8 pr-3 py-2.5 font-mono text-text-primary focus:outline-none focus:border-brand-500/50"
                   step="0.01"
                 />
               </div>
@@ -300,7 +278,7 @@ const StockEntry = () => {
 
             {/* Supplier Note */}
             <div className="sm:col-span-2">
-              <label className="block text-[11px] font-black uppercase tracking-wider text-text-secondary mb-1">
+              <label className="block text-sm font-medium uppercase tracking-wider text-text-secondary mb-1">
                 Supplier Note{" "}
                 <span className="text-text-tertiary">(Optional)</span>
               </label>
@@ -313,7 +291,7 @@ const StockEntry = () => {
                   placeholder="Add supplier invoice numbers or remarks..."
                   value={supplierNote}
                   onChange={(e) => setSupplierNote(e.target.value)}
-                  className="w-full text-sm bg-pos-bg border border-pos-border rounded pl-9 pr-3 py-2 h-20 focus:outline-none focus:border-brand-primary resize-none font-medium"
+                  className="w-full text-sm bg-pos-bg border border-pos-border rounded pl-9 pr-3 py-2 h-20 focus:outline-none focus:border-brand-500/50 resize-none font-medium"
                 />
               </div>
             </div>
@@ -322,7 +300,7 @@ const StockEntry = () => {
             <div className="sm:col-span-2 mt-2">
               <button
                 type="submit"
-                className="w-full bg-slate-600 text-white font-bold uppercase tracking-wider text-xs py-3 rounded shadow-xs hover:bg-brand-primary transition-all active:scale-[0.99] cursor-pointer"
+                className="w-full bg-slate-600 text-white font-bold uppercase tracking-wider text-xs py-3 rounded shadow-xs hover:bg-brand-500 transition-all active:scale-[0.99] cursor-pointer"
               >
                 Update Stock & Pricing
               </button>
@@ -331,16 +309,14 @@ const StockEntry = () => {
         </div>
       </div>
 
-      {/* வலது பகுதி: RECENT STOCK ENTRIES PANEL */}
       <div className="bg-white border border-pos-border rounded p-4 shadow-xs flex flex-col h-full overflow-hidden">
         <div className="flex items-center gap-2 border-b border-pos-border pb-3 mb-3 shrink-0">
-          <Clock size={16} className="text-brand-primary" />
-          <h3 className="text-sm font-black text-brand-primary uppercase tracking-tight">
+          <Clock size={16} className="text-brand-500" />
+          <h3 className="text-sm font-black text-brand-500 uppercase tracking-tight">
             Recent Stock Entries
           </h3>
         </div>
 
-        {/* ஸ்க்ரோலபிள் என்ட்ரி லிஸ்ட் */}
         <div className="flex-1 overflow-y-auto space-y-3 pr-1">
           {recentEntries.length === 0 ? (
             <p className="text-sm text-slate-400 text-center py-10 italic">
@@ -350,16 +326,16 @@ const StockEntry = () => {
             recentEntries.slice(0, 5).map((entry) => (
               <div
                 key={entry.id}
-                className="border border-pos-border rounded p-3 hover:bg-slate-50/50 transition-colors"
+                className="border border-pos-border rounded p-3 hover:bg-brand-500/10 transition-colors"
               >
                 <div className="flex items-start justify-between gap-2">
                   <div>
-                    <h4 className="text-sm font-black text-slate-800 line-clamp-1">
+                    <h4 className="text-base font-semibold text-text-primary line-clamp-1">
                       {entry.name}
                     </h4>
-                    <p className="text-[11px] text-slate-400 mt-0.5 font-medium">
+                    <p className="text-xs text-text-secondary mt-0.5 font-medium">
                       By:{" "}
-                      <span className="text-slate-600 font-bold">
+                      <span className="text-text-primary font-bold">
                         {entry.entryBy}
                       </span>{" "}
                       • {entry.date}
@@ -369,17 +345,17 @@ const StockEntry = () => {
                     +{entry.qty} {entry.unit}
                   </span>
                 </div>
-                {/* Supplier Note Right Panel-இல் காட்டுவதற்கு */}
+
                 {(entry.notes || entry.supplierNote) && (
                   <p className="text-[11px] text-slate-500 bg-slate-50 border border-slate-100 rounded p-1.5 mt-2 italic line-clamp-1">
                     Note: {entry.notes || entry.supplierNote}
                   </p>
                 )}
                 <div className="mt-2 pt-2 border-t border-dashed border-pos-border flex justify-between items-center text-[12px]">
-                  <span className="text-slate-400 font-medium">
+                  <span className="text-text-muted font-medium">
                     Cost per unit:
                   </span>
-                  <span className="font-mono font-bold text-slate-700">
+                  <span className="font-mono font-bold text-brand-500">
                     ₹{entry.buyPrice.toFixed(2)}
                   </span>
                 </div>

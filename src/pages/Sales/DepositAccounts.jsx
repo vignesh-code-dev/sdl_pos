@@ -23,7 +23,7 @@ import {
   Printer,
   ChevronRight,
   ShieldAlert,
-  ArrowLeftRight
+  ArrowLeftRight,
 } from "lucide-react";
 
 const DepositAccounts = () => {
@@ -49,44 +49,76 @@ const DepositAccounts = () => {
   const [paymentForm, setPaymentForm] = useState({
     amount: "",
     paymentMethod: "CASH",
-    description: "Paid at checkdesk"
+    description: "Paid at checkdesk",
   });
 
   const [limitForm, setLimitForm] = useState({
-    creditLimit: ""
+    creditLimit: "",
   });
 
   const [openAccountForm, setOpenAccountForm] = useState({
     customerId: "",
-    creditLimit: "10000"
+    creditLimit: "10000",
   });
 
   // 6. UI Toast notification
-  const [toast, setToast] = useState({ show: false, message: "", type: "info" });
+  const [toast, setToast] = useState({
+    show: false,
+    message: "",
+    type: "info",
+  });
   const showToast = (message, type = "success") => {
     setToast({ show: true, message, type });
     setTimeout(() => {
-      setToast(prev => ({ ...prev, show: false }));
+      setToast((prev) => ({ ...prev, show: false }));
     }, 4500);
   };
 
   // 7. Load data & seed defaults
   useEffect(() => {
     // Load existing customers
-    let savedCustomers = JSON.parse(localStorage.getItem("billmate_customers") || "[]");
+    let savedCustomers = JSON.parse(
+      localStorage.getItem("billmate_customers") || "[]",
+    );
     if (savedCustomers.length === 0) {
       // Seed default customers to align with system presets
       savedCustomers = [
-        { id: "C-1", name: "Rahul Sharma", mobile: "9876543210", email: "rahul@gmail.com", address: "Flat 402, Green Glen Layout, Bengaluru", createdAt: "2026-01-15" },
-        { id: "C-2", name: "Priya Patel", mobile: "8765432109", email: "priya@gmail.com", address: "Sector 15, Vashi, Navi Mumbai", createdAt: "2026-02-18" },
-        { id: "C-3", name: "Amit Kumar", mobile: "7654321098", email: "amit@gmail.com", address: "H-12, Lajpat Nagar, New Delhi", createdAt: "2026-03-05" }
+        {
+          id: "C-1",
+          name: "Rahul Sharma",
+          mobile: "9876543210",
+          email: "rahul@gmail.com",
+          address: "Flat 402, Green Glen Layout, Bengaluru",
+          createdAt: "2026-01-15",
+        },
+        {
+          id: "C-2",
+          name: "Priya Patel",
+          mobile: "8765432109",
+          email: "priya@gmail.com",
+          address: "Sector 15, Vashi, Navi Mumbai",
+          createdAt: "2026-02-18",
+        },
+        {
+          id: "C-3",
+          name: "Amit Kumar",
+          mobile: "7654321098",
+          email: "amit@gmail.com",
+          address: "H-12, Lajpat Nagar, New Delhi",
+          createdAt: "2026-03-05",
+        },
       ];
-      localStorage.setItem("billmate_customers", JSON.stringify(savedCustomers));
+      localStorage.setItem(
+        "billmate_customers",
+        JSON.stringify(savedCustomers),
+      );
     }
     setCustomers(savedCustomers);
 
     // Load Invoices
-    const savedInvoices = JSON.parse(localStorage.getItem("billmate_invoices") || "[]");
+    const savedInvoices = JSON.parse(
+      localStorage.getItem("billmate_invoices") || "[]",
+    );
     setInvoices(savedInvoices);
 
     // Load credit accounts
@@ -103,10 +135,29 @@ const DepositAccounts = () => {
           paymentsReceived: 2000,
           outstanding: 1500,
           transactions: [
-            { id: "TX-1001", date: "Jun 8, 2026, 11:32 AM", type: "CREDIT", amount: 2500, description: "POS Purchase on Credit (INV-202606-1024)" },
-            { id: "TX-1002", date: "Jun 8, 2026, 04:30 PM", type: "PAYMENT", amount: 2000, description: "Invoice part-payment settlement", method: "CASH" },
-            { id: "TX-1003", date: "Jun 11, 2026, 10:15 AM", type: "CREDIT", amount: 1000, description: "Fresh POS store-credit buy" }
-          ]
+            {
+              id: "TX-1001",
+              date: "Jun 8, 2026, 11:32 AM",
+              type: "CREDIT",
+              amount: 2500,
+              description: "POS Purchase on Credit (INV-202606-1024)",
+            },
+            {
+              id: "TX-1002",
+              date: "Jun 8, 2026, 04:30 PM",
+              type: "PAYMENT",
+              amount: 2000,
+              description: "Invoice part-payment settlement",
+              method: "CASH",
+            },
+            {
+              id: "TX-1003",
+              date: "Jun 11, 2026, 10:15 AM",
+              type: "CREDIT",
+              amount: 1000,
+              description: "Fresh POS store-credit buy",
+            },
+          ],
         },
         {
           customerId: "C-2",
@@ -117,9 +168,22 @@ const DepositAccounts = () => {
           paymentsReceived: 1500,
           outstanding: 4000,
           transactions: [
-            { id: "TX-1004", date: "Jun 7, 2026, 03:45 PM", type: "CREDIT", amount: 5500, description: "Credit billing checkout (INV-202606-2048)" },
-            { id: "TX-1005", date: "Jun 9, 2026, 06:15 PM", type: "PAYMENT", amount: 1500, description: "Received via UPI bank account", method: "UPI" }
-          ]
+            {
+              id: "TX-1004",
+              date: "Jun 7, 2026, 03:45 PM",
+              type: "CREDIT",
+              amount: 5500,
+              description: "Credit billing checkout (INV-202606-2048)",
+            },
+            {
+              id: "TX-1005",
+              date: "Jun 9, 2026, 06:15 PM",
+              type: "PAYMENT",
+              amount: 1500,
+              description: "Received via UPI bank account",
+              method: "UPI",
+            },
+          ],
         },
         {
           customerId: "C-3",
@@ -129,10 +193,13 @@ const DepositAccounts = () => {
           creditGiven: 0,
           paymentsReceived: 0,
           outstanding: 0,
-          transactions: []
-        }
+          transactions: [],
+        },
       ];
-      localStorage.setItem("billmate_deposit_accounts", JSON.stringify(defaultAccounts));
+      localStorage.setItem(
+        "billmate_deposit_accounts",
+        JSON.stringify(defaultAccounts),
+      );
       setAccounts(defaultAccounts);
     } else {
       setAccounts(JSON.parse(savedAccounts));
@@ -142,7 +209,10 @@ const DepositAccounts = () => {
   // Save to LocalStorage whenever accounts update
   const saveAccounts = (updatedAccounts) => {
     setAccounts(updatedAccounts);
-    localStorage.setItem("billmate_deposit_accounts", JSON.stringify(updatedAccounts));
+    localStorage.setItem(
+      "billmate_deposit_accounts",
+      JSON.stringify(updatedAccounts),
+    );
   };
 
   // --- ACTIONS ---
@@ -154,11 +224,15 @@ const DepositAccounts = () => {
       showToast("Please choose a valid customer", "warning");
       return;
     }
-    const targetCustomer = customers.find(c => c.id === openAccountForm.customerId);
+    const targetCustomer = customers.find(
+      (c) => c.id === openAccountForm.customerId,
+    );
     if (!targetCustomer) return;
 
     // Check if account already exists
-    const duplicate = accounts.find(acc => acc.customerId === targetCustomer.id);
+    const duplicate = accounts.find(
+      (acc) => acc.customerId === targetCustomer.id,
+    );
     if (duplicate) {
       showToast("This customer already has a credit account!", "warning");
       return;
@@ -178,7 +252,7 @@ const DepositAccounts = () => {
       creditGiven: 0,
       paymentsReceived: 0,
       outstanding: 0,
-      transactions: []
+      transactions: [],
     };
 
     const newAccs = [...accounts, newAccObj];
@@ -206,22 +280,28 @@ const DepositAccounts = () => {
 
     const newTx = {
       id: `TX-${Math.floor(1000 + Math.random() * 9000)}`,
-      date: new Date().toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" }),
+      date: new Date().toLocaleString("en-US", {
+        dateStyle: "medium",
+        timeStyle: "short",
+      }),
       type: "PAYMENT",
       amount: amount,
       description: paymentForm.description || "Credit settlement pay",
-      method: paymentForm.paymentMethod
+      method: paymentForm.paymentMethod,
     };
 
-    const updated = accounts.map(acc => {
+    const updated = accounts.map((acc) => {
       if (acc.customerId === selectedAccount.customerId) {
         const nextPayments = acc.paymentsReceived + amount;
-        const nextOutstanding = Math.max(-100000, acc.creditGiven - nextPayments);
+        const nextOutstanding = Math.max(
+          -100000,
+          acc.creditGiven - nextPayments,
+        );
         return {
           ...acc,
           paymentsReceived: parseFloat(nextPayments.toFixed(2)),
           outstanding: parseFloat(nextOutstanding.toFixed(2)),
-          transactions: [newTx, ...acc.transactions]
+          transactions: [newTx, ...acc.transactions],
         };
       }
       return acc;
@@ -229,8 +309,14 @@ const DepositAccounts = () => {
 
     saveAccounts(updated);
     setShowPaymentModal(false);
-    setPaymentForm({ amount: "", paymentMethod: "CASH", description: "Paid at counter desk" });
-    showToast(`Received payment of ₹${amount.toFixed(2)} from ${selectedAccount.customerName}!`);
+    setPaymentForm({
+      amount: "",
+      paymentMethod: "CASH",
+      description: "Paid at counter desk",
+    });
+    showToast(
+      `Received payment of ₹${amount.toFixed(2)} from ${selectedAccount.customerName}!`,
+    );
   };
 
   // 3. Edit credit limit
@@ -244,11 +330,11 @@ const DepositAccounts = () => {
       return;
     }
 
-    const updated = accounts.map(acc => {
+    const updated = accounts.map((acc) => {
       if (acc.customerId === selectedAccount.customerId) {
         return {
           ...acc,
-          creditLimit: newLimit
+          creditLimit: newLimit,
         };
       }
       return acc;
@@ -256,35 +342,51 @@ const DepositAccounts = () => {
 
     saveAccounts(updated);
     setShowLimitModal(false);
-    showToast(`Credit limit updated to ₹${newLimit.toFixed(2)} for ${selectedAccount.customerName}`);
+    showToast(
+      `Credit limit updated to ₹${newLimit.toFixed(2)} for ${selectedAccount.customerName}`,
+    );
   };
 
   // --- STATS COMPUTATION ---
-  const totalCreditGiven = accounts.reduce((sum, acc) => sum + (acc.creditGiven || 0), 0);
-  const totalPayments = accounts.reduce((sum, acc) => sum + (acc.paymentsReceived || 0), 0);
-  const totalOutstanding = accounts.reduce((sum, acc) => sum + (acc.outstanding || 0), 0);
-  const activeAccountsCount = accounts.filter(acc => acc.outstanding > 0).length;
+  const totalCreditGiven = accounts.reduce(
+    (sum, acc) => sum + (acc.creditGiven || 0),
+    0,
+  );
+  const totalPayments = accounts.reduce(
+    (sum, acc) => sum + (acc.paymentsReceived || 0),
+    0,
+  );
+  const totalOutstanding = accounts.reduce(
+    (sum, acc) => sum + (acc.outstanding || 0),
+    0,
+  );
+  const activeAccountsCount = accounts.filter(
+    (acc) => acc.outstanding > 0,
+  ).length;
 
   // --- SEARCH AND FILTER LOGIC ---
-  const filteredAccounts = accounts.filter(acc => {
-    const matchesSearch = 
+  const filteredAccounts = accounts.filter((acc) => {
+    const matchesSearch =
       acc.customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       acc.customerMobile.includes(searchQuery);
 
     if (statusFilter === "All") return matchesSearch;
-    if (statusFilter === "Outstanding") return matchesSearch && acc.outstanding > 0;
-    if (statusFilter === "Settled") return matchesSearch && acc.outstanding <= 0;
+    if (statusFilter === "Outstanding")
+      return matchesSearch && acc.outstanding > 0;
+    if (statusFilter === "Settled")
+      return matchesSearch && acc.outstanding <= 0;
 
     return matchesSearch;
   });
 
   return (
     <div className="p-6 bg-[#f8fafc] min-h-[calc(100vh-60px)] font-sans">
-      
       {/* Toast Notification */}
       {toast.show && (
-        <div className={`fixed top-4 right-4 z-50 flex items-center gap-2.5 px-4.5 py-3 rounded-lg text-white font-semibold text-xs shadow-md transition-all duration-300 transform translate-y-0
-          ${toast.type === "success" ? "bg-emerald-600" : "bg-rose-600"}`}>
+        <div
+          className={`fixed top-4 right-4 z-50 flex items-center gap-2.5 px-4.5 py-3 rounded-lg text-white font-semibold text-xs shadow-md transition-all duration-300 transform translate-y-0
+          ${toast.type === "success" ? "bg-emerald-600" : "bg-rose-600"}`}
+        >
           <CheckCircle size={15} />
           <span>{toast.message}</span>
         </div>
@@ -298,7 +400,8 @@ const DepositAccounts = () => {
             DEPOSIT ACCOUNTS
           </h1>
           <p className="text-slate-500 text-xs mt-1 font-medium">
-            Manage customer credit accounts, track loans extended, deposits made, and active outstanding balances.
+            Manage customer credit accounts, track loans extended, deposits
+            made, and active outstanding balances.
           </p>
         </div>
 
@@ -317,13 +420,21 @@ const DepositAccounts = () => {
 
       {/* KPI STAT CARDS */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        
         {/* Total Credit Given */}
         <div className="bg-white rounded-xl p-4.5 border border-slate-100 shadow-3xs flex items-center justify-between">
           <div>
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Total Credit Given</span>
-            <span className="text-2xl font-black text-slate-800 mt-1 block">₹{totalCreditGiven.toLocaleString("en-IN", { minimumFractionDigits: 2 })}</span>
-            <span className="text-[10px] text-slate-400 mt-1 block font-medium">Cumulative credit extended</span>
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">
+              Total Credit Given
+            </span>
+            <span className="text-2xl font-black text-slate-800 mt-1 block">
+              ₹
+              {totalCreditGiven.toLocaleString("en-IN", {
+                minimumFractionDigits: 2,
+              })}
+            </span>
+            <span className="text-[10px] text-slate-400 mt-1 block font-medium">
+              Cumulative credit extended
+            </span>
           </div>
           <div className="h-12 w-12 rounded-lg bg-orange-50 text-orange-600 flex items-center justify-center shrink-0">
             <ArrowUpCircle size={24} />
@@ -333,9 +444,18 @@ const DepositAccounts = () => {
         {/* Total Payments */}
         <div className="bg-white rounded-xl p-4.5 border border-slate-100 shadow-3xs flex items-center justify-between">
           <div>
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Total Payments</span>
-            <span className="text-2xl font-black text-emerald-600 mt-1 block">₹{totalPayments.toLocaleString("en-IN", { minimumFractionDigits: 2 })}</span>
-            <span className="text-[10px] text-slate-400 mt-1 block font-medium">Payments credited to accounts</span>
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">
+              Total Payments
+            </span>
+            <span className="text-2xl font-black text-emerald-600 mt-1 block">
+              ₹
+              {totalPayments.toLocaleString("en-IN", {
+                minimumFractionDigits: 2,
+              })}
+            </span>
+            <span className="text-[10px] text-slate-400 mt-1 block font-medium">
+              Payments credited to accounts
+            </span>
           </div>
           <div className="h-12 w-12 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
             <ArrowDownCircle size={24} />
@@ -345,11 +465,20 @@ const DepositAccounts = () => {
         {/* Total Outstanding */}
         <div className="bg-white rounded-xl p-4.5 border border-slate-100 shadow-3xs flex items-center justify-between">
           <div>
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Total Outstanding Balance</span>
-            <span className={`text-2xl font-black mt-1 block ${totalOutstanding > 0 ? "text-rose-600" : "text-emerald-600"}`}>
-              ₹{totalOutstanding.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">
+              Total Outstanding Balance
             </span>
-            <span className="text-[10px] text-slate-400 mt-1 block font-medium">Net receivable amount</span>
+            <span
+              className={`text-2xl font-black mt-1 block ${totalOutstanding > 0 ? "text-rose-600" : "text-emerald-600"}`}
+            >
+              ₹
+              {totalOutstanding.toLocaleString("en-IN", {
+                minimumFractionDigits: 2,
+              })}
+            </span>
+            <span className="text-[10px] text-slate-400 mt-1 block font-medium">
+              Net receivable amount
+            </span>
           </div>
           <div className="h-12 w-12 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center shrink-0">
             <DollarSign size={24} />
@@ -359,26 +488,32 @@ const DepositAccounts = () => {
         {/* Active Accounts */}
         <div className="bg-white rounded-xl p-4.5 border border-slate-100 shadow-3xs flex items-center justify-between">
           <div>
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Active Accounts</span>
-            <span className="text-2xl font-black text-blue-600 mt-block">{activeAccountsCount}</span>
-            <span className="text-[10px] text-slate-400 mt-1 block font-medium">Customers with unpaid balances</span>
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">
+              Active Accounts
+            </span>
+            <span className="text-2xl font-black text-blue-600 mt-block">
+              {activeAccountsCount}
+            </span>
+            <span className="text-[10px] text-slate-400 mt-1 block font-medium">
+              Customers with unpaid balances
+            </span>
           </div>
           <div className="h-12 w-12 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
             <User size={24} />
           </div>
         </div>
-
       </div>
 
       {/* FILTER & TABLE PANEL */}
       <div className="bg-white rounded-xl border border-slate-100 shadow-3xs overflow-hidden flex flex-col">
-        
         {/* Toolbar */}
         <div className="p-4 bg-slate-50 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3.5">
-          
           {/* Searching */}
           <div className="relative flex-1 max-w-md">
-            <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Search
+              size={14}
+              className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
+            />
             <input
               type="text"
               value={searchQuery}
@@ -390,7 +525,9 @@ const DepositAccounts = () => {
 
           {/* Filtering */}
           <div className="flex items-center gap-2">
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider shrink-0">Balance State:</span>
+            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider shrink-0">
+              Balance State:
+            </span>
             <div className="flex bg-slate-100 p-0.5.5 rounded-lg border border-slate-200">
               <button
                 type="button"
@@ -406,7 +543,7 @@ const DepositAccounts = () => {
                 className={`px-3 py-1.5 rounded-md text-[10px] font-extrabold cursor-pointer transition-all border-0
                   ${statusFilter === "Outstanding" ? "bg-white text-rose-600 shadow-3xs" : "text-slate-400 hover:text-rose-600"}`}
               >
-                OUTSTANDING ({accounts.filter(a => a.outstanding > 0).length})
+                OUTSTANDING ({accounts.filter((a) => a.outstanding > 0).length})
               </button>
               <button
                 type="button"
@@ -418,7 +555,6 @@ const DepositAccounts = () => {
               </button>
             </div>
           </div>
-
         </div>
 
         {/* Core Table */}
@@ -438,19 +574,39 @@ const DepositAccounts = () => {
             <tbody className="divide-y divide-slate-100 text-xs">
               {filteredAccounts.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center text-slate-400">
+                  <td
+                    colSpan={7}
+                    className="px-6 py-12 text-center text-slate-400"
+                  >
                     <div className="flex flex-col items-center justify-center p-6">
                       <AlertCircle className="text-slate-300 mb-2" size={32} />
-                      <p className="font-bold text-sm text-slate-500">No Credit Accounts Found</p>
-                      <p className="text-[11px] text-slate-400 mt-1">Try refining your search terms or create a credit account for a registered customer.</p>
+                      <p className="font-bold text-sm text-slate-500">
+                        No Credit Accounts Found
+                      </p>
+                      <p className="text-[11px] text-slate-400 mt-1">
+                        Try refining your search terms or create a credit
+                        account for a registered customer.
+                      </p>
                     </div>
                   </td>
                 </tr>
               ) : (
                 filteredAccounts.map((acc, index) => {
-                  const usedPercentage = acc.creditLimit > 0 ? Math.min(100, Math.max(0, (acc.outstanding / acc.creditLimit) * 100)) : 0;
+                  const usedPercentage =
+                    acc.creditLimit > 0
+                      ? Math.min(
+                          100,
+                          Math.max(
+                            0,
+                            (acc.outstanding / acc.creditLimit) * 100,
+                          ),
+                        )
+                      : 0;
                   return (
-                    <tr key={acc.customerId} className="hover:bg-slate-50/50 transition-colors">
+                    <tr
+                      key={acc.customerId}
+                      className="hover:bg-slate-50/50 transition-colors"
+                    >
                       {/* Name & Contact */}
                       <td className="px-6 py-4.5">
                         <div>
@@ -481,7 +637,13 @@ const DepositAccounts = () => {
 
                       {/* Outstanding */}
                       <td className="px-6 py-4.5 text-right font-mono font-black">
-                        <span className={acc.outstanding > 0 ? "text-rose-600" : "text-emerald-600"}>
+                        <span
+                          className={
+                            acc.outstanding > 0
+                              ? "text-rose-600"
+                              : "text-emerald-600"
+                          }
+                        >
                           ₹{acc.outstanding.toFixed(2)}
                         </span>
                       </td>
@@ -494,7 +656,7 @@ const DepositAccounts = () => {
                             <span>{usedPercentage.toFixed(0)}%</span>
                           </div>
                           <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
-                            <div 
+                            <div
                               className={`h-full rounded-full transition-all duration-300
                                 ${usedPercentage > 85 ? "bg-rose-505 bg-rose-500" : usedPercentage > 50 ? "bg-amber-500" : "bg-emerald-500"}`}
                               style={{ width: `${usedPercentage}%` }}
@@ -524,7 +686,9 @@ const DepositAccounts = () => {
                             type="button"
                             onClick={() => {
                               setSelectedAccount(acc);
-                              setLimitForm({ creditLimit: acc.creditLimit.toString() });
+                              setLimitForm({
+                                creditLimit: acc.creditLimit.toString(),
+                              });
                               setShowLimitModal(true);
                             }}
                             className="h-8 w-8 text-amber-600 hover:text-amber-700 hover:bg-amber-50 border border-amber-200 bg-white rounded-md flex items-center justify-center cursor-pointer transition-all shadow-5xs"
@@ -548,7 +712,6 @@ const DepositAccounts = () => {
                           </button>
                         </div>
                       </td>
-
                     </tr>
                   );
                 })
@@ -556,7 +719,6 @@ const DepositAccounts = () => {
             </tbody>
           </table>
         </div>
-
       </div>
 
       {/* MODAL 1: RECORD CUSTOMER DEPOSIT PAYMENT / SETTLEMENT */}
@@ -565,8 +727,13 @@ const DepositAccounts = () => {
           <div className="bg-white rounded-xl shadow-lg border border-slate-100 w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-150">
             <div className="bg-slate-50 border-b border-slack border-slate-100 p-4.5 px-5 flex items-center justify-between">
               <div>
-                <h3 className="text-sm font-black text-slate-800 uppercase tracking-wider">Collect Credit Payment</h3>
-                <p className="text-[11px] text-slate-400 mt-0.5 font-bold">RECEIVE SETTLEMENT FOR {selectedAccount.customerName.toUpperCase()}</p>
+                <h3 className="text-sm font-black text-slate-800 uppercase tracking-wider">
+                  Collect Credit Payment
+                </h3>
+                <p className="text-[11px] text-slate-400 mt-0.5 font-bold">
+                  RECEIVE SETTLEMENT FOR{" "}
+                  {selectedAccount.customerName.toUpperCase()}
+                </p>
               </div>
               <button
                 type="button"
@@ -576,23 +743,28 @@ const DepositAccounts = () => {
                 <X size={15} />
               </button>
             </div>
-            
+
             <form onSubmit={handleRecordPayment} className="p-5 space-y-4">
-              
               <div className="bg-rose-50/50 border border-rose-100 rounded-lg p-3 text-xs flex justify-between items-center font-bold text-rose-800 mb-1">
                 <span>Account Credit Due:</span>
-                <span className="font-black text-sm">₹{selectedAccount.outstanding.toFixed(2)}</span>
+                <span className="font-black text-sm">
+                  ₹{selectedAccount.outstanding.toFixed(2)}
+                </span>
               </div>
 
               {/* Amount to Pay */}
               <div>
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Payment Amount (₹) *</label>
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">
+                  Payment Amount (₹) *
+                </label>
                 <input
                   type="number"
                   min="0.01"
                   step="0.01"
                   value={paymentForm.amount}
-                  onChange={(e) => setPaymentForm({ ...paymentForm, amount: e.target.value })}
+                  onChange={(e) =>
+                    setPaymentForm({ ...paymentForm, amount: e.target.value })
+                  }
                   placeholder="0.00"
                   required
                   className="w-full h-10 bg-slate-50 border border-slate-200 rounded-lg px-3.5 text-sm font-extrabold text-slate-800 outline-none focus:bg-white focus:border-emerald-500 transition-all font-mono"
@@ -601,10 +773,17 @@ const DepositAccounts = () => {
 
               {/* Payment Method */}
               <div>
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Collect Via Method</label>
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">
+                  Collect Via Method
+                </label>
                 <select
                   value={paymentForm.paymentMethod}
-                  onChange={(e) => setPaymentForm({ ...paymentForm, paymentMethod: e.target.value })}
+                  onChange={(e) =>
+                    setPaymentForm({
+                      ...paymentForm,
+                      paymentMethod: e.target.value,
+                    })
+                  }
                   className="w-full h-10 bg-slate-50 border border-slate-200 rounded-lg px-3 text-xs font-bold text-slate-700 outline-none focus:bg-white focus:border-emerald-500 transition-all cursor-pointer"
                 >
                   <option value="CASH">CASH</option>
@@ -616,11 +795,18 @@ const DepositAccounts = () => {
 
               {/* Description */}
               <div>
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Internal Reference / Note</label>
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">
+                  Internal Reference / Note
+                </label>
                 <input
                   type="text"
                   value={paymentForm.description}
-                  onChange={(e) => setPaymentForm({ ...paymentForm, description: e.target.value })}
+                  onChange={(e) =>
+                    setPaymentForm({
+                      ...paymentForm,
+                      description: e.target.value,
+                    })
+                  }
                   placeholder="Eg: Handed cash on register desk"
                   className="w-full h-10 bg-slate-50 border border-slate-200 rounded-lg px-3.5 text-xs font-semibold text-slate-700 outline-none focus:bg-white focus:border-emerald-500 transition-all"
                 />
@@ -643,7 +829,6 @@ const DepositAccounts = () => {
                   CONFIRM RECEIPT
                 </button>
               </div>
-
             </form>
           </div>
         </div>
@@ -655,8 +840,13 @@ const DepositAccounts = () => {
           <div className="bg-white rounded-xl shadow-lg border border-slate-100 w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-150">
             <div className="bg-slate-50 border-b border-slate-100 p-4.5 px-5 flex items-center justify-between">
               <div>
-                <h3 className="text-sm font-black text-slate-800 uppercase tracking-wider">Adjust Credit Limit</h3>
-                <p className="text-[11px] text-slate-400 mt-0.5 font-bold">SET ALLOWED LIMIT FOR {selectedAccount.customerName.toUpperCase()}</p>
+                <h3 className="text-sm font-black text-slate-800 uppercase tracking-wider">
+                  Adjust Credit Limit
+                </h3>
+                <p className="text-[11px] text-slate-400 mt-0.5 font-bold">
+                  SET ALLOWED LIMIT FOR{" "}
+                  {selectedAccount.customerName.toUpperCase()}
+                </p>
               </div>
               <button
                 type="button"
@@ -666,29 +856,35 @@ const DepositAccounts = () => {
                 <X size={15} />
               </button>
             </div>
-            
+
             <form onSubmit={handleUpdateLimit} className="p-5 space-y-4">
-              
               <div className="bg-blue-50/50 border border-blue-100 rounded-lg p-3 text-xs flex justify-between items-center font-bold text-blue-800 mb-1">
                 <span>Current Outstanding Due:</span>
-                <span className="font-black">₹{selectedAccount.outstanding.toFixed(2)}</span>
+                <span className="font-black">
+                  ₹{selectedAccount.outstanding.toFixed(2)}
+                </span>
               </div>
 
               {/* Limit input */}
               <div>
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">New Credit Limit Total (₹) *</label>
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">
+                  New Credit Limit Total (₹) *
+                </label>
                 <input
                   type="number"
                   min="0"
                   step="1"
                   value={limitForm.creditLimit}
-                  onChange={(e) => setLimitForm({ ...limitForm, creditLimit: e.target.value })}
+                  onChange={(e) =>
+                    setLimitForm({ ...limitForm, creditLimit: e.target.value })
+                  }
                   placeholder="0"
                   required
                   className="w-full h-10 bg-slate-50 border border-slate-200 rounded-lg px-3.5 text-sm font-extrabold text-slate-800 outline-none focus:bg-white focus:border-blue-500 transition-all font-mono"
                 />
                 <p className="text-[9.5px] text-slate-450 mt-1.5 leading-relaxed font-medium">
-                  The client will not be allowed to buy items on POS layout exceeding this numeric state limit.
+                  The client will not be allowed to buy items on POS layout
+                  exceeding this numeric state limit.
                 </p>
               </div>
 
@@ -709,7 +905,6 @@ const DepositAccounts = () => {
                   UPDATE LIMIT
                 </button>
               </div>
-
             </form>
           </div>
         </div>
@@ -721,8 +916,12 @@ const DepositAccounts = () => {
           <div className="bg-white rounded-xl shadow-lg border border-slate-100 w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-150">
             <div className="bg-slate-50 border-b border-slate-100 p-4.5 px-5 flex items-center justify-between">
               <div>
-                <h3 className="text-sm font-black text-slate-800 uppercase tracking-wider">Open Credit account</h3>
-                <p className="text-[11px] text-slate-400 mt-0.5 font-bold">ENABLE CREDIT LINE FOR IN-HOUSE CLIENTS</p>
+                <h3 className="text-sm font-black text-slate-800 uppercase tracking-wider">
+                  Open Credit account
+                </h3>
+                <p className="text-[11px] text-slate-400 mt-0.5 font-bold">
+                  ENABLE CREDIT LINE FOR IN-HOUSE CLIENTS
+                </p>
               </div>
               <button
                 type="button"
@@ -732,43 +931,61 @@ const DepositAccounts = () => {
                 <X size={15} />
               </button>
             </div>
-            
+
             <form onSubmit={handleOpenAccount} className="p-5 space-y-4">
-              
               {/* Choose Customer */}
               <div>
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1 font-sans">Select Customer *</label>
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1 font-sans">
+                  Select Customer *
+                </label>
                 <select
                   value={openAccountForm.customerId}
-                  onChange={(e) => setOpenAccountForm({ ...openAccountForm, customerId: e.target.value })}
+                  onChange={(e) =>
+                    setOpenAccountForm({
+                      ...openAccountForm,
+                      customerId: e.target.value,
+                    })
+                  }
                   required
                   className="w-full h-10 bg-slate-50 border border-slate-200 rounded-lg px-2 text-xs font-bold text-slate-700 outline-none focus:bg-white focus:border-emerald-500 transition-all cursor-pointer"
                 >
                   <option value="">-- Choose Registered Contact --</option>
                   {customers
-                    .filter(c => !accounts.some(acc => acc.customerId === c.id))
-                    .map(c => (
+                    .filter(
+                      (c) => !accounts.some((acc) => acc.customerId === c.id),
+                    )
+                    .map((c) => (
                       <option key={c.id} value={c.id}>
                         {c.name} ({c.mobile})
                       </option>
                     ))}
                 </select>
-                {customers.filter(c => !accounts.some(acc => acc.customerId === c.id)).length === 0 && (
+                {customers.filter(
+                  (c) => !accounts.some((acc) => acc.customerId === c.id),
+                ).length === 0 && (
                   <p className="text-[9.5px] text-rose-500 font-semibold mt-1">
-                    * All currently registered clients have active credit layouts.
+                    * All currently registered clients have active credit
+                    layouts.
                   </p>
                 )}
               </div>
 
               {/* Set Limit */}
               <div>
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Allowed Credit Ceiling (₹) *</label>
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">
+                  Allowed Credit Ceiling (₹) *
+                </label>
                 <input
                   type="number"
                   min="1"
                   step="1"
                   value={openAccountForm.creditLimit}
-                  onChange={(e) => setOpenAccountForm({ ...openAccountForm, creditLimit: e.target.value })}
+                  onChange={(e) =>
+                    setOpenAccountForm({
+                      ...openAccountForm,
+                      creditLimit: e.target.value,
+                    })
+                  }
                   placeholder="Eg: 10000"
                   required
                   className="w-full h-10 bg-slate-50 border border-slate-200 rounded-lg px-3.5 text-sm font-extrabold text-slate-800 outline-none focus:bg-white focus:border-emerald-500 transition-all font-mono"
@@ -786,14 +1003,17 @@ const DepositAccounts = () => {
                 </button>
                 <button
                   type="submit"
-                  disabled={customers.filter(c => !accounts.some(acc => acc.customerId === c.id)).length === 0}
+                  disabled={
+                    customers.filter(
+                      (c) => !accounts.some((acc) => acc.customerId === c.id),
+                    ).length === 0
+                  }
                   className="flex-1 h-10 bg-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-emerald-700 text-white rounded-lg text-xs font-extrabold flex items-center justify-center gap-1 cursor-pointer transition-all border-0 shadow-xs"
                 >
                   <CheckCircle size={14} />
                   ENABLE ACCOUNT
                 </button>
               </div>
-
             </form>
           </div>
         </div>
@@ -805,8 +1025,12 @@ const DepositAccounts = () => {
           <div className="bg-white rounded-xl shadow-lg border border-slate-100 w-full max-w-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
             <div className="bg-slate-50 border-b border-slate-100 p-4.5 px-5 flex items-center justify-between">
               <div>
-                <h3 className="text-sm font-black text-slate-800 uppercase tracking-wider">Debit & Credit Ledger</h3>
-                <p className="text-[11px] text-slate-400 mt-0.5 font-bold">LEDGER LOGS OF {selectedAccount.customerName.toUpperCase()}</p>
+                <h3 className="text-sm font-black text-slate-800 uppercase tracking-wider">
+                  Debit & Credit Ledger
+                </h3>
+                <p className="text-[11px] text-slate-400 mt-0.5 font-bold">
+                  LEDGER LOGS OF {selectedAccount.customerName.toUpperCase()}
+                </p>
               </div>
               <button
                 type="button"
@@ -816,22 +1040,33 @@ const DepositAccounts = () => {
                 <X size={15} />
               </button>
             </div>
-            
+
             <div className="p-5">
-              
               {/* Account Quick Stats Box */}
               <div className="grid grid-cols-3 gap-2.5 bg-slate-50 p-3.5 border border-slate-100 rounded-xl mb-4.5">
                 <div>
-                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Allowed Limit</span>
-                  <span className="text-sm font-extrabold text-slate-700 mt-0.5 font-mono">₹{selectedAccount.creditLimit.toFixed(2)}</span>
+                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">
+                    Allowed Limit
+                  </span>
+                  <span className="text-sm font-extrabold text-slate-700 mt-0.5 font-mono">
+                    ₹{selectedAccount.creditLimit.toFixed(2)}
+                  </span>
                 </div>
                 <div>
-                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Deposited Pay</span>
-                  <span className="text-sm font-extrabold text-emerald-600 mt-0.5 font-mono">₹{selectedAccount.paymentsReceived.toFixed(2)}</span>
+                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">
+                    Deposited Pay
+                  </span>
+                  <span className="text-sm font-extrabold text-emerald-600 mt-0.5 font-mono">
+                    ₹{selectedAccount.paymentsReceived.toFixed(2)}
+                  </span>
                 </div>
                 <div>
-                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Outstanding Due</span>
-                  <span className={`text-sm font-black mt-0.5 font-mono ${selectedAccount.outstanding > 0 ? "text-rose-600" : "text-emerald-600"}`}>
+                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">
+                    Outstanding Due
+                  </span>
+                  <span
+                    className={`text-sm font-black mt-0.5 font-mono ${selectedAccount.outstanding > 0 ? "text-rose-600" : "text-emerald-600"}`}
+                  >
                     ₹{selectedAccount.outstanding.toFixed(2)}
                   </span>
                 </div>
@@ -848,25 +1083,47 @@ const DepositAccounts = () => {
                 </div>
 
                 <div className="overflow-y-auto max-h-[250px] divide-y divide-slate-100 text-[11px] font-semibold text-slate-600">
-                  {(!selectedAccount.transactions || selectedAccount.transactions.length === 0) ? (
+                  {!selectedAccount.transactions ||
+                  selectedAccount.transactions.length === 0 ? (
                     <div className="p-8 text-center text-slate-400">
                       No transactions recorded yet.
                     </div>
                   ) : (
                     selectedAccount.transactions.map((tx) => (
-                      <div key={tx.id} className="hover:bg-slate-50/50 px-4 py-3.5 grid grid-cols-12 gap-2 uppercase font-sans tracking-wide">
-                        <div className="col-span-1 text-center font-mono text-[10px] text-slate-400 font-bold">{tx.id}</div>
-                        <div className="col-span-3 text-slate-500 text-[10px]">{tx.date}</div>
+                      <div
+                        key={tx.id}
+                        className="hover:bg-slate-50/50 px-4 py-3.5 grid grid-cols-12 gap-2 uppercase font-sans tracking-wide"
+                      >
+                        <div className="col-span-1 text-center font-mono text-[10px] text-slate-400 font-bold">
+                          {tx.id}
+                        </div>
+                        <div className="col-span-3 text-slate-500 text-[10px]">
+                          {tx.date}
+                        </div>
                         <div className="col-span-2 text-center">
-                          <span className={`inline-block text-[9px] font-extrabold px-1.5 py-0.5 rounded
-                            ${tx.type === "CREDIT" ? "bg-orange-50 text-orange-600" : "bg-emerald-50 text-emerald-600"}`}>
+                          <span
+                            className={`inline-block text-[9px] font-extrabold px-1.5 py-0.5 rounded
+                            ${tx.type === "CREDIT" ? "bg-orange-50 text-orange-600" : "bg-emerald-50 text-emerald-600"}`}
+                          >
                             {tx.type}
                           </span>
                         </div>
-                        <div className="col-span-4 text-slate-700 font-sans truncate normal-case" title={tx.description}>{tx.description}</div>
+                        <div
+                          className="col-span-4 text-slate-700 font-sans truncate normal-case"
+                          title={tx.description}
+                        >
+                          {tx.description}
+                        </div>
                         <div className="col-span-2 text-right font-bold font-mono">
-                          <span className={tx.type === "CREDIT" ? "text-rose-600" : "text-emerald-600"}>
-                            {tx.type === "CREDIT" ? "+" : "-"}₹{tx.amount.toFixed(2)}
+                          <span
+                            className={
+                              tx.type === "CREDIT"
+                                ? "text-rose-600"
+                                : "text-emerald-600"
+                            }
+                          >
+                            {tx.type === "CREDIT" ? "+" : "-"}₹
+                            {tx.amount.toFixed(2)}
                           </span>
                         </div>
                       </div>
@@ -885,12 +1142,10 @@ const DepositAccounts = () => {
                   CLOSE LEDGER
                 </button>
               </div>
-
             </div>
           </div>
         </div>
       )}
-
     </div>
   );
 };

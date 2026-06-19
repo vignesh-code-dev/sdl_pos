@@ -23,11 +23,9 @@ import {
 } from "lucide-react";
 
 const Sidebar = () => {
-  // ➡️ Retrieve original userRole, shopInfo, and logout function from global context
   const { userRole, shopInfo, logout } = useAuth();
   const [isCollapsed, setIsCollapsed] = useState(false);
 
-  // Grouped menus according to specifications
   const menuStructure = [
     {
       group: "Dashboard",
@@ -145,13 +143,13 @@ const Sidebar = () => {
       <div>
         <div className="flex items-center justify-between p-4 border-b border-pos-border/60">
           {!isCollapsed && (
-            <span className="text-sm font-black text-brand-primary tracking-wider uppercase font-mono truncate max-w-[170px]">
+            <span className="text-sm font-black text-brand-500 tracking-wider uppercase font-mono truncate max-w-[170px]">
               {shopInfo?.shopName || "BillMate POS"}
             </span>
           )}
           <button
             onClick={() => setIsCollapsed(!isCollapsed)}
-            className="p-1.5 rounded-full bg-brand-primary text-white hover:bg-brand-primary/90 transition-colors cursor-pointer"
+            className="p-1.5 rounded-full bg-brand-500 text-white hover:bg-brand-500/90 transition-colors cursor-pointer"
           >
             {isCollapsed ? (
               <ChevronRight size={16} />
@@ -186,8 +184,8 @@ const Sidebar = () => {
                         flex items-center gap-3 px-3 py-2.5 rounded text-sm font-bold tracking-wide transition-all duration-150 cursor-pointer
                         ${
                           isActive
-                            ? "bg-brand-primary text-white shadow-lg shadow-emerald-500/10 font-bold"
-                            : "text-brand-primary hover:bg-brand-primary hover:text-white border border-transparent hover:border-pos-border/40"
+                            ? "bg-brand-50 text-brand-700 border-r-4 border-brand-500"
+                            : "text-text-secondary hover:bg-slate-50 hover:text-brand-500 font-medium"
                         }
                       `}
                     >

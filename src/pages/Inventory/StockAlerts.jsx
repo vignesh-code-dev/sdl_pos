@@ -62,20 +62,14 @@ const StockAlerts = () => {
     (p) => p.alert.type === "Force Sale",
   ).length;
 
-  // கோப்பின் மிக மேலே இம்போர்ட் செய்யும் இடத்தில் இப்படி இருக்கிறதா என்று உறுதி செய்து கொள்ளவும்:
-  // import { jsPDF } from "jspdf";
-  // import autoTable from "jspdf-autotable"; <--- இப்படி மாற்றி இம்போர்ட் செய்யவும்
-
   const handleExportPDF = () => {
     try {
       const doc = new jsPDF();
 
-      // 1. ரிப்போர்ட் தலைப்பு (Header)
       doc.setFont("helvetica", "bold");
       doc.setFontSize(18);
       doc.text("BillMate - Stock Alerts Report", 14, 20);
 
-      // 2. சப்-ஹெடிங் மற்றும் ஃபில்டர் விவரங்கள்
       doc.setFontSize(10);
       doc.setFont("helvetica", "normal");
       doc.text(
@@ -89,7 +83,6 @@ const StockAlerts = () => {
         34,
       );
 
-      // 3. டேபிளுக்கான தரவுகள் (Rows & Columns)
       const tableHeaders = [
         [
           "Product Details",
@@ -108,7 +101,6 @@ const StockAlerts = () => {
         prod.currentStock,
       ]);
 
-      // 4. குளோபல் ஆட்டோ-டேபிள் ஃபங்க்ஷனைப் பயன்படுத்துதல் (Fix)
       autoTable(doc, {
         head: tableHeaders,
         body: tableRows,
@@ -121,12 +113,11 @@ const StockAlerts = () => {
         },
       });
 
-      // 5. PDF கோப்பை டவுன்லோட் செய்தல்
       doc.save(`Stock_Alerts_${alertFilter.replace(" ", "_")}.pdf`);
     } catch (error) {
       console.error("PDF download failed:", error);
       alert(
-        "PDF உருவாக்குவதில் சிக்கல் ஏற்பட்டுள்ளது! கன்சோலை சரிபார்க்கவும்.",
+        "Oops! Something went wrong while generating the PDF. Please try again.",
       );
     }
   };
@@ -136,7 +127,7 @@ const StockAlerts = () => {
       {/* HEADER & EXPORT BUTTON */}
       <div className="mb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 shrink-0">
         <div>
-          <h2 className="text-xl font-bold tracking-tight text-brand-primary flex items-center gap-2">
+          <h2 className="text-xl font-bold tracking-tight text-brand-500 flex items-center gap-2">
             <AlertTriangle
               className="text-amber-500 animate-bounce"
               size={22}
@@ -158,24 +149,24 @@ const StockAlerts = () => {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-5 shrink-0">
         <div className="bg-white border border-pos-border rounded p-4 flex items-center justify-between shadow-xs">
           <div>
-            <span className="text-[11px] font-black uppercase tracking-wider text-text-secondary block">
+            <span className="text-base font-bold uppercase tracking-wider text-text-secondary block">
               Out of Stock
             </span>
-            <span className="text-2xl font-black text-rose-600 font-mono block mt-0.5">
+            <span className="text-4xl font-black text-rose-600 font-mono block mt-0.5">
               {outOfStockCount}
             </span>
           </div>
-          <div className="p-2 bg-brand-danger text-white rounded-full">
+          <div className="p-2 bg-danger text-white rounded-full">
             <XCircle size={20} />
           </div>
         </div>
 
         <div className="bg-white border border-pos-border rounded p-4 flex items-center justify-between shadow-xs">
           <div>
-            <span className="text-[11px] font-black uppercase tracking-wider text-text-secondary block">
+            <span className="text-base font-bold uppercase tracking-wider text-text-secondary block">
               Low Stock Alerts
             </span>
-            <span className="text-2xl font-black text-amber-600 font-mono block mt-0.5">
+            <span className="text-4xl font-black text-amber-600 font-mono block mt-0.5">
               {lowStockCount}
             </span>
           </div>
@@ -186,10 +177,10 @@ const StockAlerts = () => {
 
         <div className="bg-white border border-pos-border rounded p-4 flex items-center justify-between shadow-xs">
           <div>
-            <span className="text-[11px] font-black uppercase tracking-wider text-text-secondary block">
+            <span className="text-base font-bold uppercase tracking-wider text-text-secondary block">
               Force Sales (Negative)
             </span>
-            <span className="text-2xl font-black text-purple-600 font-mono block mt-0.5">
+            <span className="text-4xl font-black text-purple-600 font-mono block mt-0.5">
               {forceSaleCount}
             </span>
           </div>
@@ -208,7 +199,7 @@ const StockAlerts = () => {
             placeholder="Search alert products by name or SKU..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full text-sm bg-pos-bg border border-pos-border rounded pl-9 pr-4 py-2.5 focus:outline-none focus:border-brand-primary font-medium"
+            className="w-full text-sm bg-pos-bg border border-pos-border rounded pl-9 pr-4 py-2.5 focus:outline-none focus:ring focus:ring-brand-500/50 font-medium"
           />
         </div>
 
@@ -244,7 +235,7 @@ const StockAlerts = () => {
           </div>
         ) : (
           <table className="w-full text-center border-collapse min-w-[800px]">
-            <thead className="bg-brand-primary text-white text-[12px] font-bold uppercase tracking-wider border-b border-pos-border">
+            <thead className="bg-brand-500 text-white text-xs font-semibold uppercase tracking-wider border-b border-pos-border">
               <tr>
                 <th className="py-3 px-4 text-left pl-6">Product Details</th>
                 <th className="py-3 px-4 text-center">SKU</th>
@@ -253,38 +244,36 @@ const StockAlerts = () => {
                 <th className="py-3 px-4 text-center">Current Stock</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-pos-border text-[13px] text-slate-700">
+            <tbody className="divide-y divide-pos-border">
               {alertLogs.map((prod) => {
-                let badgeColor = "bg-brand-warning text-white border-amber-100";
+                let badgeColor = "bg-warning text-white border-amber-100";
                 if (prod.alert.type === "Force Sale")
                   badgeColor = "bg-purple-600 text-white border-purple-100";
                 if (prod.alert.type === "Out of Stock")
-                  badgeColor = "bg-brand-danger text-white border-rose-100";
+                  badgeColor = "bg-danger text-white border-rose-100";
 
                 return (
                   <tr
                     key={prod.id}
-                    className="hover:bg-slate-50/60 transition-colors"
+                    className="hover:bg-brand-500/10 transition-colors text-sm font-medium text-text-secondary"
                   >
-                    <td className="py-3 px-4 text-left pl-6 font-bold text-slate-800">
-                      {prod.name}
-                    </td>
-                    <td className="py-3 px-4 font-mono font-bold text-text-secondary text-center">
+                    <td className="py-3 px-4 text-left pl-6">{prod.name}</td>
+                    <td className="py-3 px-4 font-monotext-center">
                       {prod.sku || "N/A"}
                     </td>
                     <td className="py-3 px-4 text-center">
                       <span
-                        className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border uppercase tracking-wide ${badgeColor}`}
+                        className={`px-2.5 py-0.5 rounded-full border uppercase tracking-wide ${badgeColor}`}
                       >
                         {prod.alert.label}
                       </span>
                     </td>
-                    <td className="py-3 px-4 font-mono font-semibold text-text-secondary text-center">
+                    <td className="py-3 px-4 font-mono text-center">
                       {prod.minStock || 5}
                     </td>
                     <td className="py-3 px-4 text-center">
                       <span
-                        className={`font-mono font-black text-sm ${Number(prod.currentStock) <= 0 ? "text-rose-600" : "text-text-warning"}`}
+                        className={`font-mono ${Number(prod.currentStock) <= 0 ? "text-danger" : "text-warning"}`}
                       >
                         {prod.currentStock}
                       </span>

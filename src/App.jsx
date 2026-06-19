@@ -8,13 +8,14 @@ import {
 import { useAuth } from "./context/AuthContext"; // Authentication hook
 import Layout from "./components/Layout"; // லேஅவுட்டை இம்போர்ட் செய்கிறோம்
 import Login from "./pages/Login"; // லாகின் பக்கத்தை இம்போர்ட் செய்கிறோம்
-import StoreOverview from "./pages/Dashboard/StoreOverview"; // டாஷ்போர்டு ஓவர்வியூ பக்கம்
+import Dashboard from "./pages/Dashboard/Dashboard"; // டாஷ்போர்டு பக்கம்
 import Analytics from "./pages/Dashboard/Analytics"; // டாஷ்போர்டு அனலிடிக்ஸ் பக்கம்
 import POSBilling from "./pages/Sales/POSBilling"; // POS பில்லிங் பக்கம்
 import Invoices from "./pages/Sales/Invoices";
 import DepositAccounts from "./pages/Sales/DepositAccounts";
 import Products from "./pages/Inventory/Products"; // பொருட்கள் மேலாண்மை பக்கம்
 import UserManagement from "./pages/people/UserManagement"; // பயனர் மேலாண்மை பக்கம்
+import SupplierManagement from "./pages/people/SupplierManagement"; // சப்ளையர் மேலாண்மை பக்கம்
 import StockCount from "./pages/Inventory/StockCount";
 import StockEntry from "./pages/Inventory/StockEntry";
 import StockHistory from "./pages/Inventory/StockHistory";
@@ -50,17 +51,14 @@ function App() {
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
 
           {/* Dashboard Group */}
-          <Route path="/dashboard" element={<StoreOverview />} />
+          <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/analytics" element={<Analytics />} />
 
           {/* Sales Group */}
           <Route path="/pos" element={<POSBilling />} />
           <Route path="/invoices" element={<Invoices />} />
 
-           <Route
-            path="/deposits"
-            element={<DepositAccounts />}
-          />
+          <Route path="/deposits" element={<DepositAccounts />} />
           <Route
             path="/expenses"
             element={<PlaceholderPage title="Store Expense Tracker" />}
@@ -75,22 +73,14 @@ function App() {
           <Route path="/stock-count" element={<StockCount />} />
           <Route path="/stock-entry" element={<StockEntry />} />
           <Route path="/stock-history" element={<StockHistory />} />
-          <Route
-            path="/stock-alerts"
-            element={
-              <StockAlerts />
-            }
-          />
+          <Route path="/stock-alerts" element={<StockAlerts />} />
 
           {/* People Group */}
           <Route
             path="/customers"
             element={<PlaceholderPage title="Customer Database" />}
           />
-          <Route
-            path="/suppliers"
-            element={<PlaceholderPage title="Supplier Directory" />}
-          />
+          <Route path="/suppliers" element={<SupplierManagement />} />
           <Route path="/users" element={<UserManagement />} />
 
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
