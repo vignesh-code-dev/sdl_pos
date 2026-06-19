@@ -1,17 +1,68 @@
 @import "tailwindcss";
 
 @theme {
-  /* சாஃப்ட்வேருக்கான பிரத்யேக கலர் பேலட் */
-  --color-pos-bg: #f4f6f9; /* சூப்பர் டார்க் பேக்ரவுண்ட் */
-  --color-pos-card: #ffffff; /* கார்டு மற்றும் சைட் பார் */
-  --color-pos-border: #e2e8f0; /* பார்டர் லைன்கள் */
+  /* Primary Brand */
+  --color-brand-50: #e6f7f3;
+  --color-brand-100: #cdefe7;
+  --color-brand-200: #9bdfcf;
+  --color-brand-300: #69cfb7;
+  --color-brand-400: #37bf9f;
+  --color-brand-500: #009b77; /* Primary */
+  --color-brand-600: #008a6a;
+  --color-brand-700: #00745a;
+  --color-brand-800: #005e4a;
+  --color-brand-900: #00483a;
 
-  --color-brand-primary: #009b77; /* emerald green*/
-  --color-brand-success: #10b981;
-  --color-brand-warning: #f59e0b; /* ஆம்பர் மஞ்சள் - லோ ஸ்டாக் */
-  --color-brand-danger: #f43f5e; /* ரோஸ் சிவப்பு - கேன்சல் / அலர்ட் */
+  /* Semantic */
+  --color-success: #16a34a;
+  --color-warning: #f59e0b;
+  --color-danger: #e11d48;
+  --color-info: #0ea5e9;
 
-  --color-text-primary: #0f172a; /* முக்கிய உரை */
-  --color-text-secondary: #475569; /* துணை உரை */
-  --color-text-muted: #94a3b8; /* மியூட்டட் உரை */
+  /* Background */
+  --color-pos-bg: #f8fafc;
+  --color-pos-card: #ffffff;
+  --color-pos-border: #e2e8f0;
+
+  /* Text */
+  --color-text-primary: #0f172a;
+  --color-text-secondary: #475569;
+  --color-text-muted: #94a3b8;
+
+  /* Font Family */
+  --font-sans: "Inter", sans-serif;
+
+  /* Font Sizes */
+  --text-xs: 12px;
+  --text-sm: 14px;
+  --text-base: 16px;
+  --text-lg: 18px;
+  --text-xl: 20px;
+  --text-2xl: 24px;
+  --text-3xl: 28px;
+  --text-4xl: 32px;
+  --text-5xl: 36px;
+
+  /* Line Heights */
+  --leading-xs: 16px;
+  --leading-sm: 20px;
+  --leading-base: 24px;
+  --leading-lg: 28px;
+  --leading-xl: 28px;
+  --leading-2xl: 32px;
+  --leading-3xl: 36px;
+  --leading-4xl: 40px;
+  --leading-5xl: 44px;
+
+  /* Font Weights */
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --font-weight-extrabold: 800;
+
+  /* Letter Spacing */
+  --tracking-tight: -0.5px;
+  --tracking-normal: 0;
+  --tracking-wide: 0.5px;
 }

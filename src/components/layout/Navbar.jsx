@@ -77,15 +77,15 @@ const Navbar = () => {
         <div className="flex items-center gap-2 bg- border border-pos-border px-2 py-1 rounded-xl">
           {isOnline ? (
             <>
-              <Wifi size={14} className="text-brand-success" />
-              <span className="text-[9px] font-semibold text-brand-success uppercase tracking-wide">
+              <Wifi size={14} className="text-success" />
+              <span className="text-[9px] font-semibold text-success uppercase tracking-wide">
                 Online LAN Mode
               </span>
             </>
           ) : (
             <>
-              <WifiOff size={14} className="text-brand-danger animate-bounce" />
-              <span className="text-[9px] font-semibold text-brand-danger animate-pulse uppercase tracking-wide">
+              <WifiOff size={14} className="text-danger animate-bounce" />
+              <span className="text-[9px] font-semibold text-danger animate-pulse uppercase tracking-wide">
                 Offline Local Mode
               </span>
             </>
@@ -102,7 +102,7 @@ const Navbar = () => {
               {formatDate(currentTime)}
             </span>
           </div>
-          <div className="flex items-center gap-1.5 text-brand-primary font-mono bg-emerald-500/5 px-2 py-1 rounded-full border border-brand-primary/10">
+          <div className="flex items-center gap-1.5 text-brand-500 font-mono bg-emerald-500/5 px-2 py-1 rounded-full border border-brand-primary/10">
             <Clock size={14} />
             <span>{formatTime(currentTime)}</span>
           </div>
@@ -114,17 +114,15 @@ const Navbar = () => {
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
             className="flex items-center cursor-pointer gap-2 text-left"
           >
-            {/* யூசர் முதல் எழுத்து லோகோ */}
-            <div className="w-7 h-7 rounded-lg bg-brand-primary/10 text-brand-primary border border-brand-primary/20 flex items-center justify-center font-black text-xs uppercase">
+            <div className="w-7 h-7 rounded-lg bg-brand-500/10 text-brand-500 border border-brand-primary/20 flex items-center justify-center font-black text-xs uppercase">
               {shopInfo?.username[0] || "U"}
             </div>
 
             <div className="hidden sm:block">
-              {/* ஒரிஜினல் லாகின் யூசர் பெயர் */}
-              <span className="text-xs font-black text-slate-200 leading-none block capitalize">
+              <span className="text-xs font-black text-brand-500 leading-none block capitalize">
                 {shopInfo?.username || "Operator"}
               </span>
-              <span className="text-[9px] text-brand-warning font-mono font-bold uppercase tracking-wider block mt-0.5">
+              <span className="text-[9px] text-warning font-mono font-bold uppercase tracking-wider block mt-0.5">
                 {userRole}
               </span>
             </div>

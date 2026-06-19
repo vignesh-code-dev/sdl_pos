@@ -6,23 +6,24 @@ import {
   Navigate,
 } from "react-router-dom";
 import { useAuth } from "./context/AuthContext"; // Authentication hook
-import Layout from "./components/layout/Layout"; 
-import Login from "./pages/Login"; 
-import StoreOverview from "./pages/Dashboard/StoreOverview";
-import Analytics from "./pages/Dashboard/Analytics"; 
-import POSBilling from "./pages/Sales/POSBilling"; 
-import Invoices from "./pages/Sales/Invoices"; 
-import Products from "./pages/Inventory/Products"; 
+import Layout from "./components/Layout"; // லேஅவுட்டை இம்போர்ட் செய்கிறோம்
+import Login from "./pages/Login"; // லாகின் பக்கத்தை இம்போர்ட் செய்கிறோம்
+import StoreOverview from "./pages/Dashboard/StoreOverview"; // டாஷ்போர்டு ஓவர்வியூ பக்கம்
+import Analytics from "./pages/Dashboard/Analytics"; // டாஷ்போர்டு அனலிடிக்ஸ் பக்கம்
+import POSBilling from "./pages/Sales/POSBilling"; // POS பில்லிங் பக்கம்
+import Invoices from "./pages/Sales/Invoices";
+import DepositAccounts from "./pages/Sales/DepositAccounts";
+import Products from "./pages/Inventory/Products"; // பொருட்கள் மேலாண்மை பக்கம்
+import UserManagement from "./pages/people/UserManagement"; // பயனர் மேலாண்மை பக்கம்
 import StockCount from "./pages/Inventory/StockCount";
 import StockEntry from "./pages/Inventory/StockEntry";
 import StockHistory from "./pages/Inventory/StockHistory";
 import StockAlerts from "./pages/Inventory/StockAlerts";
-import UserManagement from "./pages/people/UserManagement"; 
+import UserManagement from "./pages/people/UserManagement";
 import CustomerManagement from "./pages/people/CustomerManagement";
 import DepositAccounts from "./pages/Sales/DepositAccounts";
 import Expenses from "./pages/Sales/Expenses";
 import Reports from "./pages/Sales/Reports";
-
 
 const PlaceholderPage = ({ title }) => (
   <div className="p-6 text-slate-100">
@@ -39,38 +40,27 @@ const PlaceholderPage = ({ title }) => (
 function App() {
   const { isAuthenticated, userRole, handleLogout } = useAuth();
 
- 
   if (!isAuthenticated) {
     return <Login />;
   }
 
-  
   return (
     <Router>
-     
       <Layout userRole={userRole} onRoleChange={handleLogout}>
         <Routes>
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
 
           {/* Dashboard Group */}
-          <Route path="/dashboard" element={<StoreOverview />} />
+          <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/analytics" element={<Analytics />} />
 
           {/* Sales Group */}
           <Route path="/pos" element={<POSBilling />} />
           <Route path="/invoices" element={<Invoices />} />
-          <Route
-            path="/deposits"
-            element={<DepositAccounts />}
-          />
-          <Route
-            path="/expenses"
-            element={<Expenses />}
-          />
-          <Route
-            path="/reports"
-            element={<Reports />}
-          />
+
+          <Route path="/deposits" element={<DepositAccounts />} />
+          <Route path="/expenses" element={<Expenses />} />
+          <Route path="/reports" element={<Reports />} />
 
           {/* Inventory Group */}
           <Route path="/products" element={<Products />} />
@@ -80,14 +70,8 @@ function App() {
           <Route path="/stock-alerts" element={<StockAlerts />} />
 
           {/* People Group */}
-          <Route
-            path="/customers"
-            element={<CustomerManagement />}
-          />
-          <Route
-            path="/suppliers"
-            element={<PlaceholderPage title="Supplier Directory" />}
-          />
+          <Route path="/customers" element={<CustomerManagement />} />
+          <Route path="/suppliers" element={<SupplierManagement />} />
           <Route path="/users" element={<UserManagement />} />
 
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
