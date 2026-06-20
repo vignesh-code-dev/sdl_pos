@@ -108,7 +108,7 @@ const StockCount = () => {
       {/* HEADER */}
       <div className="flex items-center justify-between mb-4 shrink-0">
         <div>
-          <h2 className="text-xl font-bold tracking-tight text-brand-primary">
+          <h2 className="text-3xl font-bold tracking-tight text-brand-500">
             Stock Count
           </h2>
         </div>
@@ -129,10 +129,10 @@ const StockCount = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-5 shrink-0">
         <div className="bg-white border border-pos-border rounded p-4 flex items-center justify-between shadow-xs">
           <div>
-            <span className="text-[11px] font-black uppercase tracking-wider text-text-secondary block">
+            <span className="text-base font-semibold uppercase tracking-wider text-text-secondary block">
               Total Products
             </span>
-            <span className="text-2xl font-black text-text-primary font-mono block mt-0.5">
+            <span className="text-4xl font-bold text-text-primary font-mono block mt-0.5">
               {totalProducts}
             </span>
           </div>
@@ -143,45 +143,45 @@ const StockCount = () => {
 
         <div className="bg-white border border-pos-border rounded p-4 flex items-center justify-between shadow-xs">
           <div>
-            <span className="text-[11px] font-black uppercase tracking-wider text-text-secondary block">
+            <span className="text-base font-semibold uppercase tracking-wider text-text-secondary block">
               Low Stock
             </span>
-            <span className="text-2xl font-black text-brand-warning font-mono block mt-0.5">
+            <span className="text-4xl font-bold text-brand-warning font-mono block mt-0.5">
               {lowStockProducts}
             </span>
           </div>
-          <div className="p-2 bg-brand-warning flex items-center justify-center rounded-full text-white">
+          <div className="p-2 bg-warning flex items-center justify-center rounded-full text-white">
             <AlertTriangle size={22} />
           </div>
         </div>
 
         <div className="bg-white border border-pos-border rounded p-4 flex items-center justify-between shadow-xs">
           <div>
-            <span className="text-[11px] font-black uppercase tracking-wider text-text-secondary block">
+            <span className="text-base font-semibold uppercase tracking-wider text-text-secondary block">
               Out of Stock
             </span>
-            <span className="text-2xl font-black text-rose-600 font-mono block mt-0.5">
+            <span className="text-4xl font-bold text-rose-600 font-mono block mt-0.5">
               {outOfStockProducts}
             </span>
           </div>
-          <div className="p-2 bg-brand-danger rounded-full text-white">
+          <div className="p-2 bg-danger rounded-full text-white">
             <XCircle size={22} />
           </div>
         </div>
 
         <div className="bg-white border border-pos-border rounded p-4 flex items-center justify-between shadow-xs">
           <div>
-            <span className="text-[11px] font-black uppercase tracking-wider text-text-secondary block">
+            <span className="text-base font-semibold uppercase tracking-wider text-text-secondary block">
               Total Inventory Value
             </span>
-            <span className="text-2xl font-black text-emerald-600 font-mono block mt-0.5">
+            <span className="text-4xl font-bold text-emerald-600 font-mono block mt-0.5">
               ₹
               {totalInventoryValue.toLocaleString("en-IN", {
                 minimumFractionDigits: 2,
               })}
             </span>
           </div>
-          <div className="p-2 bg-brand-primary rounded-full text-white">
+          <div className="p-2 bg-brand-500 rounded-full text-white">
             <TrendingUp size={22} />
           </div>
         </div>
@@ -196,7 +196,7 @@ const StockCount = () => {
             placeholder="Search by product name or SKU..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full text-sm bg-pos-bg border border-pos-border rounded pl-9 pr-4 py-2.5 focus:outline-none focus:border-brand-primary font-medium"
+            className="w-full text-sm bg-pos-bg border border-pos-border rounded pl-9 pr-4 py-2.5 focus:outline-none focus:ring-1 focus:ring-brand-500/50 font-medium"
           />
         </div>
 
@@ -223,7 +223,7 @@ const StockCount = () => {
           </div>
         ) : (
           <table className="w-full text-center border-collapse min-w-[1200px]">
-            <thead className="bg-brand-primary text-white text-[11px] font-bold uppercase tracking-wider border-b border-pos-border sticky top-0 z-10">
+            <thead className="bg-brand-500 text-white text-xs font-semibold uppercase tracking-wider border-b border-pos-border sticky top-0 z-10">
               <tr>
                 <th className="py-3 px-4 text-center">SKU</th>
                 <th className="py-3 px-4 text-left pl-6">Product Name</th>
@@ -237,7 +237,7 @@ const StockCount = () => {
                 <th className="py-3 px-4 text-center pr-6">Last Sold</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-pos-border text-[13px] text-slate-700">
+            <tbody className="divide-y divide-pos-border">
               {filteredProducts.map((p, idx) => {
                 const stockValue = p.currentStock * (p.costPrice || 0);
 
@@ -251,21 +251,17 @@ const StockCount = () => {
                 return (
                   <tr
                     key={p.sku || idx}
-                    className="hover:bg-slate-50/60 transition-colors text-text-secondary text-[14px]"
+                    className="hover:bg-brand-500/10 transition-colors text-text-secondary text-sm font-medium"
                   >
                     {/* SKU */}
-                    <td className="py-3 px-4 font-mono font-bold text-slate-500">
-                      {p.sku}
-                    </td>
+                    <td className="py-3 px-4 font-mono">{p.sku}</td>
 
                     {/* Product Name */}
-                    <td className="py-3 px-4 text-left pl-6 font-bold text-slate-800">
-                      {p.name}
-                    </td>
+                    <td className="py-3 px-4 text-left pl-6">{p.name}</td>
 
                     {/* Category */}
                     <td className="py-3 px-4 text-center">
-                      <span className="inline-block bg-brand-primary text-white font-bold px-2 py-1 rounded-full text-[11px]">
+                      <span className="inline-block bg-brand-500 text-white px-2 py-1 rounded-full ">
                         {p.category}
                       </span>
                     </td>
@@ -275,7 +271,7 @@ const StockCount = () => {
                       className={`py-3 px-4 font-mono text-center ${stockColor}`}
                     >
                       {p.currentStock}{" "}
-                      <span className="text-[10px] text-text-secondary font-sans font-normal">
+                      <span className="text-[10px] font-semibold font-sans">
                         {p.unit || "pcs"}
                       </span>
                     </td>
@@ -286,34 +282,31 @@ const StockCount = () => {
                     </td>
 
                     {/* Inventory Value */}
-                    <td className="py-3 px-4 text-right font-mono font-semibold text-slate-900">
+                    <td className="py-3 px-4 text-right font-mono">
                       ₹{stockValue.toFixed(2)}
                     </td>
 
                     {/* 30-Day Revenue */}
-                    <td className="py-3 px-4 text-right font-mono font-bold text-blue-600 bg-blue-50/20">
+                    <td className="py-3 px-4 text-right font-mono">
                       ₹{(p.revenue30D || 0).toFixed(2)}
                     </td>
 
                     {/* 30-Day Profit */}
-                    <td className="py-3 px-4 text-right font-mono font-bold text-emerald-600 bg-emerald-50/20">
+                    <td className="py-3 px-4 text-right font-mono text-brand-600">
                       ₹{(p.profit30D || 0).toFixed(2)}
                     </td>
 
                     {/* Qty Sold (30D) */}
-                    <td className="py-3 px-4 font-mono font-bold text-center text-slate-700">
+                    <td className="py-3 px-4 font-mono text-center">
                       {p.qtySold30D || 0}
                     </td>
 
                     {/* Last Sold */}
-                    <td className="py-3 px-4 text-center pr-6 text-xs text-slate-500 font-medium">
+                    <td className="py-3 px-4 text-center pr-6 font-medium">
                       {p.lastSold === "No Sales" ? (
                         <span className="text-slate-400 italic">No Sales</span>
                       ) : (
-                        <span className="flex items-center justify-center gap-1 text-slate-600 font-mono">
-                          <Calendar size={12} className="text-slate-400" />
-                          {p.lastSold}
-                        </span>
+                        <span className=" text-xs font-mono">{p.lastSold}</span>
                       )}
                     </td>
                   </tr>

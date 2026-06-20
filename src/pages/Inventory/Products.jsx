@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Plus,
   LayoutGrid,
@@ -8,7 +8,12 @@ import {
   Edit3,
   Search,
   Tag,
+  Barcode,
+  Upload,
+  Layers,
 } from "lucide-react";
+import { parseCSV, runExportCSV } from "../../utils/csvHelper";
+import BarcodeModal from "../../components/BarcodeModal";
 
 const Products = () => {
   // Retrieve existing products from localStorage
@@ -31,10 +36,18 @@ const Products = () => {
   const [modalMode, setModalMode] = useState("add");
   const [editingOldSku, setEditingOldSku] = useState("");
 
+  // Barcode Print states
+  const [showBarcodeModal, setShowBarcodeModal] = useState(false);
+  const [barcodeModalProduct, setBarcodeModalProduct] = useState(null);
+
+  // Hidden file input ref for CSV import
+  const csvInputRef = useRef(null);
+
   // Form state (discount and tax included)
   const [formData, setFormData] = useState({
     name: "",
     sku: "",
+    barcode: "", // Barcode field
     category: "Groceries",
     costPrice: "",
     sellingPrice: "",
@@ -89,6 +102,7 @@ const Products = () => {
     setFormData({
       name: "",
       sku: "",
+      barcode: "",
       category: "Groceries",
       costPrice: "",
       sellingPrice: "",
@@ -108,6 +122,7 @@ const Products = () => {
     setFormData({
       name: product.name,
       sku: product.sku,
+      barcode: product.barcode || "",
       category: product.category,
       costPrice: product.costPrice.toString(),
       sellingPrice: product.sellingPrice.toString(),
@@ -178,11 +193,58 @@ const Products = () => {
     }
   };
 
+  // CSV Export
+  const handleExportCSV = () => {
+    runExportCSV(products);
+  };
+
+  // CSV Import
+  const handleImportCSVChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const text = event.target.result;
+        const { importedProducts, skippedCount } = parseCSV(text, products);
+
+        if (importedProducts.length > 0) {
+          setProducts((prev) => [...importedProducts, ...prev]);
+          alert(
+            `Successfully imported ${importedProducts.length} unique products!${
+              skippedCount > 0 ? ` (Skipped ${skippedCount} duplicate SKU codes)` : ""
+            }`
+          );
+        } else {
+          alert("No new unique products found to import.");
+        }
+      } catch (err) {
+        console.error(err);
+        alert(err.message || "Error parsing CSV file. Please make sure the format is valid.");
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = "";
+  };
+
+  // Open Barcode printing page modal (single product only)
+  const handleBarcodeModalOpen = (product) => {
+    if (!product) {
+      alert("Please click the barcode icon on a specific product line to print its barcode!");
+      return;
+    }
+    setBarcodeModalProduct(product);
+    setShowBarcodeModal(true);
+  };
+
   // Filtering and search
   const filteredProducts = products.filter((p) => {
+    const query = searchQuery.toLowerCase();
     const matchesSearch =
-      p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.sku.includes(searchQuery);
+      p.name.toLowerCase().includes(query) ||
+      p.sku.toLowerCase().includes(query) ||
+      (p.barcode && p.barcode.toLowerCase().includes(query));
     const matchesCategory =
       selectedCategory === "All" || p.category === selectedCategory;
     return matchesSearch && matchesCategory;
@@ -199,72 +261,51 @@ const Products = () => {
   const taxRates = [0, 5, 12, 18, 28]; // ➡️ General GST tax rates
 
   return (
-    <div className="p-5 flex flex-col h-[calc(100vh-70px)] bg-pos-bg overflow-hidden text-slate-900">
-      {/* TOP ACTIONS BAR */}
-      <div className="bg-white border border-pos-border rounded p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 shrink-0 shadow-sm mb-4">
-        <div className="flex flex-1 items-center gap-3 w-full">
-          <div className="relative flex-1 max-w-md">
-            <Search
-              size={16}
-              className="absolute left-3.5 top-3.5 text-slate-400"
-            />
-            <input
-              type="text"
-              placeholder="Search by product name or SKU..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full text-sm bg-pos-bg border border-pos-border rounded pl-10 pr-4 py-3 focus:outline-none focus:border-brand-primary font-medium"
-            />
-          </div>
-          <select
-            value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-            className="text-xs bg-pos-bg w-[150px] border border-pos-border rounded px-3 py-3 font-bold text-text-secondary focus:outline-none"
-          >
-            {categories.map((cat) => (
-              <option key={cat} value={cat} className="text-sm">
-                {cat}
-              </option>
-            ))}
-          </select>
+    <div className="p-6 space-y-6 bg-pos-bg overflow-x-hidden min-h-screen text-slate-800">
+      {/* CARD 1: PRODUCT LIST TITLE CARD */}
+      <div className="bg-pos-card border border-pos-border rounded p-5 flex flex-col xl:flex-row items-start xl:items-center justify-between gap-4 shadow-sm">
+        <div>
+          <h2 className="text-2xl font-black tracking-tight text-brand-primary uppercase flex items-center gap-2">
+            
+            Product List
+          </h2>
+          <p className="text-xs text-text-secondary mt-1">
+            Manage your master catalogue of products, SKU codes, pricing, taxes, of your POS inventory.
+          </p>
         </div>
+        
+        {/* Bulk Actions Box */}
+        <div className="flex flex-wrap items-center gap-2 w-full xl:w-auto shrink-0">
+          {/* File Input for CSV parsing */}
+          <input 
+            type="file" 
+            ref={csvInputRef} 
+            onChange={handleImportCSVChange} 
+            accept=".csv" 
+            className="hidden" 
+          />
 
-        <div className="flex items-center gap-2 self-end md:self-auto">
-          {/* View Mode Toggle Switch */}
-          <div className="relative border border-pos-border rounded flex bg-pos-bg p-1 overflow-hidden select-none">
-            <div
-              className={`absolute top-1 bottom-1 left-1 w-[calc(50%-4px)] bg-white rounded shadow-sm transition-all duration-300 ease-out z-0 ${
-                viewMode === "card" ? "translate-x-full" : "translate-x-0"
-              }`}
-            />
-            <button
-              onClick={() => setViewMode("table")}
-              className={`relative p-2 rounded cursor-pointer z-10 transition-colors duration-300 flex items-center justify-center ${
-                viewMode === "table"
-                  ? "text-white bg-brand-primary font-semibold"
-                  : "text-slate-600 hover:text-brand-primary"
-              }`}
-              style={{ width: "36px", height: "32px" }}
-            >
-              <List size={16} />
-            </button>
-            <button
-              onClick={() => setViewMode("card")}
-              className={`relative p-2 rounded cursor-pointer z-10 transition-colors duration-300 flex items-center justify-center ${
-                viewMode === "card"
-                  ? "bg-brand-primary text-white font-semibold"
-                  : "text-slate-600 hover:text-brand-primary"
-              }`}
-              style={{ width: "36px", height: "32px" }}
-            >
-              <LayoutGrid size={16} />
-            </button>
-          </div>
+          <button
+            onClick={() => csvInputRef.current?.click()}
+            className="flex-1 sm:flex-initial p-3 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+            title="Import Products via CSV"
+          >
+            <Upload size={14} />
+            <span>Import CSV</span>
+          </button>
 
-          {/* Add Product Button */}
+          <button
+            onClick={handleExportCSV}
+            className="flex-1 sm:flex-initial p-3 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+            title="Export Products to CSV"
+          >
+            <Download size={14} />
+            <span>Export CSV</span>
+          </button>
+
           <button
             onClick={openAddModal}
-            className="p-2.5 bg-brand-primary hover:bg-brand-primary-hover text-white rounded text-xs font-bold flex items-center gap-1.5 shadow-md shadow-emerald-600/10 cursor-pointer active:scale-95 transition-transform duration-150"
+            className="w-full sm:w-auto p-3 px-5 bg-brand-primary hover:bg-brand-primary/95 text-white rounded text-xs font-bold flex items-center justify-center gap-1.5 shadow-md shadow-emerald-600/10 cursor-pointer active:scale-95 transition-transform duration-150 shrink-0"
           >
             <Plus size={16} />
             <span>Add Product</span>
@@ -272,8 +313,73 @@ const Products = () => {
         </div>
       </div>
 
+      {/* CARD 2: FILTER & VIEW PORT DOCK */}
+      <div className="bg-pos-card border border-pos-border rounded p-5 shadow-sm grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
+        {/* Search Input Box */}
+        <div className="relative col-span-1 md:col-span-6">
+          <Search
+            size={18}
+            className="absolute left-3.5 top-3.5 text-slate-400"
+          />
+          <input
+            type="text"
+            placeholder="Search by product name, SKU, or barcode..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full text-sm bg-pos-bg border border-pos-border rounded pl-10 pr-4 py-3.5 focus:outline-none focus:border-brand-primary font-semibold text-text-primary"
+          />
+        </div>
+
+        {/* Category Filter ("All") */}
+        <div className="col-span-1 md:col-span-4">
+          <select
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value)}
+            className="w-full text-xs font-bold text-text-secondary bg-pos-bg border border-pos-border rounded px-4 py-3.5 focus:outline-none focus:border-brand-primary cursor-pointer"
+          >
+            {categories.map((cat) => (
+              <option key={cat} value={cat} className="text-sm font-semibold">
+                {cat}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* View mode toggle switch */}
+        <div className="col-span-1 md:col-span-2 flex justify-end md:justify-center">
+          <div className="border border-pos-border rounded flex bg-pos-bg p-1 overflow-hidden select-none w-full max-w-[140px] md:max-w-none">
+            <button
+              onClick={() => setViewMode("table")}
+              className={`relative flex-1 p-2 rounded cursor-pointer z-10 transition-colors duration-300 flex items-center justify-center gap-1 ${
+                viewMode === "table"
+                  ? "bg-white text-brand-primary font-bold shadow-xs border border-pos-border/40"
+                  : "text-slate-600 hover:text-brand-primary"
+              }`}
+              style={{ height: "32px" }}
+              title="Table View"
+            >
+              <List size={16} />
+              <span className="text-[11px] font-bold hidden xl:inline">List</span>
+            </button>
+            <button
+              onClick={() => setViewMode("card")}
+              className={`relative flex-1 p-2 rounded cursor-pointer z-10 transition-all duration-300 flex items-center justify-center gap-1 ${
+                viewMode === "card"
+                  ? "bg-white text-brand-primary font-bold shadow-xs border border-pos-border/40"
+                  : "text-slate-600 hover:text-brand-primary"
+              }`}
+              style={{ height: "32px" }}
+              title="Card View"
+            >
+              <LayoutGrid size={16} />
+              <span className="text-[11px] font-bold hidden xl:inline">Grid</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
       {/* MAIN PRODUCTS DISPLAY */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="space-y-6">
         {filteredProducts.length === 0 ? (
           <div className="bg-white border border-pos-border rounded p-20 text-center text-slate-400">
             <Tag size={40} className="mx-auto mb-2 text-slate-300" />
@@ -283,21 +389,21 @@ const Products = () => {
           </div>
         ) : viewMode === "table" ? (
           /* TABLE VIEW WITH CENTERED ALIGNMENT */
-          <div className="bg-white border border-pos-border rounded overflow-hidden shadow-sm">
+          <div className="bg-pos-card border border-pos-border rounded overflow-hidden shadow-sm">
             <table className="w-full text-center border-collapse">
-              <thead className="bg-brand-primary text-white text-[12px] font-bold uppercase tracking-wider border-b border-pos-border">
-                <tr>
-                  <th className="py-3 px-4 text-center">Image</th>
-                  <th className="py-3 px-4 text-center">Product Name</th>
-                  <th className="py-3 px-4 text-center">SKU</th>
-                  <th className="py-3 px-4 text-center">Category</th>
-                  <th className="py-3 px-4 text-center">Cost (₹)</th>
-                  <th className="py-3 px-4 text-center">Selling (₹)</th>
-                  <th className="py-3 px-4 text-center">Margin</th>
-                  <th className="py-3 px-4 text-center">Disc</th>
-                  <th className="py-3 px-4 text-center">Tax (GST)</th>
-                  <th className="py-3 px-4 text-center">Unit</th>
-                  <th className="py-3 px-4 text-center">Actions</th>
+              <thead>
+                <tr className="border-b border-pos-border text-white uppercase text-xs font-semibold tracking-wider bg-emerald-600">
+                  <th className="py-3.5 px-4 text-center text-xs font-semibold uppercase">Image</th>
+                  <th className="py-3.5 px-4 text-center text-xs font-semibold uppercase">Product Name</th>
+                  <th className="py-3.5 px-4 text-center text-xs font-semibold uppercase">SKU</th>
+                  <th className="py-3.5 px-4 text-center text-xs font-semibold uppercase">Category</th>
+                  <th className="py-3.5 px-4 text-center text-xs font-semibold uppercase">Cost (₹)</th>
+                  <th className="py-3.5 px-4 text-center text-xs font-semibold uppercase">Selling (₹)</th>
+                  <th className="py-3.5 px-4 text-center text-xs font-semibold uppercase">Margin</th>
+                  <th className="py-3.5 px-4 text-center text-xs font-semibold uppercase">Disc</th>
+                  <th className="py-3.5 px-4 text-center text-xs font-semibold uppercase">Tax (GST)</th>
+                  <th className="py-3.5 px-4 text-center text-xs font-semibold uppercase">Unit</th>
+                  <th className="py-3.5 px-4 text-center text-xs font-semibold uppercase">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-pos-border text-xs">
@@ -322,8 +428,8 @@ const Products = () => {
                     <td className="py-2.5 px-4 font-bold text-center">
                       {p.name}
                     </td>
-                    <td className="py-2.5 px-4 font-mono font-bold text-center">
-                      {p.sku}
+                    <td className="py-2.5 px-4 text-center">
+                      <div className="font-mono font-bold text-text-primary">{p.sku}</div>
                     </td>
                     <td className="py-2.5 px-4 text-center">
                       <span className="inline-block bg-brand-primary text-white font-bold px-2 py-1 rounded-full text-[12px]">
@@ -370,14 +476,23 @@ const Products = () => {
                     <td className="py-2.5 px-4 text-center">
                       <div className="flex items-center justify-center gap-2">
                         <button
+                          onClick={() => handleBarcodeModalOpen(p)}
+                          className="text-text-secondary hover:text-brand-primary p-1 rounded hover:bg-emerald-50 transition-colors cursor-pointer"
+                          title="Generate & Print Barcode"
+                        >
+                          <Barcode size={14} />
+                        </button>
+                        <button
                           onClick={() => openEditModal(p)}
                           className="text-text-secondary hover:text-brand-primary p-1 rounded hover:bg-emerald-50 transition-colors cursor-pointer"
+                          title="Edit Product"
                         >
                           <Edit3 size={14} />
                         </button>
                         <button
                           onClick={() => handleDeleteProduct(p.sku)}
                           className="text-text-secondary hover:text-brand-danger p-1 rounded hover:bg-rose-50 transition-colors cursor-pointer"
+                          title="Delete Product"
                         >
                           <Trash2 size={14} />
                         </button>
@@ -427,9 +542,11 @@ const Products = () => {
                   <h4 className="text-sm font-bold text-text-primary truncate">
                     {p.name}
                   </h4>
-                  <div className=" flex items-center justify-between text-[10px] text-text-secondary mt-1">
-                    <p className="font-mono mt-0.5">SKU: {p.sku}</p>
-                    <p>Category: {p.category}</p>
+                  <div className="text-[11px] text-text-secondary mt-1 space-y-0.5">
+                    <div className="flex justify-between items-center font-mono">
+                      <span>SKU: {p.sku}</span>
+                    </div>
+                    <p className="text-[10px] uppercase font-bold text-slate-500">Unit: {p.unit}</p>
                   </div>
                 </div>
                 <div className="mt-4 pt-3 border-t border-pos-border flex items-center justify-between">
@@ -443,14 +560,23 @@ const Products = () => {
                   </div>
                   <div className="flex gap-2 items-center">
                     <button
+                      onClick={() => handleBarcodeModalOpen(p)}
+                      className="text-text-secondary hover:text-brand-primary p-1 rounded transition-colors cursor-pointer hover:bg-slate-50"
+                      title="Print Product Barcode"
+                    >
+                      <Barcode size={13} />
+                    </button>
+                    <button
                       onClick={() => openEditModal(p)}
-                      className="text-text-secondary hover:text-brand-primary p-1 rounded transition-colors cursor-pointer"
+                      className="text-text-secondary hover:text-brand-primary p-1 rounded transition-colors cursor-pointer hover:bg-slate-50"
+                      title="Edit Product"
                     >
                       <Edit3 size={13} />
                     </button>
                     <button
                       onClick={() => handleDeleteProduct(p.sku)}
-                      className="text-text-secondary hover:text-brand-danger p-1 rounded transition-colors cursor-pointer"
+                      className="text-text-secondary hover:text-brand-danger p-1 rounded transition-colors cursor-pointer hover:bg-red-50"
+                      title="Delete Product"
                     >
                       <Trash2 size={13} />
                     </button>
@@ -516,22 +642,51 @@ const Products = () => {
                 </div>
               </div>
 
-              <div className="space-y-1">
-                <label className="block font-bold">Category</label>
-                <select
-                  name="category"
-                  value={formData.category}
-                  onChange={handleInputChange}
-                  className="w-full bg-pos-bg border border-pos-border rounded px-3 py-2.5 font-bold text-slate-700 focus:outline-none"
-                >
-                  {categories
-                    .filter((c) => c !== "All")
-                    .map((c) => (
-                      <option key={c} value={c}>
-                        {c}
-                      </option>
-                    ))}
-                </select>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <div className="flex justify-between items-center">
+                    <label className="block font-bold">Barcode</label>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const namePart = formData.name 
+                          ? formData.name.trim().toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 3) 
+                          : "PRD";
+                        const randomPart = Math.floor(1000 + Math.random() * 9000);
+                        const autoBarcode = `${namePart}-${randomPart}`;
+                        setFormData((prev) => ({ ...prev, barcode: autoBarcode }));
+                      }}
+                      className="text-[11px] text-brand-primary hover:underline font-bold"
+                    >
+                      Auto-Gen
+                    </button>
+                  </div>
+                  <input
+                    type="text"
+                    name="barcode"
+                    value={formData.barcode}
+                    onChange={handleInputChange}
+                    placeholder="Auto or enter manual"
+                    className="w-full border border-pos-border rounded px-3 py-2.5 text-text-primary font-mono font-bold focus:outline-none bg-pos-bg focus:border-brand-primary"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="block font-bold">Category</label>
+                  <select
+                    name="category"
+                    value={formData.category}
+                    onChange={handleInputChange}
+                    className="w-full bg-pos-bg border border-pos-border rounded px-3 py-2.5 font-bold text-slate-700 focus:outline-none"
+                  >
+                    {categories
+                      .filter((c) => c !== "All")
+                      .map((c) => (
+                        <option key={c} value={c}>
+                          {c}
+                        </option>
+                      ))}
+                  </select>
+                </div>
               </div>
 
               {/* ➡️ Responsive Flex/Grid structure for 5-Column alignment (Cost, Sell, Disc, Tax, Margin) */}
@@ -635,6 +790,16 @@ const Products = () => {
           </div>
         </div>
       )}
+
+      {/* BARCODE GENERATOR & PRINT SHEETS MODAL */}
+      <BarcodeModal
+        isOpen={showBarcodeModal}
+        onClose={() => {
+          setShowBarcodeModal(false);
+          setBarcodeModalProduct(null);
+        }}
+        product={barcodeModalProduct}
+      />
     </div>
   );
 };

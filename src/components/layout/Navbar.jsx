@@ -90,7 +90,7 @@ const Navbar = () => {
               </span>
             </>
           )}
-        </div>
+        </div>  
       </div>
 
       {/* 2. Time, Theme and User Details */}

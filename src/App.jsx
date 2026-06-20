@@ -19,6 +19,7 @@ import StockHistory from "./pages/Inventory/StockHistory";
 import StockAlerts from "./pages/Inventory/StockAlerts";
 import UserManagement from "./pages/people/UserManagement"; 
 import CustomerManagement from "./pages/people/CustomerManagement";
+import SupplierManagement from "./pages/people/SupplierManagement";
 import DepositAccounts from "./pages/Sales/DepositAccounts";
 import Expenses from "./pages/Sales/Expenses";
 import Reports from "./pages/Sales/Reports";
@@ -86,7 +87,7 @@ function App() {
           />
           <Route
             path="/suppliers"
-            element={<PlaceholderPage title="Supplier Directory" />}
+            element={<SupplierManagement />}
           />
           <Route path="/users" element={<UserManagement />} />
 
