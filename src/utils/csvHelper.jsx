@@ -1,3 +1,5 @@
+import { generateEAN13Barcode } from "./barcodePrinter.jsx";
+
 /**
  * Utility functions for exporting and importing products as CSV.
  */
@@ -94,7 +96,23 @@ export function parseCSV(text, existingProducts = []) {
     const discount = parseFloat(getVal("discount", "0")) || 0;
     const tax = parseFloat(getVal("tax", "0")) || 0;
     const unit = getVal("unit", "pcs");
-    const barcode = getVal("barcode", "");
+    let barcode = getVal("barcode", "").trim();
+    const currentStock = parseFloat(getVal("currentStock", "0")) || 0;
+    const minStock = parseFloat(getVal("minStock", "0")) || 0;
+
+    // Barcode check and generation rules
+    const isBarcodeInUse = (bc) => {
+      if (!bc) return false;
+      return (
+        existingProducts.some((p) => p.barcode && String(p.barcode).trim().toLowerCase() === bc.toLowerCase()) ||
+        importedProducts.some((p) => p.barcode && String(p.barcode).trim().toLowerCase() === bc.toLowerCase())
+      );
+    };
+
+    if (!barcode || isBarcodeInUse(barcode)) {
+      // Generate a brand new, unique EAN-13 barcode
+      barcode = generateEAN13Barcode([...existingProducts, ...importedProducts]);
+    }
 
     let margin = 0;
     if (sellingPrice > 0 && sellingPrice >= costPrice) {
@@ -114,6 +132,8 @@ export function parseCSV(text, existingProducts = []) {
       discount,
       tax,
       unit,
+      currentStock,
+      minStock,
       image: "",
     });
   }
@@ -130,7 +150,7 @@ export function runExportCSV(products) {
     alert("No products in inventory to export!");
     return;
   }
-  const headers = ["name", "sku", "barcode", "category", "costPrice", "sellingPrice", "margin", "discount", "tax", "unit"];
+  const headers = ["name", "sku", "barcode", "category", "costPrice", "sellingPrice", "margin", "discount", "tax", "unit", "currentStock", "minStock"];
   const csvRows = [
     headers.join(","), // Header row
     ...products.map((p) =>

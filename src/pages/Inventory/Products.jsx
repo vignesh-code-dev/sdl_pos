@@ -12,15 +12,17 @@ import {
   Upload,
   Layers,
 } from "lucide-react";
-import { parseCSV, runExportCSV } from "../../utils/csvHelper";
+import { parseCSV, runExportCSV } from "../../utils/csvHelper.jsx";
 import BarcodeModal from "../../components/BarcodeModal";
+import { ensureBarcodes, generateEAN13Barcode } from "../../utils/barcodePrinter.jsx";
 
 const Products = () => {
   // Retrieve existing products from localStorage
   const [products, setProducts] = useState(() => {
     try {
       const savedProducts = localStorage.getItem("billmate_products");
-      return savedProducts ? JSON.parse(savedProducts) : [];
+      const parsed = savedProducts ? JSON.parse(savedProducts) : [];
+      return ensureBarcodes(parsed);
     } catch (error) {
       console.error("Error parsing products from localStorage:", error);
       localStorage.removeItem("billmate_products");
@@ -56,6 +58,8 @@ const Products = () => {
     tax: "0", // ➡️ New tax (Tax %) field
     unit: "pcs",
     image: "",
+    currentStock: "0",
+    minStock: "0",
   });
 
   // Save to localStorage whenever products change
@@ -76,6 +80,22 @@ const Products = () => {
       setFormData((prev) => ({ ...prev, margin: "0" }));
     }
   }, [formData.costPrice, formData.sellingPrice]);
+
+  // Sync real-time stock deductions and cancellations instantly
+  useEffect(() => {
+    const handleStockUpdate = () => {
+      const savedProducts = localStorage.getItem("billmate_products");
+      if (savedProducts) {
+        setProducts(ensureBarcodes(JSON.parse(savedProducts)));
+      }
+    };
+    window.addEventListener("billmate_stock_update", handleStockUpdate);
+    window.addEventListener("storage", handleStockUpdate);
+    return () => {
+      window.removeEventListener("billmate_stock_update", handleStockUpdate);
+      window.removeEventListener("storage", handleStockUpdate);
+    };
+  }, []);
 
   // Manage input changes
   const handleInputChange = (e) => {
@@ -111,6 +131,8 @@ const Products = () => {
       tax: "0", // ➡️ 0% tax on reset
       unit: "pcs",
       image: "",
+      currentStock: "0",
+      minStock: "0",
     });
     setShowModal(true);
   };
@@ -134,6 +156,8 @@ const Products = () => {
       tax: (product.tax !== undefined ? product.tax : 0).toString(), // ➡️ Loads tax when editing
       unit: product.unit,
       image: product.image || "",
+      currentStock: (product.currentStock !== undefined ? product.currentStock : 0).toString(),
+      minStock: (product.minStock !== undefined ? product.minStock : 0).toString(),
     });
     setShowModal(true);
   };
@@ -151,13 +175,36 @@ const Products = () => {
       Math.max(0, parseFloat(formData.discount) || 0),
     );
 
+    let barcodeValue = (formData.barcode || "").trim();
+
+    // Barcode validation & duplication checks
+    if (barcodeValue) {
+      // Check if another product is already using this barcode
+      const isBarcodeTaken = products.some(
+        (p) =>
+          p.barcode &&
+          p.barcode.trim().toLowerCase() === barcodeValue.toLowerCase() &&
+          (modalMode === "add" || p.sku !== editingOldSku)
+      );
+      if (isBarcodeTaken) {
+        alert("This barcode value is already assigned to another product!");
+        return;
+      }
+    } else {
+      // Automatic generation during creation/update of product if empty!
+      barcodeValue = generateEAN13Barcode(products);
+    }
+
     const processedProduct = {
       ...formData,
+      barcode: barcodeValue,
       costPrice: parseFloat(formData.costPrice) || 0,
       sellingPrice: parseFloat(formData.sellingPrice) || 0,
       margin: parseFloat(formData.margin) || 0,
       discount: cleanDiscount,
       tax: parseFloat(formData.tax) || 0, // ➡️ Converted to number and saved
+      currentStock: parseFloat(formData.currentStock) || 0,
+      minStock: parseFloat(formData.minStock) || 0,
     };
 
     if (modalMode === "add") {
@@ -266,7 +313,7 @@ const Products = () => {
       <div className="bg-pos-card border border-pos-border rounded p-5 flex flex-col xl:flex-row items-start xl:items-center justify-between gap-4 shadow-sm">
         <div>
           <h2 className="text-2xl font-black tracking-tight text-brand-primary uppercase flex items-center gap-2">
-            
+            <Tag size={22} className="text-brand-primary" />
             Product List
           </h2>
           <p className="text-xs text-text-secondary mt-1">

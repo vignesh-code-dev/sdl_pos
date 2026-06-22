@@ -1,16 +1,49 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Barcode, Printer } from "lucide-react";
-import { getBarcodeStripePattern, handlePrintBarcodes } from "../utils/barcodePrinter";
+import JsBarcode from "jsbarcode";
+import { getBarcodeFormat, handlePrintBarcodes } from "../utils/barcodePrinter.jsx";
+
+/**
+ * BarcodePreview component
+ * Uses a canvas or SVG element inside matching React life cycles to render scanner-ready vector barcodes.
+ */
+const BarcodePreview = ({ value, format }) => {
+  const svgRef = useRef(null);
+
+  useEffect(() => {
+    if (svgRef.current && value) {
+      try {
+        JsBarcode(svgRef.current, value, {
+          format: format || "CODE128",
+          width: 2,
+          height: 48,
+          displayValue: false,
+          margin: 0,
+        });
+      } catch (err) {
+        console.error("JsBarcode preview failed for:", format, value, err);
+        // Robust fallback to CODE128
+        try {
+          JsBarcode(svgRef.current, value, {
+            format: "CODE128",
+            width: 2,
+            height: 48,
+            displayValue: false,
+            margin: 0,
+          });
+        } catch (innerErr) {
+          console.error("CODE128 fallback failed as well:", innerErr);
+        }
+      }
+    }
+  }, [value, format]);
+
+  return <svg ref={svgRef} className="max-w-full h-auto mx-auto"></svg>;
+};
 
 /**
  * BarcodeModal Component
  * Renders a barcode labels printing sheet generator for a single, selected product.
- * Does not include a dropdown to select other products.
- *
- * @param {object} props
- * @param {boolean} props.isOpen - Is state modal shown
- * @param {function} props.onClose - Action to close the modal
- * @param {object} props.product - The specific product object to generate the barcode for
  */
 const BarcodeModal = ({ isOpen, onClose, product }) => {
   if (!isOpen) return null;
@@ -19,6 +52,7 @@ const BarcodeModal = ({ isOpen, onClose, product }) => {
   const [barcodePrintQty, setBarcodePrintQty] = useState(12);
 
   const barcodeValue = product.barcode || product.sku || "";
+  const barcodeFormat = getBarcodeFormat(barcodeValue);
 
   return (
     <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-in fade-in duration-150">
@@ -44,8 +78,8 @@ const BarcodeModal = ({ isOpen, onClose, product }) => {
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Selected Product</span>
             <div className="text-sm font-bold text-slate-800">{product.name}</div>
             <div className="flex justify-between text-xs text-slate-500 font-mono mt-1">
-              <span>SKU Code: {product.sku}</span>
-              {product.barcode && <span>Barcode: {product.barcode}</span>}
+              <span>Sku Code: {product.sku}</span>
+              {barcodeValue && <span>Barcode: {barcodeValue}</span>}
             </div>
           </div>
 
@@ -73,7 +107,7 @@ const BarcodeModal = ({ isOpen, onClose, product }) => {
                         : "border-pos-border hover:bg-slate-50 text-slate-600"
                     }`}
                   >
-                    {q} Pcs
+                    {q} Label
                   </button>
                 ))}
               </div>
@@ -89,18 +123,13 @@ const BarcodeModal = ({ isOpen, onClose, product }) => {
                   {product.name}
                 </div>
 
-                {/* Pure CSS Barcode visualization */}
+                {/* Pure SVG Barcode visualization */}
                 {barcodeValue ? (
-                  <div className="flex h-10 w-full justify-center items-stretch bg-black my-1 px-1">
-                    {getBarcodeStripePattern(barcodeValue).map((bit, idx) => (
-                      <div
-                        key={idx}
-                        className={`flex-1 ${bit ? "bg-black" : "bg-white"}`}
-                      />
-                    ))}
+                  <div className="flex w-full justify-center items-center my-1 bg-white">
+                    <BarcodePreview value={barcodeValue} format={barcodeFormat} />
                   </div>
                 ) : (
-                  <div className="h-10 w-full bg-slate-1050 flex items-center justify-center text-red-500 font-bold text-xs uppercase my-1 font-mono border border-red-200 bg-red-50 rounded">
+                  <div className="h-10 w-full bg-slate-50 flex items-center justify-center text-red-500 font-bold text-xs uppercase my-1 font-mono border border-red-200 bg-red-50 rounded">
                     No SKU/Barcode
                   </div>
                 )}
@@ -112,15 +141,13 @@ const BarcodeModal = ({ isOpen, onClose, product }) => {
                   ₹{(product.sellingPrice || 0).toFixed(2)}
                 </div>
               </div>
-              <span className="absolute bottom-1 right-2 text-[9px] text-slate-400 font-bold uppercase select-none">
-                Label Preview
-              </span>
+             
             </div>
           </div>
         </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-2 pt-3 border-t border-pos-border">
+        <div className="flex gap-2 pt-3 border-t border-t-pos-border">
           <button
             onClick={onClose}
             className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded text-xs transition-colors cursor-pointer"
