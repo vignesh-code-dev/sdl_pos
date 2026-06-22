@@ -26,6 +26,7 @@
   } from "lucide-react";
   import InvoiceModal from "../../components/invoices/InvoiceModal";
   import AddCustomerModal from "../../components/people/AddCustomerModal";
+  import { ensureBarcodes, verifyAndDeductStock } from "../../utils/barcodePrinter.jsx";
 
   const POSBilling = () => {
     const [products, setProducts] = useState([]);
@@ -90,11 +91,12 @@
           { name: "Toor Dal", sku: "DAL001", category: "Groceries", costPrice: 90, sellingPrice: 120, margin: 25, discount: 0, tax: 0, unit: "kg" },
           { name: "Organic Apples", sku: "FRUIT01", category: "Fruits", costPrice: 110, sellingPrice: 150, margin: 26.7, discount: 0, tax: 0, unit: "kg" }
         ];
-        localStorage.setItem("billmate_products", JSON.stringify(initialSeededProducts));
-        activeProducts = initialSeededProducts;
-        setProducts(initialSeededProducts);
+        const processedSeeds = ensureBarcodes(initialSeededProducts);
+        localStorage.setItem("billmate_products", JSON.stringify(processedSeeds));
+        activeProducts = processedSeeds;
+        setProducts(processedSeeds);
       } else {
-        activeProducts = JSON.parse(savedProducts);
+        activeProducts = ensureBarcodes(JSON.parse(savedProducts));
         setProducts(activeProducts);
       }
 
@@ -119,6 +121,22 @@
 
       if (searchInputRef.current) searchInputRef.current.focus();
     }, []);
+
+    useEffect(() => {	 
+      const handleStockUpdate = () => {	 
+        const savedProducts = localStorage.getItem("billmate_products");	 
+        if (savedProducts) {	 
+          setProducts(ensureBarcodes(JSON.parse(savedProducts)));	 
+        }	 
+      };	 
+      window.addEventListener("billmate_stock_update", handleStockUpdate);	 
+      window.addEventListener("storage", handleStockUpdate);	 
+      return () => {	 
+        window.removeEventListener("billmate_stock_update", handleStockUpdate);	 
+        window.removeEventListener("storage", handleStockUpdate);	 
+      };	 
+    }, []);	 
+ 
 
     const isDecimalUnit = (unit) => {
       if (!unit) return false;
@@ -197,7 +215,10 @@
     const { targetSku: suggestSku, targetQty: suggestQty } = parseSearchInput(searchInput);
     const filterVal = suggestSku.toLowerCase();
     const filteredSuggestions = filterVal
-      ? products.filter(p => p.sku.toLowerCase().includes(filterVal) || p.name.toLowerCase().includes(filterVal)).slice(0, 6)
+      ? products.filter(p =>  p.sku.toLowerCase().includes(filterVal) || 	 
+          p.name.toLowerCase().includes(filterVal) ||	 
+          (p.barcode && p.barcode.toLowerCase().includes(filterVal))	 
+        ).slice(0, 6)
       : [];
 
     const handleSearchKeys = (e) => {
@@ -255,11 +276,19 @@
       const { targetSku, targetQty } = parseSearchInput(searchInput);
       
       // Support exact match first
-      let product = products.find(p => p.sku.toLowerCase() === targetSku.toLowerCase() || p.name.toLowerCase() === targetSku.toLowerCase());
+      let product = products.find(p => 
+        p.sku.toLowerCase() === targetSku.toLowerCase() || 
+        p.name.toLowerCase() === targetSku.toLowerCase() ||
+        (p.barcode && p.barcode.toLowerCase() === targetSku.toLowerCase())
+      );
       
       // If no exact match, but we have partial matches, let's check contains
       if (!product) {
-        const partials = products.filter(p => p.sku.toLowerCase().includes(targetSku.toLowerCase()) || p.name.toLowerCase().includes(targetSku.toLowerCase()));
+        const partials = products.filter(p => 
+          p.sku.toLowerCase().includes(targetSku.toLowerCase()) || 
+          p.name.toLowerCase().includes(targetSku.toLowerCase()) ||
+          (p.barcode && p.barcode.toLowerCase().includes(targetSku.toLowerCase()))
+        );
         if (partials.length === 1) {
           product = partials[0];
         } else if (partials.length > 1) {
@@ -360,6 +389,19 @@
         showToast("Please select a Payment Method before completing the sale.", "warning");
         return;
       }
+
+        // Validate stock availability and deduct immediately upon successful checkout	 
+      const stockResult = verifyAndDeductStock(cart);	 
+      if (!stockResult.success) {	 
+         showToast(stockResult.error, "warning");	 
+         alert(stockResult.error);	 
+         return;	 
+      }	 
+      // Keep master products updated in cashier desk state	 
+      setProducts(stockResult.updatedProducts);
+
+
+      
       const currentYear = new Date().getFullYear();
       const currentMonth = (new Date().getMonth() + 1).toString().padStart(2, "0");
       const docNo = Math.floor(1000 + Math.random() * 9000);

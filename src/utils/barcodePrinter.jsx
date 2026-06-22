@@ -1,27 +1,303 @@
+import JsBarcode from "jsbarcode";
+
 /**
- * Deterministic pattern generator for pure CSS barcode stripes
+ * Validates whether a value has 13 numeric digits and matches EAN-13 checksum logic
  */
-export const getBarcodeStripePattern = (str) => {
-  let hash = 0;
-  if (!str) str = "000000";
-  for (let i = 0; i < str.length; i++) {
-    hash = str.charCodeAt(i) + ((hash << 5) - hash);
+export function isValidEAN13Checksum(val) {
+  if (!val || !/^\d{13}$/.test(val)) return false;
+  let sum = 0;
+  for (let i = 0; i < 12; i++) {
+    const digit = parseInt(val[i], 10);
+    sum += (i % 2 === 0) ? digit : digit * 3;
   }
-  const pattern = [1, 0, 1]; // Start guard
-  for (let i = 0; i < 15; i++) {
-    const digit = Math.abs((hash >> i) & 7);
-    if (digit % 3 === 0) {
-      pattern.push(1, 1, 0, 1);
-    } else if (digit % 3 === 1) {
-      pattern.push(1, 0, 0, 1, 1);
-    } else {
-      pattern.push(1, 1, 1, 0, 0, 1);
+  const checksum = (10 - (sum % 10)) % 10;
+  return checksum === parseInt(val[12], 10);
+}
+
+/**
+ * Detects appropriate barcode type (EAN13 for 13 digit valid barcodes, else CODE128)
+ */
+export function getBarcodeFormat(value) {
+  if (value && /^\d{13}$/.test(value)) {
+    if (isValidEAN13Checksum(value)) {
+      return "EAN13";
     }
-    pattern.push(0); // Separator
   }
-  pattern.push(1, 0, 1); // End guard
-  return pattern;
+  return "CODE128";
+}
+
+/**
+ * Generates a unique 13-digit EAN-13 barcode using the standard supermarket's internal
+ * retail prefix "200" followed by 9 random digits and a computed EAN-13 check digit.
+ * Accepts either an Array of products or a Set of existing barcode strings.
+ */
+export function generateEAN13Barcode(existingCodeSource = []) {
+  let existingBarcodes;
+  if (existingCodeSource instanceof Set) {
+    existingBarcodes = existingCodeSource;
+  } else if (Array.isArray(existingCodeSource)) {
+    existingBarcodes = new Set(
+      existingCodeSource
+        .map((p) => p.barcode?.trim())
+        .filter(Boolean)
+    );
+  } else {
+    existingBarcodes = new Set();
+  }
+
+  let attempts = 0;
+  while (attempts < 1000) {
+    const prefix = "200";
+    let body = "";
+    for (let i = 0; i < 9; i++) {
+      body += Math.floor(Math.random() * 10).toString();
+    }
+    const twelveDigits = prefix + body;
+    
+    let sum = 0;
+    for (let i = 0; i < 12; i++) {
+      const digit = parseInt(twelveDigits[i], 10);
+      sum += (i % 2 === 0) ? digit : digit * 3;
+    }
+    const checkDigit = (10 - (sum % 10)) % 10;
+    const finalBarcode = twelveDigits + checkDigit.toString();
+
+    if (!existingBarcodes.has(finalBarcode)) {
+      return finalBarcode;
+    }
+    attempts++;
+  }
+  
+  // High reliability fallback using portion of Timestamp
+  let fallbackAttempts = 0;
+  while (fallbackAttempts < 100) {
+    const timestampPart = (Date.now() + Math.floor(Math.random() * 1000)).toString().slice(-12);
+    const twelve = timestampPart.padStart(12, "0");
+    let sum = 0;
+    for (let i = 0; i < 12; i++) {
+      const digit = parseInt(twelve[i], 10);
+      sum += (i % 2 === 0) ? digit : digit * 3;
+    }
+    const checkDigit = (10 - (sum % 10)) % 10;
+    const finalBarcode = twelve + checkDigit.toString();
+    if (!existingBarcodes.has(finalBarcode)) {
+      return finalBarcode;
+    }
+    fallbackAttempts++;
+  }
+
+  return "200" + Math.floor(1000000000 + Math.random() * 9000000000).toString();
+}
+
+/**
+ * Synchronously generates an SVG markup string for a barcode using JsBarcode
+ */
+export function generateBarcodeSVGString(value, format = "CODE128") {
+  try {
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    JsBarcode(svg, value, {
+      format: format,
+      width: 2,
+      height: 44,
+      displayValue: false,
+      margin: 0,
+    });
+    // Ensure standard namespaces and classes on the svg are set cleanly
+    svg.setAttribute("class", "mx-auto w-full max-h-12");
+    return new XMLSerializer().serializeToString(svg);
+  } catch (error) {
+    console.error("Failed to generate SVG barcode with format:", format, "value:", value, error);
+    try {
+      // Graceful fallback to general CODE128
+      const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      JsBarcode(svg, value, {
+        format: "CODE128",
+        width: 2,
+        height: 44,
+        displayValue: false,
+        margin: 0,
+      });
+      svg.setAttribute("class", "mx-auto w-full max-h-12");
+      return new XMLSerializer().serializeToString(svg);
+    } catch (fallbackError) {
+      console.error("CODE128 fallback failed as well:", fallbackError);
+      return `<div class="text-red-500 font-bold font-sans text-[10px] uppercase my-1 p-2 border border-red-200 bg-red-50 rounded">Barcode Error</div>`;
+    }
+  }
+}
+
+/**
+ * Pre-processes products on startup to ensure that they all contain a unique barcode.
+ * Guarantees zero barcode sharing across all items.
+ */
+export function ensureBarcodes(products) {
+  if (!products || !Array.isArray(products)) return [];
+
+  const usedBarcodes = new Set();
+  let changed = false;
+
+  // First pass: identify and preserve non-duplicate valid barcodes
+  const verifiedProducts = products.map((p) => {
+    const code = p.barcode?.trim();
+    if (code && !usedBarcodes.has(code)) {
+      usedBarcodes.add(code);
+      return { ...p, barcode: code };
+    } else {
+      // Missing or duplicate barcode: mark clearly for generation
+      return { ...p, barcode: "" };
+    }
+  });
+
+  // Second pass: dynamically allocate unique barcodes to any blanks, updating usedBarcodes Set instantly
+  const updatedProducts = verifiedProducts.map((p) => {
+    let changedObj = { ...p };
+    if (!changedObj.barcode) {
+      const generated = generateEAN13Barcode(usedBarcodes);
+      usedBarcodes.add(generated);
+      changed = true;
+      changedObj.barcode = generated;
+    }
+    if (changedObj.currentStock === undefined || changedObj.currentStock === null) {
+      changedObj.currentStock = 0;
+      changed = true;
+    }
+    if (changedObj.minStock === undefined || changedObj.minStock === null) {
+      changedObj.minStock = 0;
+      changed = true;
+    }
+    return changedObj;
+  });
+
+  if (changed) {
+    localStorage.setItem("billmate_products", JSON.stringify(updatedProducts));
+  }
+  return updatedProducts;
+}
+
+/**
+ * Helper to check if unit uses decimals (e.g. kg, litre).
+ */
+export const isDecimalUnit = (unit) => {
+  const u = (unit || "pcs").toLowerCase().trim();
+  return u === "kg" || u === "litre" || u === "ltr" || u === "litres" || u === "l";
 };
+
+/**
+ * Validates inventory levels against a cart and deducts quantities.
+ * Returns { success: true } or { success: false, error: "Error details..." }
+ */
+export function verifyAndDeductStock(cartItems) {
+  if (!cartItems || !Array.isArray(cartItems)) return { success: true };
+
+  // Read latest master product array to enforce multi-device consistency
+  const savedProducts = localStorage.getItem("billmate_products");
+  const products = ensureBarcodes(savedProducts ? JSON.parse(savedProducts) : []);
+
+  // 1. Validation phase (Negative stock check)
+  for (const item of cartItems) {
+    const qtyToDuct = parseFloat(item.quantity) || 0;
+    if (qtyToDuct <= 0) continue;
+
+    // Match product using SKU or Barcode
+    const matched = products.find(
+      (p) =>
+        p.sku === item.sku ||
+        (item.barcode && p.barcode?.trim().toLowerCase() === item.barcode.trim().toLowerCase())
+    );
+
+    if (!matched) {
+      return {
+        success: false,
+        error: `Product "${item.name}" (SKU: ${item.sku}) could not be located in active inventory!`
+      };
+    }
+
+    const availableStock = matched.currentStock !== undefined ? matched.currentStock : 0;
+    if (availableStock < qtyToDuct) {
+      return {
+        success: false,
+        error: `Insufficient Stock! Product "${matched.name}" has only ${availableStock} ${matched.unit || "pcs"} available, but you are trying to bill ${qtyToDuct} ${item.unit || "pcs"}.`
+      };
+    }
+  }
+
+  // 2. Deduction phase (Commit changes)
+  const updatedProducts = products.map((p) => {
+    // Find matching item in cart
+    const cartItem = cartItems.find(
+      (item) =>
+        item.sku === p.sku ||
+        (item.barcode && p.barcode?.trim().toLowerCase() === item.barcode.trim().toLowerCase())
+    );
+
+    if (cartItem) {
+      const deductQty = parseFloat(cartItem.quantity) || 0;
+      let nextStock = (p.currentStock !== undefined ? p.currentStock : 0) - deductQty;
+      
+      if (isDecimalUnit(p.unit)) {
+        nextStock = parseFloat(nextStock.toFixed(3));
+      } else {
+        nextStock = Math.round(nextStock);
+      }
+      if (nextStock < 0) nextStock = 0;
+
+      return {
+        ...p,
+        currentStock: nextStock
+      };
+    }
+    return p;
+  });
+
+  localStorage.setItem("billmate_products", JSON.stringify(updatedProducts));
+  
+  // Dispatch custom event for real-time reactive UI update in the same browser tab
+  window.dispatchEvent(new Event("billmate_stock_update"));
+
+  return { success: true, updatedProducts };
+}
+
+/**
+ * Restores sold quantities back to product stock (handling decimal/whole numbers).
+ */
+export function restoreStock(itemsToRestore) {
+  if (!itemsToRestore || !Array.isArray(itemsToRestore) || itemsToRestore.length === 0) return;
+
+  const savedProducts = localStorage.getItem("billmate_products");
+  const products = ensureBarcodes(savedProducts ? JSON.parse(savedProducts) : []);
+
+  const updatedProducts = products.map((p) => {
+    const restoreItem = itemsToRestore.find(
+      (item) =>
+        item.sku === p.sku ||
+        (item.barcode && p.barcode?.trim().toLowerCase() === item.barcode.trim().toLowerCase())
+    );
+
+    if (restoreItem) {
+      const restoreQty = parseFloat(restoreItem.quantity !== undefined ? restoreItem.quantity : restoreItem.quantityReturned) || 0;
+      if (restoreQty <= 0) return p;
+
+      let nextStock = (p.currentStock !== undefined ? p.currentStock : 0) + restoreQty;
+      
+      if (isDecimalUnit(p.unit)) {
+        nextStock = parseFloat(nextStock.toFixed(3));
+      } else {
+        nextStock = Math.round(nextStock);
+      }
+
+      return {
+        ...p,
+        currentStock: nextStock
+      };
+    }
+    return p;
+  });
+
+  localStorage.setItem("billmate_products", JSON.stringify(updatedProducts));
+  
+  // Dispatch custom event for real-time reactive UI update in same browser tab
+  window.dispatchEvent(new Event("billmate_stock_update"));
+}
 
 /**
  * Single or Batch Barcode Printing Sheet generator styled with Tailwind CSS
@@ -38,21 +314,22 @@ export const handlePrintBarcodes = (product, quantity) => {
   }
 
   const value = product.barcode || product.sku || "000000";
-  const pattern = getBarcodeStripePattern(value);
+  const format = getBarcodeFormat(value);
+  const barcodeSvgString = generateBarcodeSVGString(value, format);
   
-  // Build single barcode item html inside a flex column with elegant Tailwind spacing & border style
+  // Build single barcode item html with real scanner-readable rendered SVG
   const barcodeHtml = `
-    <div class="flex flex-col items-center justify-center p-3 border border-dashed border-slate-300 rounded-lg bg-white w-[190px] m-2.5 box-border [page-break-inside:avoid] text-center">
-      <div class="text-[11px] font-bold mb-1.5 font-sans text-slate-800 w-full max-w-[170px] truncate">
+    <div class="flex flex-col items-center justify-center p-4 border border-slate-200 rounded-lg bg-white w-[190px] m-1.5 box-border [page-break-inside:avoid] text-center shadow-sm">
+      <div class="text-[11px] font-black mb-1 font-sans text-slate-800 w-full max-w-[170px] truncate uppercase tracking-tight">
         ${product.name}
       </div>
-      <div class="flex h-[42px] w-full justify-center items-stretch bg-black mb-1 px-1 box-border">
-        ${pattern.map(bit => `<div class="flex-1 ${bit ? 'bg-black' : 'bg-white'}"></div>`).join("")}
+      <div class="w-full flex justify-center items-center my-1">
+        ${barcodeSvgString}
       </div>
-      <div class="text-[10px] font-mono tracking-[2px] font-bold text-slate-950">
+      <div class="text-[10px] font-mono tracking-[2px] font-bold text-slate-900 mt-1">
         ${value}
       </div>
-      <div class="text-[11px] font-extrabold font-sans mt-1 text-emerald-600">
+      <div class="text-[11px] font-black font-sans mt-1 text-emerald-600">
         ₹${(product.sellingPrice || 0).toFixed(2)}
       </div>
     </div>
@@ -124,7 +401,7 @@ export const handlePrintBarcodes = (product, quantity) => {
           </div>
           
           <!-- Grid wrapper carrying printable components -->
-          <div class="flex flex-wrap justify-start -m-2.5">
+          <div class="flex flex-wrap justify-start -m-1.5">
             ${gridHtml}
           </div>
         </div>

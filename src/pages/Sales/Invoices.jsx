@@ -30,6 +30,7 @@ import { useAuth } from "../../context/AuthContext";
 import InvoiceModal from "../../components/invoices/InvoiceModal";
 import EditInvoiceModal from "../../components/invoices/EditInvoiceModal";
 import ReturnInvoiceModal from "../../components/invoices/ReturnInvoiceModal";
+import { restoreStock, verifyAndDeductStock, ensureBarcodes } from "../../utils/barcodePrinter.jsx";
 
 const Invoices = () => {
   const { shopInfo } = useAuth();
@@ -303,6 +304,11 @@ const Invoices = () => {
 
   // Toggle Cancel/Active status
   const handleToggleCancelStatus = (invoiceId) => {
+    const targetInvoice = invoices.find(inv => inv.id === invoiceId);	 
+    if (!targetInvoice) return;	 
+ 	 
+    const currentStatus = targetInvoice.status || "Active";	 
+    const nextStatus = currentStatus === "Cancelled" ? "Active" : "Cancelled";
     setCustomConfirm({
       isOpen: true,
       title: "Change Invoice Status",
@@ -311,6 +317,35 @@ const Invoices = () => {
       confirmText: "Change Status",
       cancelText: "Cancel",
       onConfirm: () => {
+        // Enforce inventory updates	 
+        if (nextStatus === "Cancelled") {	 
+          // RESTORE stock for remaining (unreturned) quantities	 
+          const itemsToRestore = (targetInvoice.items || []).map(item => {	 
+            const alreadyReturnedQty = (targetInvoice.returns || [])	 
+              .filter(r => r.sku === item.sku)	 
+              .reduce((sum, r) => sum + r.quantityReturned, 0);	 
+            const remainingQty = Math.max(0, item.quantity - alreadyReturnedQty);	 
+            return { sku: item.sku, quantity: remainingQty };	 
+          }).filter(i => i.quantity > 0);	 
+ 	 
+          restoreStock(itemsToRestore);	 
+        } else {	 
+          // Reactivating the invoice: DEDUCT quantities from stock with validation	 
+          const itemsToDeduct = (targetInvoice.items || []).map(item => {	 
+            const alreadyReturnedQty = (targetInvoice.returns || [])	 
+              .filter(r => r.sku === item.sku)	 
+              .reduce((sum, r) => sum + r.quantityReturned, 0);	 
+            const remainingQty = Math.max(0, item.quantity - alreadyReturnedQty);	 
+            return { sku: item.sku, quantity: remainingQty, name: item.name };	 
+          }).filter(i => i.quantity > 0);	 
+ 	 
+          const deductionResult = verifyAndDeductStock(itemsToDeduct);	 
+          if (!deductionResult.success) {	 
+            alert("Cannot reactivate invoice! " + deductionResult.error);	 
+            setCustomConfirm(prev => ({ ...prev, isOpen: false }));	 
+            return;	 
+          }	 
+        }
         const updated = invoices.map((inv) => {
           if (inv.id === invoiceId) {
             const nextStatus = inv.status === "Cancelled" ? "Active" : "Cancelled";
@@ -433,6 +468,11 @@ const Invoices = () => {
         });
 
         saveInvoicesToStorage(updated);
+          // Automatically restore corresponding stock quantity on successful return
+        restoreStock(itemsToReturn.map(it => ({	 
+          sku: it.sku,	 
+          quantity: it.quantityToReturn	 
+        })));
         setShowReturnModal(false);
         setReturnInvoice(null);
         setCustomConfirm(prev => ({ ...prev, isOpen: false }));
@@ -509,7 +549,7 @@ const Invoices = () => {
         <div className="bg-pos-card border border-pos-border p-5 rounded shadow-xs flex items-center justify-between">
           <div className="space-y-2">
             <span className="text-xs uppercase text-slate-500 tracking-widest block font-bold select-none">Cancelled Count</span>
-            <span className="text-3xl font-bold text-slate-800 font-mono">{totalCancelledCount}</span>
+            <span className="text-3xl font-bold text-brand-danger font-mono">{totalCancelledCount}</span>
           </div>
           <div className="p-3 rounded-xl bg-rose-50 text-brand-danger border border-rose-100 font-semibold text-sm">
             <XCircle size={20} />
