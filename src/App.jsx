@@ -8,7 +8,7 @@ import {
 import { useAuth } from "./context/AuthContext"; // Authentication hook
 import Layout from "./components/layout/Layout";
 import Login from "./pages/Login";
-import StoreOverview from "./pages/Dashboard/StoreOverview";
+import StoreOverview from "./pages/Dashboard/Dashboard";
 import Analytics from "./pages/Dashboard/Analytics";
 import POSBilling from "./pages/Sales/POSBilling";
 import Invoices from "./pages/Sales/Invoices";
