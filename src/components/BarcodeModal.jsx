@@ -1,6 +1,9 @@
 import React, { useState } from "react";
 import { Barcode, Printer } from "lucide-react";
-import { getBarcodeStripePattern, handlePrintBarcodes } from "../utils/barcodePrinter";
+import {
+  getBarcodeStripePattern,
+  handlePrintBarcodes,
+} from "../utils/barcodePrinter";
 
 /**
  * BarcodeModal Component
@@ -18,8 +21,7 @@ const BarcodeModal = ({ isOpen, onClose, product }) => {
 
   const [barcodePrintQty, setBarcodePrintQty] = useState(12);
 
-  const barcodeValue = product.barcode || product.sku || "";
-
+  const barcodeValue = product.barcode || `BM-${product.sku}` || "";
   return (
     <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-in fade-in duration-150">
       <div className="bg-white border border-pos-border rounded max-w-md w-full p-6 shadow-2xl flex flex-col max-h-[90vh] overflow-y-auto">
@@ -41,24 +43,34 @@ const BarcodeModal = ({ isOpen, onClose, product }) => {
         <div className="space-y-4 py-4">
           {/* Display Selected Product Info */}
           <div className="bg-slate-50 border border-pos-border rounded-xl p-3 flex flex-col gap-1">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Selected Product</span>
-            <div className="text-sm font-bold text-slate-800">{product.name}</div>
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">
+              Selected Product
+            </span>
+            <div className="text-sm font-bold text-slate-800">
+              {product.name}
+            </div>
             <div className="flex justify-between text-xs text-slate-500 font-mono mt-1">
               <span>SKU Code: {product.sku}</span>
-              {product.barcode && <span>Barcode: {product.barcode}</span>}
+              <span>Barcode: {barcodeValue}</span>
             </div>
           </div>
 
           {/* Barcode quantity and quick chips */}
           <div className="space-y-1.5">
-            <label className="block text-xs font-bold text-slate-600 uppercase">Labels Print Quantity</label>
+            <label className="block text-xs font-bold text-slate-600 uppercase">
+              Labels Print Quantity
+            </label>
             <div className="flex gap-2">
               <input
                 type="number"
                 min="1"
                 max="100"
                 value={barcodePrintQty}
-                onChange={(e) => setBarcodePrintQty(Math.max(1, parseInt(e.target.value, 10) || 1))}
+                onChange={(e) =>
+                  setBarcodePrintQty(
+                    Math.max(1, parseInt(e.target.value, 10) || 1),
+                  )
+                }
                 className="w-20 bg-pos-bg border border-pos-border text-center rounded px-2 py-1.5 font-mono font-bold text-slate-800 focus:outline-none"
               />
               <div className="flex gap-1.5 flex-1 select-none">
@@ -82,7 +94,9 @@ const BarcodeModal = ({ isOpen, onClose, product }) => {
 
           {/* Dynamic live simulation preview of a single sticker */}
           <div className="space-y-2 mt-4">
-            <span className="block text-xs font-bold text-slate-500 uppercase">Live Sticker Preview</span>
+            <span className="block text-xs font-bold text-slate-500 uppercase">
+              Live Sticker Preview
+            </span>
             <div className="bg-slate-50 border border-dashed border-slate-300 rounded-xl p-5 flex flex-col items-center justify-center relative shadow-xs overflow-hidden">
               <div className="w-full text-center max-w-[240px] border border-pos-border rounded-lg p-3 bg-white">
                 <div className="text-[11px] font-black text-slate-800 truncate mb-1">
@@ -130,12 +144,14 @@ const BarcodeModal = ({ isOpen, onClose, product }) => {
           <button
             onClick={() => {
               if (!barcodeValue) {
-                alert("Cannot print barcode label because this product does not have any barcode or SKU code specified!");
+                alert(
+                  "Cannot print barcode label because this product does not have any barcode or SKU code specified!",
+                );
                 return;
               }
               handlePrintBarcodes(product, barcodePrintQty);
             }}
-            className="flex-1 bg-brand-primary hover:bg-brand-primary/90 text-white font-bold py-2.5 rounded text-xs flex items-center justify-center gap-1.5 transition-colors shadow-md shadow-emerald-500/10 cursor-pointer"
+            className="flex-1 bg-brand-500 hover:bg-brand-600 text-white font-bold py-2.5 rounded text-xs flex items-center justify-center gap-1.5 transition-colors shadow-md shadow-emerald-500/10 cursor-pointer"
           >
             <Printer size={14} />
             <span>Print Labels Now</span>

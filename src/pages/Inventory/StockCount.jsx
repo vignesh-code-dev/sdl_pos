@@ -26,10 +26,7 @@ const StockCount = () => {
       // We attach new billing and sales metrics as sample data
       // (This can be easily integrated with actual billing data later)
       const mappedProducts = parsedProducts.map((p) => {
-        const currentStock =
-          p.currentStock !== undefined
-            ? p.currentStock
-            : Math.floor(Math.random() * 100);
+        const currentStock = p.currentStock !== undefined ? p.currentStock : 0;
         const minStock = p.minStock !== undefined ? p.minStock : 10;
 
         // Quantity sold in the last 30 days (sample)

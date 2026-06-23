@@ -16,7 +16,6 @@ import { parseCSV, runExportCSV } from "../../utils/csvHelper";
 import BarcodeModal from "../../components/BarcodeModal";
 
 const Products = () => {
-  // Retrieve existing products from localStorage
   const [products, setProducts] = useState(() => {
     try {
       const savedProducts = localStorage.getItem("billmate_products");
@@ -47,13 +46,12 @@ const Products = () => {
   const [formData, setFormData] = useState({
     name: "",
     sku: "",
-    barcode: "", // Barcode field
     category: "Groceries",
     costPrice: "",
     sellingPrice: "",
     margin: "0",
     discount: "0",
-    tax: "0", // ➡️ New tax (Tax %) field
+    tax: "0",
     unit: "pcs",
     image: "",
   });
@@ -102,13 +100,12 @@ const Products = () => {
     setFormData({
       name: "",
       sku: "",
-      barcode: "",
       category: "Groceries",
       costPrice: "",
       sellingPrice: "",
       margin: "0",
       discount: "0",
-      tax: "0", // ➡️ 0% tax on reset
+      tax: "0",
       unit: "pcs",
       image: "",
     });
@@ -122,16 +119,12 @@ const Products = () => {
     setFormData({
       name: product.name,
       sku: product.sku,
-      barcode: product.barcode || "",
       category: product.category,
       costPrice: product.costPrice.toString(),
       sellingPrice: product.sellingPrice.toString(),
       margin: product.margin.toString(),
-      discount: (product.discount !== undefined
-        ? product.discount
-        : 0
-      ).toString(),
-      tax: (product.tax !== undefined ? product.tax : 0).toString(), // ➡️ Loads tax when editing
+      discount: (product.discount ?? 0).toString(),
+      tax: (product.tax ?? 0).toString(),
       unit: product.unit,
       image: product.image || "",
     });
@@ -153,11 +146,16 @@ const Products = () => {
 
     const processedProduct = {
       ...formData,
+      barcode:
+        modalMode === "add"
+          ? `BM-${Date.now()}`
+          : products.find((p) => p.sku === editingOldSku)?.barcode ||
+            `BM-${Date.now()}`,
       costPrice: parseFloat(formData.costPrice) || 0,
       sellingPrice: parseFloat(formData.sellingPrice) || 0,
       margin: parseFloat(formData.margin) || 0,
       discount: cleanDiscount,
-      tax: parseFloat(formData.tax) || 0, // ➡️ Converted to number and saved
+      tax: parseFloat(formData.tax) || 0,
     };
 
     if (modalMode === "add") {
@@ -188,7 +186,11 @@ const Products = () => {
 
   // Delete product
   const handleDeleteProduct = (sku) => {
-    if (window.confirm("Are you sure you want to delete this product from the inventory?")) {
+    if (
+      window.confirm(
+        "Are you sure you want to delete this product from the inventory?",
+      )
+    ) {
       setProducts((prev) => prev.filter((p) => p.sku !== sku));
     }
   };
@@ -213,15 +215,20 @@ const Products = () => {
           setProducts((prev) => [...importedProducts, ...prev]);
           alert(
             `Successfully imported ${importedProducts.length} unique products!${
-              skippedCount > 0 ? ` (Skipped ${skippedCount} duplicate SKU codes)` : ""
-            }`
+              skippedCount > 0
+                ? ` (Skipped ${skippedCount} duplicate SKU codes)`
+                : ""
+            }`,
           );
         } else {
           alert("No new unique products found to import.");
         }
       } catch (err) {
         console.error(err);
-        alert(err.message || "Error parsing CSV file. Please make sure the format is valid.");
+        alert(
+          err.message ||
+            "Error parsing CSV file. Please make sure the format is valid.",
+        );
       }
     };
     reader.readAsText(file);
@@ -231,7 +238,9 @@ const Products = () => {
   // Open Barcode printing page modal (single product only)
   const handleBarcodeModalOpen = (product) => {
     if (!product) {
-      alert("Please click the barcode icon on a specific product line to print its barcode!");
+      alert(
+        "Please click the barcode icon on a specific product line to print its barcode!",
+      );
       return;
     }
     setBarcodeModalProduct(product);
@@ -243,8 +252,7 @@ const Products = () => {
     const query = searchQuery.toLowerCase();
     const matchesSearch =
       p.name.toLowerCase().includes(query) ||
-      p.sku.toLowerCase().includes(query) ||
-      (p.barcode && p.barcode.toLowerCase().includes(query));
+      p.sku.toLowerCase().includes(query);
     const matchesCategory =
       selectedCategory === "All" || p.category === selectedCategory;
     return matchesSearch && matchesCategory;
@@ -265,24 +273,20 @@ const Products = () => {
       {/* CARD 1: PRODUCT LIST TITLE CARD */}
       <div className="bg-pos-card border border-pos-border rounded p-5 flex flex-col xl:flex-row items-start xl:items-center justify-between gap-4 shadow-sm">
         <div>
-          <h2 className="text-2xl font-black tracking-tight text-brand-primary uppercase flex items-center gap-2">
-            
+          <h2 className="text-2xl font-bold tracking-tight text-brand-500 uppercase flex items-center gap-2">
             Product List
           </h2>
-          <p className="text-xs text-text-secondary mt-1">
-            Manage your master catalogue of products, SKU codes, pricing, taxes, of your POS inventory.
-          </p>
         </div>
-        
+
         {/* Bulk Actions Box */}
         <div className="flex flex-wrap items-center gap-2 w-full xl:w-auto shrink-0">
           {/* File Input for CSV parsing */}
-          <input 
-            type="file" 
-            ref={csvInputRef} 
-            onChange={handleImportCSVChange} 
-            accept=".csv" 
-            className="hidden" 
+          <input
+            type="file"
+            ref={csvInputRef}
+            onChange={handleImportCSVChange}
+            accept=".csv"
+            className="hidden"
           />
 
           <button
@@ -305,7 +309,7 @@ const Products = () => {
 
           <button
             onClick={openAddModal}
-            className="w-full sm:w-auto p-3 px-5 bg-brand-primary hover:bg-brand-primary/95 text-white rounded text-xs font-bold flex items-center justify-center gap-1.5 shadow-md shadow-emerald-600/10 cursor-pointer active:scale-95 transition-transform duration-150 shrink-0"
+            className="w-full sm:w-auto p-3 px-5 bg-brand-500 hover:bg-brand-600 text-white rounded text-xs font-bold flex items-center justify-center gap-1.5 shadow-md shadow-emerald-600/10 cursor-pointer active:scale-95 transition-transform duration-150 shrink-0"
           >
             <Plus size={16} />
             <span>Add Product</span>
@@ -359,7 +363,9 @@ const Products = () => {
               title="Table View"
             >
               <List size={16} />
-              <span className="text-[11px] font-bold hidden xl:inline">List</span>
+              <span className="text-[11px] font-bold hidden xl:inline">
+                List
+              </span>
             </button>
             <button
               onClick={() => setViewMode("card")}
@@ -372,7 +378,9 @@ const Products = () => {
               title="Card View"
             >
               <LayoutGrid size={16} />
-              <span className="text-[11px] font-bold hidden xl:inline">Grid</span>
+              <span className="text-[11px] font-bold hidden xl:inline">
+                Grid
+              </span>
             </button>
           </div>
         </div>
@@ -393,17 +401,39 @@ const Products = () => {
             <table className="w-full text-center border-collapse">
               <thead>
                 <tr className="border-b border-pos-border text-white uppercase text-xs font-semibold tracking-wider bg-emerald-600">
-                  <th className="py-3.5 px-4 text-center text-xs font-semibold uppercase">Image</th>
-                  <th className="py-3.5 px-4 text-center text-xs font-semibold uppercase">Product Name</th>
-                  <th className="py-3.5 px-4 text-center text-xs font-semibold uppercase">SKU</th>
-                  <th className="py-3.5 px-4 text-center text-xs font-semibold uppercase">Category</th>
-                  <th className="py-3.5 px-4 text-center text-xs font-semibold uppercase">Cost (₹)</th>
-                  <th className="py-3.5 px-4 text-center text-xs font-semibold uppercase">Selling (₹)</th>
-                  <th className="py-3.5 px-4 text-center text-xs font-semibold uppercase">Margin</th>
-                  <th className="py-3.5 px-4 text-center text-xs font-semibold uppercase">Disc</th>
-                  <th className="py-3.5 px-4 text-center text-xs font-semibold uppercase">Tax (GST)</th>
-                  <th className="py-3.5 px-4 text-center text-xs font-semibold uppercase">Unit</th>
-                  <th className="py-3.5 px-4 text-center text-xs font-semibold uppercase">Actions</th>
+                  <th className="py-3.5 px-4 text-center text-xs font-semibold uppercase">
+                    Image
+                  </th>
+                  <th className="py-3.5 px-4 text-center text-xs font-semibold uppercase">
+                    Product Name
+                  </th>
+                  <th className="py-3.5 px-4 text-center text-xs font-semibold uppercase">
+                    SKU
+                  </th>
+                  <th className="py-3.5 px-4 text-center text-xs font-semibold uppercase">
+                    Category
+                  </th>
+                  <th className="py-3.5 px-4 text-center text-xs font-semibold uppercase">
+                    Cost (₹)
+                  </th>
+                  <th className="py-3.5 px-4 text-center text-xs font-semibold uppercase">
+                    Selling (₹)
+                  </th>
+                  <th className="py-3.5 px-4 text-center text-xs font-semibold uppercase">
+                    Margin
+                  </th>
+                  <th className="py-3.5 px-4 text-center text-xs font-semibold uppercase">
+                    Disc
+                  </th>
+                  <th className="py-3.5 px-4 text-center text-xs font-semibold uppercase">
+                    Tax (GST)
+                  </th>
+                  <th className="py-3.5 px-4 text-center text-xs font-semibold uppercase">
+                    Unit
+                  </th>
+                  <th className="py-3.5 px-4 text-center text-xs font-semibold uppercase">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-pos-border text-xs">
@@ -429,7 +459,9 @@ const Products = () => {
                       {p.name}
                     </td>
                     <td className="py-2.5 px-4 text-center">
-                      <div className="font-mono font-bold text-text-primary">{p.sku}</div>
+                      <div className="font-mono font-bold text-text-primary">
+                        {p.sku}
+                      </div>
                     </td>
                     <td className="py-2.5 px-4 text-center">
                       <span className="inline-block bg-brand-primary text-white font-bold px-2 py-1 rounded-full text-[12px]">
@@ -546,7 +578,9 @@ const Products = () => {
                     <div className="flex justify-between items-center font-mono">
                       <span>SKU: {p.sku}</span>
                     </div>
-                    <p className="text-[10px] uppercase font-bold text-slate-500">Unit: {p.unit}</p>
+                    <p className="text-[10px] uppercase font-bold text-slate-500">
+                      Unit: {p.unit}
+                    </p>
                   </div>
                 </div>
                 <div className="mt-4 pt-3 border-t border-pos-border flex items-center justify-between">
@@ -643,33 +677,6 @@ const Products = () => {
               </div>
 
               <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <div className="flex justify-between items-center">
-                    <label className="block font-bold">Barcode</label>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const namePart = formData.name 
-                          ? formData.name.trim().toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 3) 
-                          : "PRD";
-                        const randomPart = Math.floor(1000 + Math.random() * 9000);
-                        const autoBarcode = `${namePart}-${randomPart}`;
-                        setFormData((prev) => ({ ...prev, barcode: autoBarcode }));
-                      }}
-                      className="text-[11px] text-brand-primary hover:underline font-bold"
-                    >
-                      Auto-Gen
-                    </button>
-                  </div>
-                  <input
-                    type="text"
-                    name="barcode"
-                    value={formData.barcode}
-                    onChange={handleInputChange}
-                    placeholder="Auto or enter manual"
-                    className="w-full border border-pos-border rounded px-3 py-2.5 text-text-primary font-mono font-bold focus:outline-none bg-pos-bg focus:border-brand-primary"
-                  />
-                </div>
                 <div className="space-y-1">
                   <label className="block font-bold">Category</label>
                   <select
@@ -781,7 +788,7 @@ const Products = () => {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 bg-brand-primary hover:bg-brand-primary/90 text-white font-bold py-2.5 rounded shadow-md cursor-pointer"
+                  className="flex-1 bg-brand-500 hover:bg-brand-600 text-white font-bold py-2.5 rounded shadow-md cursor-pointer"
                 >
                   {modalMode === "add" ? "Save Product" : "Update Changes"}
                 </button>
