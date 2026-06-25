@@ -6,12 +6,13 @@ import {
   Navigate,
 } from "react-router-dom";
 import { useAuth } from "./context/AuthContext"; // Authentication hook
-import Layout from "../src/components/layout/Layout"; // Layout component for consistent UI
-import Login from "./pages/Login"; // லாகின் பக்கத்தை இம்போர்ட் செய்கிறோம்
-import Dashboard from "./pages/Dashboard/Dashboard"; // டாஷ்போர்டு பக்கம்
-import Analytics from "./pages/Dashboard/Analytics"; // டாஷ்போர்டு அனலிடிக்ஸ் பக்கம்
-import POSBilling from "./pages/Sales/POSBilling"; // POS பில்லிங் பக்கம்
+import Layout from "./components/layout/Layout";
+import Login from "./pages/Login";
+import StoreOverview from "./pages/Dashboard/Dashboard";
+import Analytics from "./pages/Dashboard/Analytics";
+import POSBilling from "./pages/Sales/POSBilling";
 import Invoices from "./pages/Sales/Invoices";
+import DepositAccounts from "./pages/Sales/DepositAccounts";
 import Products from "./pages/Inventory/Products"; // பொருட்கள் மேலாண்மை பக்கம்
 import StockCount from "./pages/Inventory/StockCount";
 import StockEntry from "./pages/Inventory/StockEntry";
@@ -20,7 +21,6 @@ import StockAlerts from "./pages/Inventory/StockAlerts";
 import UserManagement from "./pages/people/UserManagement";
 import CustomerManagement from "./pages/people/CustomerManagement";
 import SupplierManagement from "./pages/people/SupplierManagement";
-import DepositAccounts from "./pages/Sales/DepositAccounts";
 import Expenses from "./pages/Sales/Expenses";
 import Reports from "./pages/Sales/Reports";
 
@@ -50,7 +50,7 @@ function App() {
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
 
           {/* Dashboard Group */}
-          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/dashboard" element={<StoreOverview />} />
           <Route path="/analytics" element={<Analytics />} />
 
           {/* Sales Group */}

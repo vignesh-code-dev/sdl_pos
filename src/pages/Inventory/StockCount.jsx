@@ -9,6 +9,7 @@ import {
   Filter,
   Calendar,
 } from "lucide-react";
+import { ensureBarcodes } from "../../utils/barcodePrinter.jsx";
 
 const StockCount = () => {
   const [products, setProducts] = useState([]);
@@ -26,14 +27,27 @@ const StockCount = () => {
       // We attach new billing and sales metrics as sample data
       // (This can be easily integrated with actual billing data later)
       const mappedProducts = parsedProducts.map((p) => {
-        const currentStock = p.currentStock !== undefined ? p.currentStock : 0;
+        const currentStock =
+          p.currentStock !== undefined
+            ? p.currentStock
+            : Math.floor(Math.random() * 100);
         const minStock = p.minStock !== undefined ? p.minStock : 10;
 
-        // Quantity sold in the last 30 days (sample)
-        const qtySold30D =
-          p.qtySold30D !== undefined
-            ? p.qtySold30D
-            : Math.floor(Math.random() * 40);
+        // Calculate actual sold quantities from real invoices stored in billmate_invoices
+        let qtySold30D = 0;
+        invoices.forEach((inv) => {
+          if (inv.status !== "Cancelled") {
+            const matchedItems = (inv.items || []).filter(
+              (item) => item.sku === p.sku,
+            );
+            matchedItems.forEach((item) => {
+              const returnedQty = (inv.returns || [])
+                .filter((r) => r.sku === p.sku)
+                .reduce((sum, r) => sum + r.quantityReturned, 0);
+              qtySold30D += Math.max(0, (item.quantity || 0) - returnedQty);
+            });
+          }
+        });
 
         // Revenue = Qty Sold * Selling Price
         const revenue30D = qtySold30D * (p.sellingPrice || 0);
@@ -42,9 +56,19 @@ const StockCount = () => {
         const profit30D =
           qtySold30D * ((p.sellingPrice || 0) - (p.costPrice || 0));
 
-        // Last sold date (Sample Date format: YYYY-MM-DD)
-        const lastSold =
-          p.lastSold || (qtySold30D > 0 ? "2026-06-08" : "No Sales");
+        // Last sold date from actual transactions
+        let lastSold = "No Sales";
+        if (qtySold30D > 0) {
+          const matchingInvoices = invoices.filter(
+            (inv) =>
+              inv.status !== "Cancelled" &&
+              (inv.items || []).some((item) => item.sku === p.sku),
+          );
+          if (matchingInvoices.length > 0) {
+            // Sort by raw transaction date or take the first/latest
+            lastSold = matchingInvoices[0].date || "2026-06-08";
+          }
+        }
 
         return {
           ...p,
@@ -67,6 +91,19 @@ const StockCount = () => {
 
   useEffect(() => {
     loadInventoryData();
+
+    // Setup active listeners for multi-terminal local storage events and tab transitions
+    const handleStockUpdate = () => {
+      loadInventoryData();
+    };
+
+    window.addEventListener("billmate_stock_update", handleStockUpdate);
+    window.addEventListener("storage", handleStockUpdate);
+
+    return () => {
+      window.removeEventListener("billmate_stock_update", handleStockUpdate);
+      window.removeEventListener("storage", handleStockUpdate);
+    };
   }, []);
 
   // --- KPI Calculations ---
@@ -101,7 +138,7 @@ const StockCount = () => {
   });
 
   return (
-    <div className="p-5 flex flex-col h-[calc(100vh-70px)] bg-pos-bg overflow-hidden text-slate-900 font-sans">
+    <div className="p-6 space-y-6 bg-pos-bg overflow-x-hidden min-h-screen text-slate-800 font-sans">
       {/* HEADER */}
       <div className="flex items-center justify-between mb-4 shrink-0">
         <div>
@@ -212,105 +249,131 @@ const StockCount = () => {
       </div>
 
       {/* DETAILED STOCK TABLE */}
-      <div className="flex-1 overflow-x-auto overflow-y-auto bg-white border border-pos-border rounded shadow-xs">
+      <div className="bg-pos-card border border-pos-border rounded shadow-sm overflow-hidden">
         {filteredProducts.length === 0 ? (
           <div className="p-20 text-center text-slate-400">
             <Package size={40} className="mx-auto mb-2 text-slate-300" />
             <p className="font-bold text-sm">No stock records found.</p>
           </div>
         ) : (
-          <table className="w-full text-center border-collapse min-w-[1200px]">
-            <thead className="bg-brand-500 text-white text-xs font-semibold uppercase tracking-wider border-b border-pos-border sticky top-0 z-10">
-              <tr>
-                <th className="py-3 px-4 text-center">SKU</th>
-                <th className="py-3 px-4 text-left pl-6">Product Name</th>
-                <th className="py-3 px-4 text-center">Category</th>
-                <th className="py-3 px-4 text-center">Current Stock</th>
-                <th className="py-3 px-4 text-right">Buy Price</th>
-                <th className="py-3 px-4 text-right">Inventory Value</th>
-                <th className="py-3 px-4 text-right ">30-Day Revenue</th>
-                <th className="py-3 px-4 text-right ">30-Day Profit</th>
-                <th className="py-3 px-4 text-center">Qty Sold (30D)</th>
-                <th className="py-3 px-4 text-center pr-6">Last Sold</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-pos-border">
-              {filteredProducts.map((p, idx) => {
-                const stockValue = p.currentStock * (p.costPrice || 0);
+          <div className="overflow-x-auto">
+            <table className="w-full text-center border-collapse min-w-[1200px]">
+              <thead>
+                <tr className="border-b border-pos-border text-white uppercase text-xs font-semibold tracking-wider bg-emerald-600 sticky top-0 z-10">
+                  <th className="py-3.5 px-4 text-center text-xs font-semibold uppercase">
+                    SKU
+                  </th>
+                  <th className="py-3.5 px-4 text-left pl-6 text-xs font-semibold uppercase">
+                    Product Name
+                  </th>
+                  <th className="py-3.5 px-4 text-center text-xs font-semibold uppercase">
+                    Category
+                  </th>
+                  <th className="py-3.5 px-4 text-center text-xs font-semibold uppercase">
+                    Current Stock
+                  </th>
+                  <th className="py-3.5 px-4 text-right text-xs font-semibold uppercase">
+                    Buy Price
+                  </th>
+                  <th className="py-3.5 px-4 text-right text-xs font-semibold uppercase">
+                    Inventory Value
+                  </th>
+                  <th className="py-3.5 px-4 text-right text-xs font-semibold uppercase">
+                    30-Day Revenue
+                  </th>
+                  <th className="py-3.5 px-4 text-right text-xs font-semibold uppercase">
+                    30-Day Profit
+                  </th>
+                  <th className="py-3.5 px-4 text-center text-xs font-semibold uppercase">
+                    Qty Sold (30D)
+                  </th>
+                  <th className="py-3.5 px-4 text-center pr-6 text-xs font-semibold uppercase">
+                    Last Sold
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-pos-border">
+                {filteredProducts.map((p, idx) => {
+                  const stockValue = p.currentStock * (p.costPrice || 0);
 
-                // Stock Color Coding
-                let stockColor = "text-text-primary";
-                if (p.currentStock === 0)
-                  stockColor = "text-brand-danger font-black";
-                else if (p.currentStock <= p.minStock)
-                  stockColor = "text-brand-warning font-black";
+                  // Stock Color Coding
+                  let stockColor = "text-text-primary";
+                  if (p.currentStock === 0)
+                    stockColor = "text-brand-danger font-black";
+                  else if (p.currentStock <= p.minStock)
+                    stockColor = "text-brand-warning font-black";
 
-                return (
-                  <tr
-                    key={p.sku || idx}
-                    className="hover:bg-brand-500/10 transition-colors text-text-secondary text-sm font-medium"
-                  >
-                    {/* SKU */}
-                    <td className="py-3 px-4 font-mono">{p.sku}</td>
-
-                    {/* Product Name */}
-                    <td className="py-3 px-4 text-left pl-6">{p.name}</td>
-
-                    {/* Category */}
-                    <td className="py-3 px-4 text-center">
-                      <span className="inline-block bg-brand-500 text-white px-2 py-1 rounded-full ">
-                        {p.category}
-                      </span>
-                    </td>
-
-                    {/* Current Stock */}
-                    <td
-                      className={`py-3 px-4 font-mono text-center ${stockColor}`}
+                  return (
+                    <tr
+                      key={p.sku || idx}
+                      className="hover:bg-brand-500/10 transition-colors text-text-secondary text-sm font-medium"
                     >
-                      {p.currentStock}{" "}
-                      <span className="text-[10px] font-semibold font-sans">
-                        {p.unit || "pcs"}
-                      </span>
-                    </td>
+                      {/* SKU */}
+                      <td className="py-3 px-4 font-mono">{p.sku}</td>
 
-                    {/* Buy Price */}
-                    <td className="py-3 px-4 text-right font-mono">
-                      ₹{(p.costPrice || 0).toFixed(2)}
-                    </td>
+                      {/* Product Name */}
+                      <td className="py-3 px-4 text-left pl-6">{p.name}</td>
 
-                    {/* Inventory Value */}
-                    <td className="py-3 px-4 text-right font-mono">
-                      ₹{stockValue.toFixed(2)}
-                    </td>
+                      {/* Category */}
+                      <td className="py-3 px-4 text-center">
+                        <span className="inline-block bg-brand-500 text-white px-2 py-1 rounded-full ">
+                          {p.category}
+                        </span>
+                      </td>
 
-                    {/* 30-Day Revenue */}
-                    <td className="py-3 px-4 text-right font-mono">
-                      ₹{(p.revenue30D || 0).toFixed(2)}
-                    </td>
+                      {/* Current Stock */}
+                      <td
+                        className={`py-3 px-4 font-mono text-center ${stockColor}`}
+                      >
+                        {p.currentStock}{" "}
+                        <span className="text-[10px] font-semibold font-sans">
+                          {p.unit || "pcs"}
+                        </span>
+                      </td>
 
-                    {/* 30-Day Profit */}
-                    <td className="py-3 px-4 text-right font-mono text-brand-600">
-                      ₹{(p.profit30D || 0).toFixed(2)}
-                    </td>
+                      {/* Buy Price */}
+                      <td className="py-3 px-4 text-right font-mono">
+                        ₹{(p.costPrice || 0).toFixed(2)}
+                      </td>
 
-                    {/* Qty Sold (30D) */}
-                    <td className="py-3 px-4 font-mono text-center">
-                      {p.qtySold30D || 0}
-                    </td>
+                      {/* Inventory Value */}
+                      <td className="py-3 px-4 text-right font-mono">
+                        ₹{stockValue.toFixed(2)}
+                      </td>
 
-                    {/* Last Sold */}
-                    <td className="py-3 px-4 text-center pr-6 font-medium">
-                      {p.lastSold === "No Sales" ? (
-                        <span className="text-slate-400 italic">No Sales</span>
-                      ) : (
-                        <span className=" text-xs font-mono">{p.lastSold}</span>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                      {/* 30-Day Revenue */}
+                      <td className="py-3 px-4 text-right font-mono">
+                        ₹{(p.revenue30D || 0).toFixed(2)}
+                      </td>
+
+                      {/* 30-Day Profit */}
+                      <td className="py-3 px-4 text-right font-mono text-brand-600">
+                        ₹{(p.profit30D || 0).toFixed(2)}
+                      </td>
+
+                      {/* Qty Sold (30D) */}
+                      <td className="py-3 px-4 font-mono text-center">
+                        {p.qtySold30D || 0}
+                      </td>
+
+                      {/* Last Sold */}
+                      <td className="py-3 px-4 text-center pr-6 font-medium">
+                        {p.lastSold === "No Sales" ? (
+                          <span className="text-slate-400 italic">
+                            No Sales
+                          </span>
+                        ) : (
+                          <span className=" text-xs font-mono">
+                            {p.lastSold}
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
     </div>

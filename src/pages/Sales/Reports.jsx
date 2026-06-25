@@ -316,7 +316,7 @@ export default function Reports() {
       {/* 2. MAIN HEADER BLOCK */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-pos-card border border-pos-border p-5 rounded shadow-sm">
         <div className="space-y-1">
-          <h1 className="text-2xl font-black tracking-tight text-slate-850">
+          <h1 className="text-3xl font-black tracking-tight text-slate-850">
             Reports & Archive Manager
           </h1>
           <p className="text-xs text-slate-400 mt-1 font-medium select-none font-sans">

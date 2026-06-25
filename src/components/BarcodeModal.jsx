@@ -1,19 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Barcode, Printer } from "lucide-react";
-import {
-  getBarcodeStripePattern,
-  handlePrintBarcodes,
-} from "../utils/barcodePrinter";
+import { handlePrintBarcodes } from "../utils/barcodePrinter";
 
 /**
  * BarcodeModal Component
  * Renders a barcode labels printing sheet generator for a single, selected product.
- * Does not include a dropdown to select other products.
- *
- * @param {object} props
- * @param {boolean} props.isOpen - Is state modal shown
- * @param {function} props.onClose - Action to close the modal
- * @param {object} props.product - The specific product object to generate the barcode for
  */
 const BarcodeModal = ({ isOpen, onClose, product }) => {
   if (!isOpen) return null;
@@ -21,7 +12,8 @@ const BarcodeModal = ({ isOpen, onClose, product }) => {
 
   const [barcodePrintQty, setBarcodePrintQty] = useState(12);
 
-  const barcodeValue = product.barcode || `BM-${product.sku}` || "";
+  const barcodeValue = product.barcode || product.sku || "";
+
   return (
     <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-in fade-in duration-150">
       <div className="bg-white border border-pos-border rounded max-w-md w-full p-6 shadow-2xl flex flex-col max-h-[90vh] overflow-y-auto">
@@ -51,7 +43,7 @@ const BarcodeModal = ({ isOpen, onClose, product }) => {
             </div>
             <div className="flex justify-between text-xs text-slate-500 font-mono mt-1">
               <span>SKU Code: {product.sku}</span>
-              <span>Barcode: {barcodeValue}</span>
+              {product.barcode && <span>Barcode: {product.barcode}</span>}
             </div>
           </div>
 
@@ -85,7 +77,7 @@ const BarcodeModal = ({ isOpen, onClose, product }) => {
                         : "border-pos-border hover:bg-slate-50 text-slate-600"
                     }`}
                   >
-                    {q} Pcs
+                    {q} Label
                   </button>
                 ))}
               </div>
@@ -103,18 +95,16 @@ const BarcodeModal = ({ isOpen, onClose, product }) => {
                   {product.name}
                 </div>
 
-                {/* Pure CSS Barcode visualization */}
+                {/* Pure SVG Barcode visualization */}
                 {barcodeValue ? (
-                  <div className="flex h-10 w-full justify-center items-stretch bg-black my-1 px-1">
-                    {getBarcodeStripePattern(barcodeValue).map((bit, idx) => (
-                      <div
-                        key={idx}
-                        className={`flex-1 ${bit ? "bg-black" : "bg-white"}`}
-                      />
-                    ))}
+                  <div className="flex w-full justify-center items-center my-1 bg-white">
+                    <BarcodePreview
+                      value={barcodeValue}
+                      format={barcodeFormat}
+                    />
                   </div>
                 ) : (
-                  <div className="h-10 w-full bg-slate-1050 flex items-center justify-center text-red-500 font-bold text-xs uppercase my-1 font-mono border border-red-200 bg-red-50 rounded">
+                  <div className="h-10 w-full bg-slate-50 flex items-center justify-center text-red-500 font-bold text-xs uppercase my-1 font-mono border border-red-200 bg-red-50 rounded">
                     No SKU/Barcode
                   </div>
                 )}
@@ -126,15 +116,12 @@ const BarcodeModal = ({ isOpen, onClose, product }) => {
                   ₹{(product.sellingPrice || 0).toFixed(2)}
                 </div>
               </div>
-              <span className="absolute bottom-1 right-2 text-[9px] text-slate-400 font-bold uppercase select-none">
-                Label Preview
-              </span>
             </div>
           </div>
         </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-2 pt-3 border-t border-pos-border">
+        <div className="flex gap-2 pt-3 border-t border-t-pos-border">
           <button
             onClick={onClose}
             className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded text-xs transition-colors cursor-pointer"
