@@ -14,7 +14,10 @@ import {
 } from "lucide-react";
 import { parseCSV, runExportCSV } from "../../utils/csvHelper.jsx";
 import BarcodeModal from "../../components/BarcodeModal";
-import { ensureBarcodes, generateEAN13Barcode } from "../../utils/barcodePrinter.jsx";
+import {
+  ensureBarcodes,
+  generateEAN13Barcode,
+} from "../../utils/barcodePrinter.jsx";
 
 const Products = () => {
   // Retrieve existing products from localStorage
@@ -156,8 +159,14 @@ const Products = () => {
       tax: (product.tax !== undefined ? product.tax : 0).toString(), // ➡️ Loads tax when editing
       unit: product.unit,
       image: product.image || "",
-      currentStock: (product.currentStock !== undefined ? product.currentStock : 0).toString(),
-      minStock: (product.minStock !== undefined ? product.minStock : 0).toString(),
+      currentStock: (product.currentStock !== undefined
+        ? product.currentStock
+        : 0
+      ).toString(),
+      minStock: (product.minStock !== undefined
+        ? product.minStock
+        : 0
+      ).toString(),
     });
     setShowModal(true);
   };
@@ -184,7 +193,7 @@ const Products = () => {
         (p) =>
           p.barcode &&
           p.barcode.trim().toLowerCase() === barcodeValue.toLowerCase() &&
-          (modalMode === "add" || p.sku !== editingOldSku)
+          (modalMode === "add" || p.sku !== editingOldSku),
       );
       if (isBarcodeTaken) {
         alert("This barcode value is already assigned to another product!");
@@ -233,9 +242,12 @@ const Products = () => {
     setShowModal(false);
   };
 
-  // Delete product
   const handleDeleteProduct = (sku) => {
-    if (window.confirm("Are you sure you want to delete this product from the inventory?")) {
+    if (
+      window.confirm(
+        "Are you sure you want to delete this product from the inventory?",
+      )
+    ) {
       setProducts((prev) => prev.filter((p) => p.sku !== sku));
     }
   };
@@ -260,15 +272,20 @@ const Products = () => {
           setProducts((prev) => [...importedProducts, ...prev]);
           alert(
             `Successfully imported ${importedProducts.length} unique products!${
-              skippedCount > 0 ? ` (Skipped ${skippedCount} duplicate SKU codes)` : ""
-            }`
+              skippedCount > 0
+                ? ` (Skipped ${skippedCount} duplicate SKU codes)`
+                : ""
+            }`,
           );
         } else {
           alert("No new unique products found to import.");
         }
       } catch (err) {
         console.error(err);
-        alert(err.message || "Error parsing CSV file. Please make sure the format is valid.");
+        alert(
+          err.message ||
+            "Error parsing CSV file. Please make sure the format is valid.",
+        );
       }
     };
     reader.readAsText(file);
@@ -278,7 +295,9 @@ const Products = () => {
   // Open Barcode printing page modal (single product only)
   const handleBarcodeModalOpen = (product) => {
     if (!product) {
-      alert("Please click the barcode icon on a specific product line to print its barcode!");
+      alert(
+        "Please click the barcode icon on a specific product line to print its barcode!",
+      );
       return;
     }
     setBarcodeModalProduct(product);
@@ -317,19 +336,20 @@ const Products = () => {
             Product List
           </h2>
           <p className="text-xs text-text-secondary mt-1">
-            Manage your master catalogue of products, SKU codes, pricing, taxes, of your POS inventory.
+            Manage your master catalogue of products, SKU codes, pricing, taxes,
+            of your POS inventory.
           </p>
         </div>
-        
+
         {/* Bulk Actions Box */}
         <div className="flex flex-wrap items-center gap-2 w-full xl:w-auto shrink-0">
           {/* File Input for CSV parsing */}
-          <input 
-            type="file" 
-            ref={csvInputRef} 
-            onChange={handleImportCSVChange} 
-            accept=".csv" 
-            className="hidden" 
+          <input
+            type="file"
+            ref={csvInputRef}
+            onChange={handleImportCSVChange}
+            accept=".csv"
+            className="hidden"
           />
 
           <button
@@ -406,7 +426,9 @@ const Products = () => {
               title="Table View"
             >
               <List size={16} />
-              <span className="text-[11px] font-bold hidden xl:inline">List</span>
+              <span className="text-[11px] font-bold hidden xl:inline">
+                List
+              </span>
             </button>
             <button
               onClick={() => setViewMode("card")}
@@ -419,7 +441,9 @@ const Products = () => {
               title="Card View"
             >
               <LayoutGrid size={16} />
-              <span className="text-[11px] font-bold hidden xl:inline">Grid</span>
+              <span className="text-[11px] font-bold hidden xl:inline">
+                Grid
+              </span>
             </button>
           </div>
         </div>
@@ -440,17 +464,39 @@ const Products = () => {
             <table className="w-full text-center border-collapse">
               <thead>
                 <tr className="border-b border-pos-border text-white uppercase text-xs font-semibold tracking-wider bg-emerald-600">
-                  <th className="py-3.5 px-4 text-center text-xs font-semibold uppercase">Image</th>
-                  <th className="py-3.5 px-4 text-center text-xs font-semibold uppercase">Product Name</th>
-                  <th className="py-3.5 px-4 text-center text-xs font-semibold uppercase">SKU</th>
-                  <th className="py-3.5 px-4 text-center text-xs font-semibold uppercase">Category</th>
-                  <th className="py-3.5 px-4 text-center text-xs font-semibold uppercase">Cost (₹)</th>
-                  <th className="py-3.5 px-4 text-center text-xs font-semibold uppercase">Selling (₹)</th>
-                  <th className="py-3.5 px-4 text-center text-xs font-semibold uppercase">Margin</th>
-                  <th className="py-3.5 px-4 text-center text-xs font-semibold uppercase">Disc</th>
-                  <th className="py-3.5 px-4 text-center text-xs font-semibold uppercase">Tax (GST)</th>
-                  <th className="py-3.5 px-4 text-center text-xs font-semibold uppercase">Unit</th>
-                  <th className="py-3.5 px-4 text-center text-xs font-semibold uppercase">Actions</th>
+                  <th className="py-3.5 px-4 text-center text-xs font-semibold uppercase">
+                    Image
+                  </th>
+                  <th className="py-3.5 px-4 text-center text-xs font-semibold uppercase">
+                    Product Name
+                  </th>
+                  <th className="py-3.5 px-4 text-center text-xs font-semibold uppercase">
+                    SKU
+                  </th>
+                  <th className="py-3.5 px-4 text-center text-xs font-semibold uppercase">
+                    Category
+                  </th>
+                  <th className="py-3.5 px-4 text-center text-xs font-semibold uppercase">
+                    Cost (₹)
+                  </th>
+                  <th className="py-3.5 px-4 text-center text-xs font-semibold uppercase">
+                    Selling (₹)
+                  </th>
+                  <th className="py-3.5 px-4 text-center text-xs font-semibold uppercase">
+                    Margin
+                  </th>
+                  <th className="py-3.5 px-4 text-center text-xs font-semibold uppercase">
+                    Disc
+                  </th>
+                  <th className="py-3.5 px-4 text-center text-xs font-semibold uppercase">
+                    Tax (GST)
+                  </th>
+                  <th className="py-3.5 px-4 text-center text-xs font-semibold uppercase">
+                    Unit
+                  </th>
+                  <th className="py-3.5 px-4 text-center text-xs font-semibold uppercase">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-pos-border text-xs">
@@ -476,7 +522,9 @@ const Products = () => {
                       {p.name}
                     </td>
                     <td className="py-2.5 px-4 text-center">
-                      <div className="font-mono font-bold text-text-primary">{p.sku}</div>
+                      <div className="font-mono font-bold text-text-primary">
+                        {p.sku}
+                      </div>
                     </td>
                     <td className="py-2.5 px-4 text-center">
                       <span className="inline-block bg-brand-primary text-white font-bold px-2 py-1 rounded-full text-[12px]">
@@ -593,7 +641,9 @@ const Products = () => {
                     <div className="flex justify-between items-center font-mono">
                       <span>SKU: {p.sku}</span>
                     </div>
-                    <p className="text-[10px] uppercase font-bold text-slate-500">Unit: {p.unit}</p>
+                    <p className="text-[10px] uppercase font-bold text-slate-500">
+                      Unit: {p.unit}
+                    </p>
                   </div>
                 </div>
                 <div className="mt-4 pt-3 border-t border-pos-border flex items-center justify-between">
@@ -696,12 +746,21 @@ const Products = () => {
                     <button
                       type="button"
                       onClick={() => {
-                        const namePart = formData.name 
-                          ? formData.name.trim().toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 3) 
+                        const namePart = formData.name
+                          ? formData.name
+                              .trim()
+                              .toUpperCase()
+                              .replace(/[^A-Z0-9]/g, "")
+                              .slice(0, 3)
                           : "PRD";
-                        const randomPart = Math.floor(1000 + Math.random() * 9000);
+                        const randomPart = Math.floor(
+                          1000 + Math.random() * 9000,
+                        );
                         const autoBarcode = `${namePart}-${randomPart}`;
-                        setFormData((prev) => ({ ...prev, barcode: autoBarcode }));
+                        setFormData((prev) => ({
+                          ...prev,
+                          barcode: autoBarcode,
+                        }));
                       }}
                       className="text-[11px] text-brand-primary hover:underline font-bold"
                     >
