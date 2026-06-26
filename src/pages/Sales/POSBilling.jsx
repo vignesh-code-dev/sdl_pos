@@ -23,6 +23,7 @@
     Building2,
     Smartphone,
     Download,
+    AlertCircle
   } from "lucide-react";
   import InvoiceModal from "../../components/invoices/InvoiceModal";
   import AddCustomerModal from "../../components/people/AddCustomerModal";
@@ -40,6 +41,7 @@
     const [globalDiscount, setGlobalDiscount] = useState(0);
     const [paymentMethod, setPaymentMethod] = useState("");
     const [paymentMethodError, setPaymentMethodError] = useState(false);
+    const [tenderedAmount, setTenderedAmount] = useState("");
     const [activeInvoice, setActiveInvoice] = useState(null);
     const [showInvoiceModal, setShowInvoiceModal] = useState(false);
 
@@ -73,6 +75,29 @@
       setShowAddCustModal(false);
       showToast("New customer registered & matched!", "success");
     };
+
+    
+    // Check if selected customer has active credit account
+    const hasActiveCreditAccount = (() => {
+      if (!customerMobile || customerMobile.trim().length !== 10 || isNewCustomer) {
+        return false;
+      }
+      try {
+        const rawAccounts = localStorage.getItem("billmate_deposit_accounts");
+        const accountsList = rawAccounts ? JSON.parse(rawAccounts) : [];
+        const foundAccount = accountsList.find(acc => acc.customerMobile === customerMobile);
+        return !!foundAccount;
+      } catch (e) {
+        return false;
+      }
+    })();
+
+    useEffect(() => {
+      if (paymentMethod === "CREDIT" && !hasActiveCreditAccount) {
+        setPaymentMethod("");
+      }
+    }, [customerMobile, isNewCustomer, hasActiveCreditAccount, paymentMethod]);
+
 
     const searchInputRef = useRef(null);
 
@@ -379,11 +404,37 @@
     }, 0);
     const grandTotal = Math.max(0, subtotal - totalLineDiscount + totalTax - globalDiscount);
 
-    const handleCompleteSale = () => {
+    // Keep tenderedAmount synced with grandTotal if it's not CREDIT and they haven't entered a custom amount
+    const prevGrandTotalRef = useRef(0);
+    useEffect(() => {
+      if (paymentMethod && paymentMethod !== "CREDIT") {
+        const parsedTender = parseFloat(tenderedAmount) || 0;
+        // If the tendered amount was equal to the previous grand total, keep it synced
+        if (Math.abs(parsedTender - prevGrandTotalRef.current) < 0.01 || tenderedAmount === "") {
+          setTenderedAmount(grandTotal.toFixed(2));
+        }
+      }
+      prevGrandTotalRef.current = grandTotal;
+    }, [grandTotal, paymentMethod]);
+
+     const handleCompleteSale = () => {
       if (cart.length === 0) {
         showToast("The shopping cart is empty! Please scan or search products first.", "warning");
         return;
       }
+
+      // Check if any cart item has a quantity of 0 or less
+      const invalidItem = cart.find(item => {
+        const qty = parseFloat(item.quantity) || 0;
+        return qty <= 0;
+      });
+      if (invalidItem) {
+        const msg = `Quantity for product "${invalidItem.name}" must be greater than 0!`;
+        showToast(msg, "warning");
+        alert(msg);
+        return;
+      }
+
       if (!paymentMethod) {
         setPaymentMethodError(true);
         showToast("Please select a Payment Method before completing the sale.", "warning");
@@ -422,18 +473,34 @@
       } else {
         customerRefName = customerRefName || "Walk-in";
       }
+      const tenderVal = parseFloat(tenderedAmount) !== undefined && !isNaN(parseFloat(tenderedAmount))
+        ? parseFloat(tenderedAmount)
+        : (paymentMethod === "CREDIT" ? 0 : grandTotal);
+
+      const balanceValue = paymentMethod === "CREDIT" ? grandTotal : Math.max(0, grandTotal - tenderVal);
+      const changeValue = paymentMethod === "CREDIT" ? 0 : Math.max(0, tenderVal - grandTotal);
+      const finalPaidAmount = paymentMethod === "CREDIT" ? 0 : tenderVal;
+
+      if (balanceValue > 0 && !hasActiveCreditAccount) {
+        const errorMsg = "Outstanding balances or partial payments are only allowed for customers with an active credit account. Please create or activate a credit account first.";
+        showToast(errorMsg, "warning");
+        alert(errorMsg);
+        return;
+      }
+
       const receiptObj = {
         id: invoiceId, date: formattedDate, shopName: "SDL BillMate POS Supermarket",
         customerName: customerRefName, customerMobile: customerMobile || "Walk-In",
         items: cart.map(item => ({ ...item, quantity: parseFloat(item.quantity) || 0 })),
         subtotal, totalLineDiscount, totalTax, globalDiscount, grandTotal,
-        paidAmount: paymentMethod === "CREDIT" ? 0 : grandTotal,
-        balance: paymentMethod === "CREDIT" ? grandTotal : 0,
+        paidAmount: finalPaidAmount,
+        balance: balanceValue,
+        change: changeValue,
         status: "Active", returns: [],
         operator: "admin", paymentMethod
       };
 
-      if (paymentMethod === "CREDIT") {
+      if (balanceValue > 0) {
         try {
           const rawAccounts = localStorage.getItem("billmate_deposit_accounts");
           let accountsList = rawAccounts ? JSON.parse(rawAccounts) : [];
@@ -447,14 +514,17 @@
             id: `TX-${Math.floor(10000 + Math.random() * 90000)}`,
             date: formattedDate,
             type: "CREDIT",
-            amount: grandTotal,
-            description: `POS purchase on Credit (${receiptObj.id})`
+            category: "SALE",
+            amount: balanceValue,
+            description: paymentMethod === "CREDIT"
+              ? `POS purchase on Credit (${receiptObj.id})`
+              : `Partial Payment outstanding balance (${receiptObj.id})`
           };
 
           if (targetIndex !== -1) {
             const acc = accountsList[targetIndex];
-            acc.creditGiven = (acc.creditGiven || 0) + grandTotal;
-            acc.outstanding = (acc.outstanding || 0) + grandTotal;
+            acc.creditGiven = (acc.creditGiven || 0) + balanceValue;
+            acc.outstanding = (acc.outstanding || 0) + balanceValue;
             acc.transactions = [txObj, ...(acc.transactions || [])];
             accountsList[targetIndex] = acc;
           } else {
@@ -464,9 +534,9 @@
               customerName: customerRefName || "Walk-In Client",
               customerMobile: identifier,
               creditLimit: 20000,
-              creditGiven: grandTotal,
+              creditGiven: balanceValue,
               paymentsReceived: 0,
-              outstanding: grandTotal,
+              outstanding: balanceValue,
               transactions: [txObj]
             };
             accountsList.push(newAcc);
@@ -494,6 +564,7 @@
     const resetBillingStateComplete = () => {
       setCart([]); setSearchInput(""); setCustomerMobile(""); setCustomerName(""); setIsNewCustomer(false);
       setGlobalDiscount(0); setPaymentMethod(""); setPaymentMethodError(false); setFocusedSuggestionIndex(-1);
+      setTenderedAmount("");
       setActiveInvoice(null); setShowInvoiceModal(false);
       setTimeout(() => { if (searchInputRef.current) searchInputRef.current.focus(); }, 100);
     };
@@ -796,25 +867,90 @@
                   PAYMENT METHOD <span className="text-red-500 font-black text-xs">*</span>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
-                  {paymentOptions.map(opt => (
-                    <button key={opt.value} type="button"
-                      onClick={() => { setPaymentMethod(opt.value); setPaymentMethodError(false); }}
-                      className={`flex items-center justify-start gap-3 px-3 py-3 rounded text-[11px] font-extrabold border cursor-pointer transition-all
-                        ${paymentMethod === opt.value
-                          ? "border-emerald-600 bg-emerald-50 text-emerald-800 shadow-3xs"
-                          : "border-gray-200 bg-white text-slate-600 hover:border-emerald-400 hover:text-emerald-700 shadow-5xs"
-                        }`}>
-                      <span className={paymentMethod === opt.value ? "text-emerald-600" : "text-slate-400"}>{opt.icon}</span>
-                      <span>{opt.label}</span>
-                    </button>
-                  ))}
+                  {paymentOptions.map(opt => {
+                    const isCredit = opt.value === "CREDIT";
+                    const isOptDisabled = isCredit && !hasActiveCreditAccount;
+                    return (
+                      <button key={opt.value} type="button"
+                        onClick={() => {
+                          if (isOptDisabled) {
+                            showToast("This customer does not have an active credit account. Please create or activate a credit account before using CREDIT payment.", "warning");
+                            return;
+                          }
+                          setPaymentMethod(opt.value);
+                          setPaymentMethodError(false);
+                          if (opt.value === "CREDIT") {
+                            setTenderedAmount("0");
+                          } else {
+                            setTenderedAmount(grandTotal.toFixed(2));
+                          }
+                        }}
+                        className={`flex items-center justify-start gap-3 px-3 py-3 rounded text-[11px] font-extrabold border transition-all
+                          ${isOptDisabled
+                            ? "border-gray-200 bg-gray-100/70 text-gray-400 cursor-not-allowed opacity-60"
+                            : paymentMethod === opt.value
+                              ? "border-emerald-600 bg-emerald-50 text-emerald-800 shadow-3xs cursor-pointer"
+                              : "border-gray-200 bg-white text-slate-600 hover:border-emerald-400 hover:text-emerald-700 shadow-5xs cursor-pointer"
+                          }`}>
+                        <span className={isOptDisabled ? "text-gray-300" : paymentMethod === opt.value ? "text-emerald-600" : "text-slate-400"}>{opt.icon}</span>
+                        <span>{opt.label}</span>
+                      </button>
+                    );
+                  })}
                 </div>
+                
                 {paymentMethodError && (
                   <p className="text-[11px] text-red-500 bg-red-50 border border-red-100 rounded px-2.5 py-1.5 mt-2 font-semibold">
                     * Payment method is required.
                   </p>
                 )}
               </div>
+
+              {/* Amount Tendered / Paid */}
+              {paymentMethod && (
+                <div className="space-y-2 animate-in fade-in slide-in-from-top-1 duration-150">
+                  <div className="flex items-center gap-2 text-xs font-black text-slate-700 uppercase mb-2 border-b border-slate-100 pb-2">
+                    <Wallet size={14} className="text-emerald-600" />
+                    AMOUNT TENDERED / PAID
+                  </div>
+                  <div>
+                    <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-2">
+                      Amount Tendered Paid (₹)
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      disabled={paymentMethod === "CREDIT"}
+                      value={tenderedAmount}
+                      onChange={(e) => setTenderedAmount(e.target.value)}
+                      placeholder="0.00"
+                      className="w-full h-10 text-left bg-slate-50 disabled:bg-gray-150 disabled:text-gray-400 hover:bg-slate-100/60 border border-gray-200 rounded px-3.5 text-xs font-extrabold text-slate-800 outline-none focus:bg-white focus:border-emerald-500 focus:ring-4 focus:ring-emerald-50/55 transition-all"
+                    />
+                    
+                    {/* Live Calculations indicator */}
+                    {paymentMethod !== "CREDIT" && (
+                      <div className="mt-2 flex justify-between text-[11px] font-semibold text-slate-500 font-mono">
+                        {parseFloat(tenderedAmount) > grandTotal ? (
+                          <>
+                            <span>Change Due:</span>
+                            <span className="text-emerald-600 font-bold">₹{(parseFloat(tenderedAmount) - grandTotal).toFixed(2)}</span>
+                          </>
+                        ) : parseFloat(tenderedAmount) < grandTotal ? (
+                          <>
+                            <span>Outstanding:</span>
+                            <span className="text-rose-600 font-bold">₹{(grandTotal - (parseFloat(tenderedAmount) || 0)).toFixed(2)}</span>
+                          </>
+                        ) : (
+                          <>
+                            <span>Outstanding:</span>
+                            <span className="text-emerald-600 font-bold">₹0.00</span>
+                          </>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
 
               {/* Discount */}
               <div>

@@ -332,7 +332,7 @@ const Products = () => {
       <div className="bg-pos-card border border-pos-border rounded p-5 flex flex-col xl:flex-row items-start xl:items-center justify-between gap-4 shadow-sm">
         <div>
           <h2 className="text-2xl font-black tracking-tight text-brand-primary uppercase flex items-center gap-2">
-            <Tag size={22} className="text-brand-primary" />
+    
             Product List
           </h2>
           <p className="text-xs text-text-secondary mt-1">

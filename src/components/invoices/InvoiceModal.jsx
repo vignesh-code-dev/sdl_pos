@@ -193,6 +193,15 @@ export default function InvoiceModal({
                 </span>
               </div>
 
+              {Number(invoice.paidAmount !== undefined ? invoice.paidAmount : (invoice.grandTotal || 0)) > Number(invoice.grandTotal || 0) && (
+                <div className="flex justify-between">
+                  <span className="text-[10px] text-gray-500">Change Returned:</span>
+                  <span className="text-[11px] font-bold text-slate-800">
+                    ₹{Number((invoice.paidAmount !== undefined ? invoice.paidAmount : invoice.grandTotal) - invoice.grandTotal).toFixed(2)}
+                  </span>
+                </div>
+              )}
+
               <div className="flex justify-between">
                 <span className="text-[10px] text-gray-500">Outstanding Balance:</span>
                 <span className={`text-[11px] font-bold ${parseFloat(invoice.balance !== undefined ? invoice.balance : 0) > 0 ? "text-red-650" : "text-gray-800"}`}>
@@ -203,7 +212,7 @@ export default function InvoiceModal({
               <div className="flex justify-between border-t border-gray-200 pt-2 mt-1">
                 <span className="text-[10px] font-bold text-gray-700 uppercase">Grand Total Paid</span>
                 <span className="text-sm font-bold text-emerald-600">
-                  ₹{Number(invoice.paidAmount !== undefined ? invoice.paidAmount : (invoice.grandTotal || 0)).toFixed(2)}
+                  ₹{Number(Math.max(0, (invoice.grandTotal || 0) - (invoice.balance !== undefined ? invoice.balance : 0))).toFixed(2)}
                 </span>
               </div>
             </div>

@@ -1,6 +1,8 @@
 import React from "react";
 import { ChevronLeft, ChevronRight, Eye, Printer, Download } from "lucide-react";
 
+import Pagination from "../Pagination";
+
 export default function ReportTable({
   activeTab,
   rows,
@@ -290,32 +292,13 @@ export default function ReportTable({
       </div>
 
       {/* Pagination Bar */}
-      <div id="table-pagination-bar" className="bg-slate-50 border-t border-pos-border/50 px-4 py-3 flex items-center justify-between no-print select-none">
-        <span className="text-xs text-slate-400 font-semibold font-sans">
-          Showing rows {rows.length === 0 ? 0 : (currentPage - 1) * 8 + 1} to {Math.min(currentPage * 8, rows.length)} of {rows.length} records
-        </span>
-        <div className="flex items-center gap-1.5">
-          <button
-            type="button"
-            disabled={currentPage === 1}
-            onClick={() => onPageChange(currentPage - 1)}
-            className="p-1 text-slate-500 hover:bg-slate-200 border border-slate-200 disabled:opacity-40 disabled:hover:bg-transparent rounded cursor-pointer transition-colors"
-          >
-            <ChevronLeft size={14} />
-          </button>
-          <span className="text-xs font-bold text-slate-600 px-2 font-mono">
-            Page {currentPage} of {totalPages}
-          </span>
-          <button
-            type="button"
-            disabled={currentPage === totalPages}
-            onClick={() => onPageChange(currentPage + 1)}
-            className="p-1 text-slate-500 hover:bg-slate-200 border border-slate-200 disabled:opacity-40 disabled:hover:bg-transparent rounded cursor-pointer transition-colors"
-          >
-            <ChevronRight size={14} />
-          </button>
-        </div>
-      </div>
+       <Pagination
+        currentPage={currentPage}
+        setCurrentPage={onPageChange}
+        totalRecords={rows.length}
+        itemsPerPage={8}
+        noPrint={true}
+      />
     </div>
   );
 }

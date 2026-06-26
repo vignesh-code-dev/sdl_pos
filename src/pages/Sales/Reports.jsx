@@ -316,7 +316,7 @@ export default function Reports() {
       {/* 2. MAIN HEADER BLOCK */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-pos-card border border-pos-border p-5 rounded shadow-sm">
         <div className="space-y-1">
-          <h1 className="text-3xl font-black tracking-tight text-slate-850">
+          <h1 className="text-3xl font-bold text-emerald-600 tracking-tight text-slate-850">
             Reports & Archive Manager
           </h1>
           <p className="text-xs text-slate-400 mt-1 font-medium select-none font-sans">
@@ -329,7 +329,7 @@ export default function Reports() {
             <button
               type="button"
               onClick={handleMasterPrint}
-              className="flex items-center gap-2 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded transition-all shadow-sm cursor-pointer border-0"
+              className="flex items-center gap-2 text-sm font-semibold bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-3 rounded transition-all shadow-sm cursor-pointer border-0"
             >
               <FileText size={14} />
               <span>Print Page / PDF Report</span>
@@ -350,15 +350,7 @@ export default function Reports() {
         depositData={depositData}
         bankData={bankData}
       />
-
-      {/* 5. QUICK REPORT SUMMARY CARD (NEW) */}
-      <ReportSummary
-        recordCount={totalRecords}
-        dateFrom={dateFrom}
-        dateTo={dateTo}
-        activeTab={activeTab}
-      />
-
+      
       {/* 6. REPORT TARGET FILTER PANEL */}
       <ReportFilters
         dateFrom={dateFrom}
