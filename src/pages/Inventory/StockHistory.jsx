@@ -177,7 +177,7 @@ const StockHistory = () => {
           </div>
         ) : (
           <table className="w-full text-center border-collapse min-w-[1000px]">
-            <thead className="bg-brand-500 text-white text-xs font-semibold uppercase tracking-wider border-b border-pos-border">
+            <thead className="bg-brand-500  text-xs font-semibold uppercase tracking-wider border-b border-pos-border">
               <tr>
                 <th className="py-3 px-4 text-left pl-6">Date & Time</th>
                 <th className="py-3 px-4 text-center">SKU</th>

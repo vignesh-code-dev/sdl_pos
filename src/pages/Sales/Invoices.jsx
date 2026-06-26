@@ -31,6 +31,7 @@ import InvoiceModal from "../../components/invoices/InvoiceModal";
 import EditInvoiceModal from "../../components/invoices/EditInvoiceModal";
 import ReturnInvoiceModal from "../../components/invoices/ReturnInvoiceModal";
 import { restoreStock, verifyAndDeductStock, ensureBarcodes } from "../../utils/barcodePrinter.jsx";
+import Pagination from "../../components/Pagination";
 
 const Invoices = () => {
   const { shopInfo } = useAuth();
@@ -304,11 +305,12 @@ const Invoices = () => {
 
   // Toggle Cancel/Active status
   const handleToggleCancelStatus = (invoiceId) => {
-    const targetInvoice = invoices.find(inv => inv.id === invoiceId);	 
-    if (!targetInvoice) return;	 
- 	 
-    const currentStatus = targetInvoice.status || "Active";	 
+    const targetInvoice = invoices.find(inv => inv.id === invoiceId);
+    if (!targetInvoice) return;
+
+    const currentStatus = targetInvoice.status || "Active";
     const nextStatus = currentStatus === "Cancelled" ? "Active" : "Cancelled";
+
     setCustomConfirm({
       isOpen: true,
       title: "Change Invoice Status",
@@ -317,38 +319,38 @@ const Invoices = () => {
       confirmText: "Change Status",
       cancelText: "Cancel",
       onConfirm: () => {
-        // Enforce inventory updates	 
-        if (nextStatus === "Cancelled") {	 
-          // RESTORE stock for remaining (unreturned) quantities	 
-          const itemsToRestore = (targetInvoice.items || []).map(item => {	 
-            const alreadyReturnedQty = (targetInvoice.returns || [])	 
-              .filter(r => r.sku === item.sku)	 
-              .reduce((sum, r) => sum + r.quantityReturned, 0);	 
-            const remainingQty = Math.max(0, item.quantity - alreadyReturnedQty);	 
-            return { sku: item.sku, quantity: remainingQty };	 
-          }).filter(i => i.quantity > 0);	 
- 	 
-          restoreStock(itemsToRestore);	 
-        } else {	 
-          // Reactivating the invoice: DEDUCT quantities from stock with validation	 
-          const itemsToDeduct = (targetInvoice.items || []).map(item => {	 
-            const alreadyReturnedQty = (targetInvoice.returns || [])	 
-              .filter(r => r.sku === item.sku)	 
-              .reduce((sum, r) => sum + r.quantityReturned, 0);	 
-            const remainingQty = Math.max(0, item.quantity - alreadyReturnedQty);	 
-            return { sku: item.sku, quantity: remainingQty, name: item.name };	 
-          }).filter(i => i.quantity > 0);	 
- 	 
-          const deductionResult = verifyAndDeductStock(itemsToDeduct);	 
-          if (!deductionResult.success) {	 
-            alert("Cannot reactivate invoice! " + deductionResult.error);	 
-            setCustomConfirm(prev => ({ ...prev, isOpen: false }));	 
-            return;	 
-          }	 
+        // Enforce inventory updates
+        if (nextStatus === "Cancelled") {
+          // RESTORE stock for remaining (unreturned) quantities
+          const itemsToRestore = (targetInvoice.items || []).map(item => {
+            const alreadyReturnedQty = (targetInvoice.returns || [])
+              .filter(r => r.sku === item.sku)
+              .reduce((sum, r) => sum + r.quantityReturned, 0);
+            const remainingQty = Math.max(0, item.quantity - alreadyReturnedQty);
+            return { sku: item.sku, quantity: remainingQty };
+          }).filter(i => i.quantity > 0);
+
+          restoreStock(itemsToRestore);
+        } else {
+          // Reactivating the invoice: DEDUCT quantities from stock with validation
+          const itemsToDeduct = (targetInvoice.items || []).map(item => {
+            const alreadyReturnedQty = (targetInvoice.returns || [])
+              .filter(r => r.sku === item.sku)
+              .reduce((sum, r) => sum + r.quantityReturned, 0);
+            const remainingQty = Math.max(0, item.quantity - alreadyReturnedQty);
+            return { sku: item.sku, quantity: remainingQty, name: item.name };
+          }).filter(i => i.quantity > 0);
+
+          const deductionResult = verifyAndDeductStock(itemsToDeduct);
+          if (!deductionResult.success) {
+            alert("Cannot reactivate invoice! " + deductionResult.error);
+            setCustomConfirm(prev => ({ ...prev, isOpen: false }));
+            return;
+          }
         }
+
         const updated = invoices.map((inv) => {
           if (inv.id === invoiceId) {
-            const nextStatus = inv.status === "Cancelled" ? "Active" : "Cancelled";
             return {
               ...inv,
               status: nextStatus
@@ -374,6 +376,33 @@ const Invoices = () => {
       confirmText: "Delete Permanently",
       cancelText: "Cancel",
       onConfirm: () => {
+        const targetInvoice = invoices.find(inv => inv.id === invoiceId);
+        if (targetInvoice && targetInvoice.customerMobile) {
+          try {
+            const rawAccounts = localStorage.getItem("billmate_deposit_accounts");
+            if (rawAccounts) {
+              let accountsList = JSON.parse(rawAccounts);
+              const targetIndex = accountsList.findIndex(acc => acc.customerMobile === targetInvoice.customerMobile);
+              if (targetIndex !== -1) {
+                const acc = accountsList[targetIndex];
+                let txs = acc.transactions || [];
+                const txIndex = txs.findIndex(t => t.description && t.description.includes(invoiceId));
+                if (txIndex !== -1) {
+                  const txAmount = txs[txIndex].amount;
+                  txs.splice(txIndex, 1);
+                  acc.transactions = txs;
+                  acc.creditGiven = parseFloat(Math.max(0, (acc.creditGiven || 0) - txAmount).toFixed(2));
+                  acc.outstanding = parseFloat(Math.max(0, (acc.outstanding || 0) - txAmount).toFixed(2));
+                  accountsList[targetIndex] = acc;
+                  localStorage.setItem("billmate_deposit_accounts", JSON.stringify(accountsList));
+                }
+              }
+            }
+          } catch (e) {
+            console.error("Failed to sync deleted invoice with credit accounts", e);
+          }
+        }
+
         const updated = invoices.filter((inv) => inv.id !== invoiceId);
         saveInvoicesToStorage(updated);
         setCustomConfirm(prev => ({ ...prev, isOpen: false }));
@@ -383,20 +412,85 @@ const Invoices = () => {
   };
 
   // Save changes from Edit Modal
-  const handleSaveEditInvoice = (e) => {
-    e.preventDefault();
-    if (!editInvoice) return;
+  const handleSaveEditInvoice = (updatedInvoice) => {
+    if (!updatedInvoice) return;
 
-    const paid = parseFloat(editInvoice.paidAmount) || 0;
-    const grand = parseFloat(editInvoice.grandTotal) || 0;
+    const paid = parseFloat(updatedInvoice.paidAmount) || 0;
+    const grand = parseFloat(updatedInvoice.grandTotal) || 0;
     const balanceValue = Math.max(0, grand - paid);
+    const changeValue = Math.max(0, paid - grand);
+
+    // Validate active credit account for outstanding balances
+    let hasActiveCreditAccount = false;
+    const mob = updatedInvoice.customerMobile;
+    if (mob && mob.trim().length === 10) {
+      try {
+        const rawAccounts = localStorage.getItem("billmate_deposit_accounts");
+        const accountsList = rawAccounts ? JSON.parse(rawAccounts) : [];
+        hasActiveCreditAccount = accountsList.some(acc => acc.customerMobile === mob);
+      } catch (e) {
+        hasActiveCreditAccount = false;
+      }
+    }
+
+    if (balanceValue > 0 && !hasActiveCreditAccount) {
+      const errorMsg = "Outstanding balances or partial payments are only allowed for customers with an active credit account. This customer does not have an active credit account.";
+      showToast(errorMsg, "warning");
+      alert(errorMsg);
+      return;
+    }
+
+    // Sync with billmate_deposit_accounts if applicable
+    if (mob) {
+      try {
+        const rawAccounts = localStorage.getItem("billmate_deposit_accounts");
+        if (rawAccounts) {
+          let accountsList = JSON.parse(rawAccounts);
+          const targetIndex = accountsList.findIndex(acc => acc.customerMobile === mob);
+          if (targetIndex !== -1) {
+            const acc = accountsList[targetIndex];
+            
+            // Find existing transaction for this invoice
+            let txs = acc.transactions || [];
+            const txIndex = txs.findIndex(t => t.description && t.description.includes(updatedInvoice.id));
+            
+            const oldTxAmount = txIndex !== -1 ? txs[txIndex].amount : 0;
+            const difference = balanceValue - oldTxAmount;
+            
+            if (txIndex !== -1) {
+              // Update existing transaction amount
+              txs[txIndex].amount = balanceValue;
+            } else if (balanceValue > 0) {
+              // Create new transaction if none existed but there is a balance now
+              const newTx = {
+                id: `TX-${Math.floor(10000 + Math.random() * 90000)}`,
+                date: updatedInvoice.date || new Date().toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" }),
+                type: "CREDIT",
+                amount: balanceValue,
+                description: `POS purchase on Credit (${updatedInvoice.id})`
+              };
+              txs = [newTx, ...txs];
+            }
+            
+            acc.transactions = txs;
+            acc.creditGiven = parseFloat(((acc.creditGiven || 0) + difference).toFixed(2));
+            acc.outstanding = parseFloat(((acc.outstanding || 0) + difference).toFixed(2));
+            accountsList[targetIndex] = acc;
+            localStorage.setItem("billmate_deposit_accounts", JSON.stringify(accountsList));
+          }
+        }
+      } catch (err) {
+        console.error("Failed to sync edited invoice with credit account", err);
+      }
+    }
 
     const updated = invoices.map((inv) => {
-      if (inv.id === editInvoice.id) {
+      if (inv.id === updatedInvoice.id) {
         return {
-          ...editInvoice,
+          ...updatedInvoice,
           paidAmount: paid,
-          balance: balanceValue
+          balance: balanceValue,
+          change: changeValue
         };
       }
       return inv;
@@ -405,6 +499,7 @@ const Invoices = () => {
     saveInvoicesToStorage(updated);
     setShowEditModal(false);
     setEditInvoice(null);
+    showToast("Invoice registry successfully updated.", "success");
   };
 
   // Open Return Dialog and set initial variables
@@ -456,6 +551,37 @@ const Invoices = () => {
             const nextPaidAmt = Math.max(0, inv.paidAmount - totalRefundAmt);
             const nextBalance = Math.max(0, nextGrandTotal - nextPaidAmt);
 
+            // Sync with billmate_deposit_accounts if applicable
+            if (inv.customerMobile) {
+              try {
+                const rawAccounts = localStorage.getItem("billmate_deposit_accounts");
+                if (rawAccounts) {
+                  let accountsList = JSON.parse(rawAccounts);
+                  const targetIndex = accountsList.findIndex(acc => acc.customerMobile === inv.customerMobile);
+                  if (targetIndex !== -1) {
+                    const acc = accountsList[targetIndex];
+                    let txs = acc.transactions || [];
+                    const txIndex = txs.findIndex(t => t.description && t.description.includes(inv.id));
+                    
+                    const oldTxAmount = txIndex !== -1 ? txs[txIndex].amount : 0;
+                    const difference = nextBalance - oldTxAmount;
+                    
+                    if (txIndex !== -1) {
+                      txs[txIndex].amount = nextBalance;
+                    }
+                    
+                    acc.transactions = txs;
+                    acc.creditGiven = parseFloat(Math.max(0, (acc.creditGiven || 0) + difference).toFixed(2));
+                    acc.outstanding = parseFloat(Math.max(0, (acc.outstanding || 0) + difference).toFixed(2));
+                    accountsList[targetIndex] = acc;
+                    localStorage.setItem("billmate_deposit_accounts", JSON.stringify(accountsList));
+                  }
+                }
+              } catch (e) {
+                console.error("Failed to sync return with credit accounts", e);
+              }
+            }
+
             return {
               ...inv,
               grandTotal: nextGrandTotal,
@@ -468,11 +594,13 @@ const Invoices = () => {
         });
 
         saveInvoicesToStorage(updated);
-          // Automatically restore corresponding stock quantity on successful return
-        restoreStock(itemsToReturn.map(it => ({	 
-          sku: it.sku,	 
-          quantity: it.quantityToReturn	 
+
+        // Automatically restore corresponding stock quantity on successful return
+        restoreStock(itemsToReturn.map(it => ({
+          sku: it.sku,
+          quantity: it.quantityToReturn
         })));
+
         setShowReturnModal(false);
         setReturnInvoice(null);
         setCustomConfirm(prev => ({ ...prev, isOpen: false }));
@@ -524,45 +652,49 @@ const Invoices = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         
         {/* Metric 1 */}
-        <div className="bg-pos-card border border-pos-border p-5 rounded shadow-xs flex items-center justify-between">
+        <div className="bg-pos-card border border-pos-border p-5 rounded shadow-sm flex items-center justify-between">
           <div className="space-y-2">
-            <span className="text-xs py-1 text-slate-500 uppercase tracking-widest block font-bold select-none">Gross Filtered Receipts</span>
-            <span className="text-3xl font-semibold text-slate-800 font-mono">₹{totalInvoicesValue.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+            <span className="text-[13px] font-bold text-slate-400 uppercase block">Gross Filtered Receipts</span>
+            <span className="text-3xl font-black text-slate-800 tracking-tight block font-mono">₹{totalInvoicesValue.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+            <span className="text-[13px] text-slate-400 font-medium block">Aggregated gross billing ledger</span>
           </div>
-          <div className="p-3 rounded-xl bg-teal-50 text-brand-primary border border-teal-100 font-semibold text-sm">
+          <div className="p-3 rounded-xl bg-teal-50 text-brand-primary border border-teal-100 flex items-center justify-center shrink-0">
             <FileText size={20} />
           </div>
         </div>
 
         {/* Metric 2 */}
-        <div className="bg-pos-card border border-pos-border p-5 rounded shadow-xs flex items-center justify-between">
+        <div className="bg-pos-card border border-pos-border p-5 rounded shadow-sm flex items-center justify-between">
           <div className="space-y-2">
-            <span className="text-xs uppercase text-slate-500 tracking-widest block font-bold select-none">Active Invoices</span>
-            <span className="text-3xl font-semibold text-slate-800 font-mono">{totalInvoicesCount - totalCancelledCount}</span>
+            <span className="text-[13px] font-bold text-slate-400 uppercase block">Active Invoices</span>
+            <span className="text-3xl font-black text-blue-600 tracking-tight block font-mono">{totalInvoicesCount - totalCancelledCount}</span>
+            <span className="text-[13px] text-slate-400 font-medium block">Valid active client bills</span>
           </div>
-          <div className="p-3 rounded-xl bg-sky-50 text-sky-600 border border-sky-100 font-semibold text-sm">
+          <div className="p-3 rounded-xl bg-sky-50 text-sky-600 border border-sky-100 flex items-center justify-center shrink-0">
             <CheckCircle2 size={20} />
           </div>
         </div>
 
         {/* Metric 3 */}
-        <div className="bg-pos-card border border-pos-border p-5 rounded shadow-xs flex items-center justify-between">
+        <div className="bg-pos-card border border-pos-border p-5 rounded shadow-sm flex items-center justify-between">
           <div className="space-y-2">
-            <span className="text-xs uppercase text-slate-500 tracking-widest block font-bold select-none">Cancelled Count</span>
-            <span className="text-3xl font-bold text-brand-danger font-mono">{totalCancelledCount}</span>
+            <span className="text-[13px] font-bold text-slate-400 uppercase block">Cancelled Count</span>
+            <span className="text-3xl font-black text-slate-800 tracking-tight block font-mono">{totalCancelledCount}</span>
+            <span className="text-[13px] text-slate-400 font-medium block">Voided or returned bills</span>
           </div>
-          <div className="p-3 rounded-xl bg-rose-50 text-brand-danger border border-rose-100 font-semibold text-sm">
+          <div className="p-3 rounded-xl bg-rose-50 text-brand-danger border border-rose-100 flex items-center justify-center shrink-0">
             <XCircle size={20} />
           </div>
         </div>
 
         {/* Metric 4 */}
-        <div className="bg-pos-card border border-pos-border p-5 rounded shadow-xs flex items-center justify-between">
+        <div className="bg-pos-card border border-pos-border p-5 rounded shadow-sm flex items-center justify-between">
           <div className="space-y-2">
-            <span className="text-xs uppercase text-slate-500 tracking-widest block font-bold select-none">Outstanding Balance</span>
-            <span className="text-3xl font-bold text-brand-danger font-mono">₹{totalOutstandingBalance.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+            <span className="text-[13px] font-bold text-slate-400 uppercase block">Outstanding Balance</span>
+            <span className="text-3xl font-black text-brand-danger tracking-tight block font-mono">₹{totalOutstandingBalance.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+            <span className="text-[13px] text-slate-400 font-medium block">Balances left to collect</span>
           </div>
-          <div className="p-3 rounded-xl bg-rose-50 border border-rose-100 text-brand-danger font-semibold text-sm">
+          <div className="p-3 rounded-xl bg-rose-50 border border-rose-100 text-brand-danger flex items-center justify-center shrink-0">
             <AlertTriangle size={20} />
           </div>
         </div>
@@ -655,9 +787,9 @@ const Invoices = () => {
                 <th className="p-4 text-xs font-semibold uppercase">Customer</th>
                 <th className="p-4 text-center text-xs font-semibold uppercase w-20 font-sans font-bold">Items</th>
                 <th className="p-4 text-right text-xs font-semibold uppercase">Returns</th>
-                <th className="p-4 text-right text-xs font-semibold uppercase">Grand Total (₹)</th>
-                <th className="p-4 text-right text-xs font-semibold uppercase">Paid (₹)</th>
-                <th className="p-4 text-center text-xs font-semibold uppercase">Balance (₹)</th>
+                <th className="p-4 text-right text-xs font-semibold uppercase">Grand Total</th>
+                <th className="p-4 text-right text-xs font-semibold uppercase">Paid</th>
+                <th className="p-4 text-right text-xs font-semibold uppercase">Balance</th>
                 <th className="p-4 text-xs font-semibold uppercase">Payment Method</th>
                 <th className="p-4 text-center text-xs font-semibold uppercase">Status</th>
                 <th className="p-4 text-center text-xs font-semibold uppercase w-32">Actions</th>
@@ -698,7 +830,7 @@ const Invoices = () => {
                       </td>
 
                       {/* Date */}
-                      <td className="py-3.5 px-2 text-[14px] text-slate-500  whitespace-nowrap">
+                      <td className="py-3.5 px-2 text-slate-500 font-medium whitespace-nowrap">
                         {inv.date}
                       </td>
 
@@ -706,7 +838,7 @@ const Invoices = () => {
                       <td className="py-3.5 px-4">
                         <div className="font-bold text-slate-800 capitalize">{inv.customerName || "Walk-in"}</div>
                         {inv.customerMobile && inv.customerMobile !== "Walk-In" && (
-                          <div className="text-[10px] text-slate-400 font-mono font-semibold mt-0.5">{inv.customerMobile}</div>
+                          <div className="text-[13px] text-slate-400 font-mono font-semibold mt-0.5">{inv.customerMobile}</div>
                         )}
                       </td>
 
@@ -716,7 +848,7 @@ const Invoices = () => {
                       </td>
 
                       {/* Returns Refund status */}
-                      <td className={`py-3.5 px-3 text-center font-semibold font-mono whitespace-nowrap ${
+                      <td className={`py-3.5 px-3 text-right font-semibold font-mono whitespace-nowrap ${
                         totalRefunds > 0 ? "text-rose-600 font-bold" : "text-slate-400"
                       }`}>
                         {totalRefunds > 0 ? `-₹${totalRefunds.toFixed(2)}` : "₹0.00"}
@@ -733,7 +865,7 @@ const Invoices = () => {
                       </td>
 
                       {/* Balance */}
-                      <td className={`py-3.5 px-3 text-center font-bold font-mono whitespace-nowrap ${
+                      <td className={`py-3.5 px-3 text-right font-bold font-mono whitespace-nowrap ${
                         balanceVal > 0 ? "text-brand-danger" : "text-slate-400"
                       }`}>
                         ₹{balanceVal.toFixed(2)}
@@ -838,88 +970,16 @@ const Invoices = () => {
             </tbody>
           </table>
         </div>
-
-        {/* Summary Footer with Pagination Controls */}
-        <div className="bg-slate-50/50 p-4 border-t border-pos-border flex flex-col sm:flex-row justify-between items-center text-xs font-bold text-slate-600 gap-2 select-none border-0 no-print">
-          {totalFilteredCount > 0 ? (
-            <span>
-              Showing <span className="font-extrabold text-slate-700">{startIndex + 1}</span> to{" "}
-              <span className="font-extrabold text-slate-700">
-                {Math.min(totalFilteredCount, startIndex + itemsPerPage)}
-              </span>{" "}
-              of <span className="font-extrabold text-slate-700">{totalFilteredCount}</span> entries (Filtered from {invoices.length} total)
-            </span>
-          ) : (
-            <span>Showing 0 of 0 entries</span>
-          )}
-
-          {totalFilteredCount > 0 && (
-            <div className="flex items-center gap-1">
-              {/* Chevron Back control */}
-              <button
-                type="button"
-                onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
-                disabled={currentPage === 1}
-                className="h-7 w-7 border border-[#eee] bg-white text-slate-500 rounded disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-200/60 font-sans font-bold flex items-center justify-center cursor-pointer transition-colors"
-                title="Previous Page"
-              >
-                <ChevronLeft size={12} strokeWidth={3} />
-              </button>
-
-              {/* Page indexes */}
-              {Array.from({ length: totalPages }, (_, idx) => idx + 1).map((page) => {
-                const isFirst = page === 1;
-                const isLast = page === totalPages;
-                const isNearCurrent = Math.abs(page - currentPage) <= 1;
-
-                if (totalPages > 5 && !isFirst && !isLast && !isNearCurrent) {
-                  if (page === 2 && currentPage > 3) {
-                    return (
-                      <span key="ellipsis-start" className="px-1 text-slate-300 font-extrabold select-none">
-                        ...
-                      </span>
-                    );
-                  }
-                  if (page === totalPages - 1 && currentPage < totalPages - 2) {
-                    return (
-                      <span key="ellipsis-end" className="px-1 text-slate-300 font-extrabold select-none">
-                        ...
-                      </span>
-                    );
-                  }
-                  return null;
-                }
-
-                const isActive = page === currentPage;
-                return (
-                  <button
-                    key={page}
-                    type="button"
-                    onClick={() => setCurrentPage(page)}
-                    className={`h-7 w-7 flex items-center justify-center rounded text-xs transition-all border cursor-pointer ${
-                      isActive
-                        ? "bg-brand-primary border-brand-primary text-white font-bold"
-                        : "bg-white border-pos-border text-slate-600 hover:bg-slate-100"
-                    }`}
-                  >
-                    {page}
-                  </button>
-                );
-              })}
-
-              {/* Chevron Next control */}
-              <button
-                type="button"
-                onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
-                disabled={currentPage === totalPages}
-                className="h-7 w-7 border border-[#eee] bg-white text-slate-500 rounded disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-200/60 font-sans font-bold flex items-center justify-center cursor-pointer transition-colors"
-                title="Next Page"
-              >
-                <ChevronRight size={12} strokeWidth={3} />
-              </button>
-            </div>
-          )}
-        </div>
+        
+        {/* Summary Footer with Reusable Pagination Controls */}
+        <Pagination
+          currentPage={currentPage}
+          setCurrentPage={setCurrentPage}
+          totalRecords={totalFilteredCount}
+          itemsPerPage={itemsPerPage}
+          totalCount={invoices.length}
+          noPrint={true}
+        />
       </div>
 
       {/* ──────────────────────────────────────────────────────────────

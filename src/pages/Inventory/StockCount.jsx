@@ -288,14 +288,14 @@ const StockCount = () => {
                     className="hover:bg-brand-500/10 transition-colors text-text-secondary text-sm font-medium"
                   >
                     {/* SKU */}
-                    <td className="py-3 px-4 font-mono">{p.sku}</td>
+                    <td className="py-3 px-7 font-mono text-left ">{p.sku}</td>
 
                     {/* Product Name */}
                     <td className="py-3 px-4 text-left pl-6">{p.name}</td>
 
                     {/* Category */}
-                    <td className="py-3 px-4 text-center">
-                      <span className="inline-block bg-brand-500 text-white px-2 py-1 rounded-full ">
+                    <td className="py-3 px-5 text-left">
+                      <span className="inline-block bg-brand-500  px-2 py-1 rounded-full ">
                         {p.category}
                       </span>
                     </td>

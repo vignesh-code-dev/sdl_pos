@@ -319,15 +319,15 @@ const CustomerManagement = () => {
   };
 
   return (
-    <div className="p-6 space-y-6 bg-pos-bg overflow-x-hidden min-h-screen text-slate-800 font-sans">
+    <div className="p-6 space-y-5 bg-pos-bg overflow-x-hidden min-h-screen text-slate-800 font-sans">
       
       {/* 1. Header Banner */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-pos-card border border-pos-border p-5 rounded-2xl shadow-sm">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-pos-card border border-pos-border p-5 rounded shadow-sm">
         <div className="space-y-1">
-          <h1 className="text-xl font-black text-brand-primary tracking-tight">
+          <h1 className="text-3xl font-bold text-brand-primary ">
             Customer Management
           </h1>
-          <p className="text-xs text-slate-400 mt-0.5">
+          <p className="text-sm text-slate-400 mt-0.5">
             View, add, and manage your customer records easily
           </p>
         </div>
@@ -335,7 +335,7 @@ const CustomerManagement = () => {
         <div className="flex items-center gap-3">
           <button
             onClick={handleExportCSV}
-            className="flex items-center gap-1.5 text-xs font-extrabold bg-white border border-brand-primary hover:bg-brand-primary/5 text-brand-primary px-4 py-2.5 rounded-xl transition-all shadow-sm cursor-pointer"
+            className="flex items-center gap-1.5 text-sm font-bold bg-white border border-brand-primary hover:bg-brand-primary/5 text-brand-primary px-4 py-2.5 rounded transition-all shadow-sm cursor-pointer"
           >
             <Download size={14} />
             Export CSV
@@ -343,7 +343,7 @@ const CustomerManagement = () => {
           
           <button
             onClick={handleOpenAddModal}
-            className="flex items-center gap-1.5 text-xs font-extrabold bg-brand-primary hover:bg-[#008967] text-white px-4 py-2.5 rounded-xl transition-all shadow-sm cursor-pointer border-0"
+            className="flex items-center gap-1.5 text-sm font-bold bg-brand-primary hover:bg-[#008967] text-white px-4 py-2.5 rounded transition-all shadow-sm cursor-pointer border-0"
           >
             <UserPlus size={14} />
             Register Customer
@@ -352,12 +352,12 @@ const CustomerManagement = () => {
       </div>
 
       {/* 2. Metrics Widgets */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         {/* Total Customers widget */}
-        <div className="bg-pos-card border border-pos-border p-5 rounded-2xl shadow-xs flex items-center justify-between">
-          <div className="space-y-1">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Total Customers</span>
-            <span className="text-xl font-black text-slate-800 font-mono">
+        <div className="bg-pos-card border border-pos-border p-5 py-5 rounded shadow-xs flex items-center justify-between">
+          <div className="space-y-3">
+            <span className="text-[14px] font-bold text-slate-500 uppercase tracking-widest block">Total Customers</span>
+            <span className="text-3xl font-black text-slate-800 font-mono">
               {displayCustomers.toLocaleString()}
             </span>
           </div>
@@ -368,35 +368,35 @@ const CustomerManagement = () => {
 
         {/* New This Month widget */}
         <div className="bg-pos-card border border-pos-border p-5 rounded-2xl shadow-xs flex items-center justify-between">
-          <div className="space-y-1">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">New This Month</span>
-            <span className="text-xl font-black text-slate-800 font-mono">
+          <div className="space-y-3">
+            <span className="text-[14px] font-bold text-slate-500 uppercase tracking-widest block">New This Month</span>
+            <span className="text-3xl font-black text-slate-800 font-mono">
               {displayNewCustomers.toLocaleString()}
             </span>
           </div>
-          <div className="p-3 rounded-xl bg-sky-50 text-[#0066FF] border border-sky-100">
+          <div className="p-3 rounded bg-sky-50 text-[#0066FF] border border-sky-100">
             <UserPlus size={20} />
           </div>
         </div>
 
         {/* Total Transactions widget */}
-        <div className="bg-pos-card border border-pos-border p-5 rounded-2xl shadow-xs flex items-center justify-between">
-          <div className="space-y-1">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Total Transactions</span>
-            <span className="text-xl font-black text-slate-800 font-mono">
+        <div className="bg-pos-card border  border-pos-border p-5 rounded shadow-xs flex items-center justify-between">
+          <div className="space-y-3">
+            <span className="text-[14px] font-bold text-slate-500 uppercase tracking-widest block">Total Transactions</span>
+            <span className="text-3xl font-black text-slate-800 font-mono">
               {totals.txCount.toLocaleString()}
             </span>
           </div>
-          <div className="p-3 rounded-xl bg-amber-50 text-[#FF9900] border border-amber-100">
+          <div className="p-3 rounded bg-amber-50 text-[#FF9900] border border-amber-100">
             <Wallet size={20} />
           </div>
         </div>
 
         {/* Total Sales widget */}
-        <div className="bg-pos-card border border-pos-border p-5 rounded-2xl shadow-xs flex items-center justify-between">
-          <div className="space-y-1">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Total Sales</span>
-            <span className="text-xl font-black text-slate-800 font-mono">
+        <div className="bg-pos-card border border-pos-border p-5 rounded shadow-xs flex items-center justify-between">
+          <div className="space-y-3">
+            <span className="text-[14px] font-bold text-slate-400 uppercase tracking-widest block">Total Sales</span>
+            <span className="text-3xl font-black text-slate-800 font-mono">
               ₹{totals.salesSum.toLocaleString("en-IN")}
             </span>
           </div>
@@ -410,45 +410,40 @@ const CustomerManagement = () => {
       <div className="space-y-6">
         
         {/* A. Search and Filters Panel */}
-        <div className="flex flex-col md:flex-row gap-4 items-center w-full select-none animate-in fade-in duration-200">
+        <div className="bg-pos-card border border-pos-border p-5 rounded shadow-xs grid grid-cols-1 md:grid-cols-12 gap-5 items-end">
           
           {/* Realtime Search Query */}
-          <div className="relative flex-1 w-full">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search by name, phone or email..."
-              className="w-full text-xs font-semibold text-slate-800 bg-[#F8FAFC] border border-[#E2E8F0] rounded-2xl pl-11 pr-4 py-3 focus:outline-none focus:border-brand-primary/40 focus:ring-1 focus:ring-brand-primary/10 transition-all placeholder:text-slate-400 placeholder:font-medium h-[52px]"
-            />
+          <div className="w-full md:col-span-11 flex flex-col gap-1.5">
+            <label className="text-[11px] font-black text-slate-500 uppercase tracking-wider">Search Customer</label>
+            <div className="relative">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search by name, phone or email..."
+                className="w-full text-xs font-semibold text-slate-800 bg-[#F8FAFC] border border-[#E2E8F0] rounded pl-11 pr-4 py-3 focus:outline-none focus:border-brand-primary/40 focus:ring-1 focus:ring-brand-primary/10 transition-all placeholder:text-slate-400 placeholder:font-medium h-[46px]"
+              />
+            </div>
           </div>
 
           {/* Status selection filter */}
-          <div className="relative w-full md:w-[240px]">
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-full appearance-none text-xs font-bold text-slate-700 bg-[#F8FAFC] border border-[#E2E8F0] rounded-2xl pl-5 pr-11 py-3 focus:outline-none focus:border-brand-primary/40 focus:ring-1 focus:ring-brand-primary/10 transition-all cursor-pointer h-[52px]"
-            >
-              <option value="All">All Status</option>
-              <option value="Active">Active</option>
-              <option value="Inactive">Inactive</option>
-            </select>
-            <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={16} />
-          </div>
+          
 
           {/* Clear button */}
-          <button
-            onClick={() => {
-              setSearchQuery("");
-              setStatusFilter("All");
-            }}
-            className="w-full md:w-[150px] flex items-center justify-center gap-1.5 text-xs font-bold text-slate-600 bg-white hover:bg-slate-50 border border-[#E2E8F0] rounded-2xl py-3 px-4 transition-all shadow-3xs cursor-pointer h-[52px]"
-          >
-            <X size={14} className="text-slate-400" />
-            <span>Clear</span>
-          </button>
+          <div className="w-full md:col-span-1 flex flex-col gap-1.5">
+            <span className="invisible text-[11px] font-bold select-none h-[16px] md:block hidden">Reset</span>
+            <button
+              onClick={() => {
+                setSearchQuery("");
+                setStatusFilter("All");
+              }}
+              className="w-full flex items-center justify-center gap-1.5 text-xs font-bold text-slate-600 bg-white hover:bg-slate-50 border border-[#E2E8F0] rounded py-3 px-4 transition-all shadow-3xs cursor-pointer h-[46px]"
+            >
+              <X size={14} className="text-slate-400" />
+              <span>Clear</span>
+            </button>
+          </div>
 
         </div>
 
