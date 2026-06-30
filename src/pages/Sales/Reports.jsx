@@ -409,6 +409,14 @@ export default function Reports() {
         bankData={bankData}
       />
 
+      {/* 5. QUICK REPORT SUMMARY CARD (NEW) */}
+      <ReportSummary
+        recordCount={totalRecords}
+        dateFrom={dateFrom}
+        dateTo={dateTo}
+        activeTab={activeTab}
+      />
+
       {/* 6. REPORT TARGET FILTER PANEL */}
       <ReportFilters
         dateFrom={dateFrom}

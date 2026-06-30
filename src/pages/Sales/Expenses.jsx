@@ -16,6 +16,7 @@ import {
   X,
   AlertTriangle
 } from "lucide-react";
+import Pagination from "../../components/Pagination";
 
 export default function Expenses() {
   // --- 1. SEED DATA / STATE ---
@@ -45,6 +46,10 @@ export default function Expenses() {
   const [filterCategory, setFilterCategory] = useState("All");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
+  
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   // --- 4. TOAST AND CUSTOM CONFIRM ---
   const [toast, setToast] = useState({ show: false, message: "", type: "info" });
@@ -138,6 +143,11 @@ export default function Expenses() {
     // D. Default form fields to current date/time
     resetFormFields();
   }, []);
+
+  // Reset page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, filterShop, filterCategory, dateFrom, dateTo]);
 
   const resetFormFields = () => {
     const today = new Date();
@@ -362,43 +372,48 @@ export default function Expenses() {
 
       {/* 2. Analytical KPI Widgets */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        <div className="bg-pos-card border border-pos-border p-5 rounded shadow-xs flex items-center justify-between">
+        <div className="bg-pos-card border border-pos-border p-5 rounded shadow-sm flex items-center justify-between">
           <div className="space-y-2">
-             <span className="text-xs py-1 text-slate-500 uppercase tracking-widest block font-bold select-none">Total Logged (INR)</span>
-            <span className="text-3xl font-semibold text-slate-800 font-mono">₹{totalSumFiltered.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+            <span className="text-[13px] font-bold text-slate-400 uppercase block">Total Logged (INR)</span>
+            <span className="text-3xl font-black text-slate-800 tracking-tight block font-mono">₹{totalSumFiltered.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+            <span className="text-[13px] text-slate-400 font-medium block">Gross filtered operational expenditure</span>
           </div>
-          <div className="p-3 rounded-xl bg-teal-50 text-brand-primary border border-teal-100 font-semibold text-sm">
+          <div className="p-3 rounded-xl bg-teal-50 text-brand-primary border border-teal-100 flex items-center justify-center shrink-0">
             <DollarSign size={20} />
           </div>
         </div>
 
-        <div className="bg-pos-card border border-pos-border p-5 rounded shadow-xs flex items-center justify-between">
+        <div className="bg-pos-card border border-pos-border p-5 rounded shadow-sm flex items-center justify-between">
           <div className="space-y-2">
-             <span className="text-xs uppercase text-slate-500 tracking-widest block font-bold select-none">Average Cost</span>
-            <span className="text-3xl font-semibold text-slate-800 font-mono">₹{averageValue.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+            <span className="text-[13px] font-bold text-slate-400 uppercase block">Average Cost</span>
+            <span className="text-3xl font-black text-slate-800 tracking-tight block font-mono">₹{averageValue.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+            <span className="text-[13px] text-slate-400 font-medium block">Mean single-transaction spend</span>
           </div>
-          <div className="p-3 rounded-xl bg-sky-50 text-sky-600 border border-sky-100 font-semibold text-sm">
+          <div className="p-3 rounded-xl bg-sky-50 text-sky-600 border border-sky-100 flex items-center justify-center shrink-0">
             <CheckCircle2 size={20} />
           </div>
         </div>
 
-        <div className="bg-pos-card border border-pos-border p-5 rounded shadow-xs flex items-center justify-between">
+        <div className="bg-pos-card border border-pos-border p-5 rounded shadow-sm flex items-center justify-between">
           <div className="space-y-2">
-            <span className="text-xs  uppercase text-slate-500 tracking-widest block font-bold select-none">Top Category</span>
-            <span className="text-2xl font-bold text-emerald-700 tracking-widest">{mostExpensiveCategory}: ₹{topCatAmt.toLocaleString("en-IN")}</span>
-        
+            <span className="text-[13px] font-bold text-slate-400 uppercase block">Top Category</span>
+            <span className="text-xl font-black text-emerald-700 tracking-tight block font-mono truncate max-w-[220px]" title={`${mostExpensiveCategory}: ₹${topCatAmt.toLocaleString("en-IN")}`}>
+              {mostExpensiveCategory}: ₹{topCatAmt.toLocaleString("en-IN", { minimumFractionDigits: 0 })}
+            </span>
+            <span className="text-[13px] text-slate-400 font-medium block">Highest spending group classification</span>
           </div>
-          <div className="p-3 rounded-xl bg-rose-50 text-brand-danger border border-rose-100 font-semibold text-sm">
+          <div className="p-3 rounded-xl bg-rose-50 text-brand-danger border border-rose-100 flex items-center justify-center shrink-0">
             <FileText size={20} />
           </div>
         </div>
 
-        <div className="bg-pos-card border border-pos-border p-5 rounded shadow-xs flex items-center justify-between">
+        <div className="bg-pos-card border border-pos-border p-5 rounded shadow-sm flex items-center justify-between">
           <div className="space-y-2">
-             <span className="text-xs text-slate-500  uppercase tracking-widest block font-bold select-none">Filtered Count</span>
-            <span className="text-3xl font-bold text-slate-800 font-mono">{totalCountFiltered}</span>
+            <span className="text-[13px] font-bold text-slate-400 uppercase block">Filtered Count</span>
+            <span className="text-3xl font-black text-slate-800 tracking-tight block font-mono">{totalCountFiltered}</span>
+            <span className="text-[13px] text-slate-400 font-medium block">Total recorded expense receipts</span>
           </div>
-          <div className="p-3 rounded-xl bg-amber-50 text-brand-warning border border-amber-100 font-semibold text-sm">
+          <div className="p-3 rounded-xl bg-amber-50 text-brand-warning border border-amber-100 flex items-center justify-center shrink-0">
             <Calendar size={20} />
           </div>
         </div>
@@ -535,7 +550,7 @@ export default function Expenses() {
                     </td>
                   </tr>
                 ) : (
-                  filtered.map((exp) => (
+                  filtered.slice((currentPage - 1) * itemsPerPage, (currentPage - 1) * itemsPerPage + itemsPerPage).map((exp) => (
                      <tr key={exp.id} className="hover:bg-slate-50/40 transition-colors text-sm font-medium text-text-secondary">
                       {/* ID Column */}
                       <td className="p-4 text-slate-800 text-center text-sm font-semibold font-mono">{exp.id}</td>
@@ -601,10 +616,14 @@ export default function Expenses() {
           </div>
 
 
-          {/* Summary Footer on Filtered Amount */}
-          <div className="bg-slate-50/50 p-4 border-t border-pos-border flex flex-col sm:flex-row justify-between items-center text-xs font-bold text-slate-600 gap-2 select-none">
-            <span>Showing {filtered.length} of {expenses.length} expense transactions</span>
-          </div>
+          {/* Summary Footer on Filtered Amount with Reusable Pagination */}
+          <Pagination
+            currentPage={currentPage}
+            setCurrentPage={setCurrentPage}
+            totalRecords={filtered.length}
+            itemsPerPage={itemsPerPage}
+            totalCount={expenses.length}
+          />
         </div>
       </div>
 

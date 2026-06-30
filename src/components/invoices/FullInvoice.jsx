@@ -150,21 +150,26 @@ export const FullInvoice = ({ invoice }) => {
           <span>₹{(totalTax / 2).toFixed(2)}</span>
         </div>
         <div className="summary-row" style={{ borderTop: '1px solid #d1d5db', marginTop: '6px', paddingTop: '6px', fontWeight: 'bold', fontSize: '13px' }}>
-          <span>Grand Total:</span>
-          <span>₹{grandTotal.toFixed(2)}</span>
+          <span>Grand Total Due:</span>
+          <span>₹{Number(grandTotal || 0).toFixed(2)}</span>
         </div>
         <div className="summary-row" style={{ fontWeight: 'bold', color: '#047857' }}>
-          <span>Amount Paid:</span>
-          <span>₹{paidAmount.toFixed(2)}</span>
+          <span>Amount Tendered Paid:</span>
+          <span>₹{Number(paidAmount || 0).toFixed(2)}</span>
         </div>
-        {balance > 0 && (
-          <div className="summary-row" style={{ fontWeight: 'bold', color: '#b91c1c' }}>
-            <span>Outstanding Balance:</span>
-            <span>₹{balance.toFixed(2)}</span>
+        
+        {paidAmount > grandTotal && (
+          <div className="summary-row" style={{ color: '#1f2937' }}>
+            <span>Change Returned:</span>
+            <span>₹{Number(paidAmount - grandTotal).toFixed(2)}</span>
           </div>
         )}
-      </div>
-
+        
+        <div className="summary-row" style={{ fontWeight: 'bold', color: balance > 0 ? '#b91c1c' : '#4b5563' }}>
+          <span>Outstanding Balance:</span>
+          <span>₹{Number(balance || 0).toFixed(2)}</span>
+        </div>
+        </div>
       <div className="thankyou-box">
         <p style={{ fontSize: '10px', color: '#6b7280', marginBottom: '6px' }}>Goods once sold will not be taken back unless defective.</p>
         <div className="thankyou-msg">THANK YOU, VISIT US AGAIN!</div>

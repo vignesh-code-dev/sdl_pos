@@ -21,6 +21,7 @@ export const ThermalReceipt = ({ invoice }) => {
   const grandTotal = invoice.grandTotal || 0;
   const paidAmount = parseFloat(invoice.paidAmount !== undefined ? invoice.paidAmount : invoice.grandTotal);
   const balance = parseFloat(invoice.balance !== undefined ? invoice.balance : 0);
+  const change = parseFloat(invoice.change !== undefined ? invoice.change : (paidAmount > grandTotal ? paidAmount - grandTotal : 0));
 
   return (
     <div className="wrapper" style={{ fontSize: '9px', fontFamily: '"Courier New", Courier, monospace' }}>
@@ -138,21 +139,26 @@ export const ThermalReceipt = ({ invoice }) => {
         
         <div style={{ borderTop: '1px dashed #000000', margin: '4px 0' }}></div>
         
-        <div className="summary-row" style={{ fontSize: '9px' }}>
-          <span>Grand Total</span>
+        <div className="summary-row" style={{ fontSize: '9px', fontWeight: 'bold' }}>
+          <span>Grand Total Due</span>
           <span>₹{Number(grandTotal || 0).toFixed(2)}</span>
         </div>
         <div className="summary-row" style={{ marginBottom: '0px' }}>
-          <span>paid amount:</span>
+          <span>Amount Tendered Paid:</span>
           <span>₹{Number(paidAmount || 0).toFixed(2)}</span>
         </div>
         
-        {balance > 0 && (
-          <div className="summary-row" style={{ marginTop: '3px' }}>
-            <span>Balance Due:</span>
-            <span>₹{Number(balance || 0).toFixed(2)}</span>
+        {change > 0 && (
+          <div className="summary-row">
+            <span>Change Returned:</span>
+            <span>₹{Number(change).toFixed(2)}</span>
           </div>
         )}
+        
+        <div className="summary-row" style={{ marginTop: '3px' }}>
+          <span>Outstanding Balance:</span>
+          <span>₹{Number(balance || 0).toFixed(2)}</span>
+        </div>
       </div>
 
       <div className="thankyou-box" style={{ borderTop: '1px dashed #000000', marginTop: '4px', paddingTop: '4px', textAlign: 'center' }}>
