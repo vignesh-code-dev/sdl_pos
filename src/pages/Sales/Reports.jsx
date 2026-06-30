@@ -1,5 +1,11 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Database, RefreshCw, FileText, CheckCircle2, AlertCircle } from "lucide-react";
+import {
+  Database,
+  RefreshCw,
+  FileText,
+  CheckCircle2,
+  AlertCircle,
+} from "lucide-react";
 
 // Import Custom Subcomponents
 import KpiSection from "../../components/reports/KpiSection";
@@ -19,7 +25,7 @@ import {
   getRevenueDataFiltered,
   getDepositDataFiltered,
   getBankTransferDataFiltered,
-  exportCSV
+  exportCSV,
 } from "../../utils/reportUtils";
 
 import { printInvoice } from "../../utils/invoicePrinter";
@@ -49,7 +55,11 @@ export default function Reports() {
   const fileInputRef = useRef(null);
 
   // --- 5. TOAST NOTIFICATION STUFF ---
-  const [toast, setToast] = useState({ show: false, message: "", type: "info" });
+  const [toast, setToast] = useState({
+    show: false,
+    message: "",
+    type: "info",
+  });
   const showToast = (message, type = "info") => {
     setToast({ show: true, message, type });
     setTimeout(() => {
@@ -126,12 +136,24 @@ export default function Reports() {
   const handleManualBackupDownload = () => {
     try {
       const backupData = {
-        billmate_invoices: JSON.parse(localStorage.getItem("billmate_invoices") || "[]"),
-        billmate_expenses: JSON.parse(localStorage.getItem("billmate_expenses") || "[]"),
-        billmate_deposit_accounts: JSON.parse(localStorage.getItem("billmate_deposit_accounts") || "[]"),
-        billmate_customers: JSON.parse(localStorage.getItem("billmate_customers") || "[]"),
-        billmate_products: JSON.parse(localStorage.getItem("billmate_products") || "[]"),
-        billmate_users: JSON.parse(localStorage.getItem("billmate_users") || "[]")
+        billmate_invoices: JSON.parse(
+          localStorage.getItem("billmate_invoices") || "[]",
+        ),
+        billmate_expenses: JSON.parse(
+          localStorage.getItem("billmate_expenses") || "[]",
+        ),
+        billmate_deposit_accounts: JSON.parse(
+          localStorage.getItem("billmate_deposit_accounts") || "[]",
+        ),
+        billmate_customers: JSON.parse(
+          localStorage.getItem("billmate_customers") || "[]",
+        ),
+        billmate_products: JSON.parse(
+          localStorage.getItem("billmate_products") || "[]",
+        ),
+        billmate_users: JSON.parse(
+          localStorage.getItem("billmate_users") || "[]",
+        ),
       };
 
       const jsonStr = JSON.stringify(backupData, null, 2);
@@ -149,9 +171,15 @@ export default function Reports() {
       const timestamp = new Date().toLocaleString();
       setLastBackupDate(timestamp);
       localStorage.setItem("billmate_last_backup", timestamp);
-      showToast("Master store JSON backup generated and downloaded successfully!", "success");
+      showToast(
+        "Master store JSON backup generated and downloaded successfully!",
+        "success",
+      );
     } catch (err) {
-      showToast("Failed to compile manual database snapshot: " + err.message, "danger");
+      showToast(
+        "Failed to compile manual database snapshot: " + err.message,
+        "danger",
+      );
     }
   };
 
@@ -169,7 +197,7 @@ export default function Reports() {
           "billmate_deposit_accounts",
           "billmate_customers",
           "billmate_products",
-          "billmate_users"
+          "billmate_users",
         ];
 
         let loadedCount = 0;
@@ -181,15 +209,24 @@ export default function Reports() {
         });
 
         if (loadedCount > 0) {
-          showToast(`Full DB backup snapshot restored successfully (${loadedCount} schemas synchronized).`, "success");
+          showToast(
+            `Full DB backup snapshot restored successfully (${loadedCount} schemas synchronized).`,
+            "success",
+          );
           setTimeout(() => {
             window.location.reload();
           }, 1200);
         } else {
-          showToast("Imported JSON file is missing supported SDL BillMate database models.", "danger");
+          showToast(
+            "Imported JSON file is missing supported SDL BillMate database models.",
+            "danger",
+          );
         }
       } catch (err) {
-        showToast("Error parsing backup snapshot file: " + err.message, "danger");
+        showToast(
+          "Error parsing backup snapshot file: " + err.message,
+          "danger",
+        );
       }
     };
     reader.readAsText(file);
@@ -209,7 +246,10 @@ export default function Reports() {
 
   const handlePrintInvoice = (invoice) => {
     printInvoice(invoice);
-    showToast(`Triggered thermal docket print for invoice #${invoice.id}`, "success");
+    showToast(
+      `Triggered thermal docket print for invoice #${invoice.id}`,
+      "success",
+    );
   };
 
   const handleExportInvoice = (invoice) => {
@@ -221,11 +261,26 @@ export default function Reports() {
   };
 
   // --- 10. DYNAMIC CALCULATION SECTIONS ---
-  const salesData = getSalesDataFiltered(invoices, dateFrom, dateTo, searchTerm);
-  const invoiceData = getInvoiceDataFiltered(invoices, dateFrom, dateTo, searchTerm);
+  const salesData = getSalesDataFiltered(
+    invoices,
+    dateFrom,
+    dateTo,
+    searchTerm,
+  );
+  const invoiceData = getInvoiceDataFiltered(
+    invoices,
+    dateFrom,
+    dateTo,
+    searchTerm,
+  );
   const revenueData = getRevenueDataFiltered(invoices, dateFrom, dateTo);
   const depositData = getDepositDataFiltered(depositAccounts, searchTerm);
-  const bankData = getBankTransferDataFiltered(invoices, dateFrom, dateTo, searchTerm);
+  const bankData = getBankTransferDataFiltered(
+    invoices,
+    dateFrom,
+    dateTo,
+    searchTerm,
+  );
 
   // Determine current dataset rows based on the active tab
   const activeReportRows = (() => {
@@ -248,7 +303,10 @@ export default function Reports() {
   const totalRecords = activeReportRows.length;
   const totalPages = Math.ceil(totalRecords / itemsPerPage) || 1;
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedRows = activeReportRows.slice(startIndex, startIndex + itemsPerPage);
+  const paginatedRows = activeReportRows.slice(
+    startIndex,
+    startIndex + itemsPerPage,
+  );
 
   const handleCSVExport = () => {
     exportCSV(activeTab, activeReportRows, showToast);
@@ -262,7 +320,7 @@ export default function Reports() {
       { id: "revenue", label: "Revenue Ledger" },
       { id: "deposit", label: "Credit Report" },
       { id: "bank_transfer", label: "Bank Wire List" },
-      { id: "backups", label: "Backups & Archival" }
+      { id: "backups", label: "Backups & Archival" },
     ];
 
     return (
@@ -288,7 +346,6 @@ export default function Reports() {
 
   return (
     <div className="p-6 space-y-6 bg-pos-bg overflow-x-hidden min-h-screen text-slate-800 font-sans">
-      
       {/* 1. TOAST NOTIFICATION CONTAINER */}
       {toast.show && (
         <div className="fixed bottom-6 right-6 z-[200] max-w-sm animate-in fade-in slide-in-from-bottom-5 no-print">
@@ -297,8 +354,8 @@ export default function Reports() {
               toast.type === "success"
                 ? "bg-emerald-50 text-emerald-800 border-emerald-200"
                 : toast.type === "danger"
-                ? "bg-rose-50 text-brand-danger border-rose-200"
-                : "bg-blue-50 text-blue-800 border-blue-200"
+                  ? "bg-rose-50 text-brand-danger border-rose-200"
+                  : "bg-blue-50 text-blue-800 border-blue-200"
             }`}
           >
             <div className="shrink-0">
@@ -316,11 +373,12 @@ export default function Reports() {
       {/* 2. MAIN HEADER BLOCK */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-pos-card border border-pos-border p-5 rounded shadow-sm">
         <div className="space-y-1">
-          <h1 className="text-3xl font-black tracking-tight text-slate-850">
+          <h1 className="text-3xl font-bold text-emerald-600 tracking-tight text-slate-850">
             Reports & Archive Manager
           </h1>
           <p className="text-xs text-slate-400 mt-1 font-medium select-none font-sans">
-            Oversee transactional spreadsheets, run deep invoice audits, map cash flow clearing channels, and secure ledger archives.
+            Oversee transactional spreadsheets, run deep invoice audits, map
+            cash flow clearing channels, and secure ledger archives.
           </p>
         </div>
 
@@ -329,7 +387,7 @@ export default function Reports() {
             <button
               type="button"
               onClick={handleMasterPrint}
-              className="flex items-center gap-2 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded transition-all shadow-sm cursor-pointer border-0"
+              className="flex items-center gap-2 text-sm font-semibold bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-3 rounded transition-all shadow-sm cursor-pointer border-0"
             >
               <FileText size={14} />
               <span>Print Page / PDF Report</span>
@@ -349,14 +407,6 @@ export default function Reports() {
         revenueData={revenueData}
         depositData={depositData}
         bankData={bankData}
-      />
-
-      {/* 5. QUICK REPORT SUMMARY CARD (NEW) */}
-      <ReportSummary
-        recordCount={totalRecords}
-        dateFrom={dateFrom}
-        dateTo={dateTo}
-        activeTab={activeTab}
       />
 
       {/* 6. REPORT TARGET FILTER PANEL */}

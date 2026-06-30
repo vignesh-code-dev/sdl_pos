@@ -219,7 +219,7 @@ const StockAlerts = () => {
             onChange={(e) => setAlertFilter(e.target.value)}
             className="text-xs bg-pos-bg w-full sm:w-[180px] border border-pos-border rounded px-3 py-2.5 font-bold text-slate-600 focus:outline-none"
           >
-            <option value="All">All Health Warnings</option>
+            <option value="All">All Warnings</option>
             <option value="Low Stock">Low Stock Only</option>
             <option value="Out of Stock">Out of Stock Only</option>
             <option value="Force Sale">Force Sales Only</option>
@@ -255,7 +255,7 @@ const StockAlerts = () => {
             </thead>
             <tbody className="divide-y divide-pos-border text-[13px] text-slate-700">
               {alertLogs.map((prod) => {
-                let badgeColor = "bg-brand-warning text-white border-amber-100";
+                let badgeColor = "bg-warning text-white border-amber-100";
                 if (prod.alert.type === "Force Sale")
                   badgeColor = "bg-purple-600 text-white border-purple-100";
                 if (prod.alert.type === "Out of Stock")

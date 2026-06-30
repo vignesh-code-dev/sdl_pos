@@ -12,8 +12,7 @@ import StoreOverview from "./pages/Dashboard/Dashboard";
 import Analytics from "./pages/Dashboard/Analytics";
 import POSBilling from "./pages/Sales/POSBilling";
 import Invoices from "./pages/Sales/Invoices";
-import DepositAccounts from "./pages/Sales/DepositAccounts";
-import Products from "./pages/Inventory/Products"; // பொருட்கள் மேலாண்மை பக்கம்
+import Products from "./pages/Inventory/Products";
 import StockCount from "./pages/Inventory/StockCount";
 import StockEntry from "./pages/Inventory/StockEntry";
 import StockHistory from "./pages/Inventory/StockHistory";
@@ -21,6 +20,7 @@ import StockAlerts from "./pages/Inventory/StockAlerts";
 import UserManagement from "./pages/people/UserManagement";
 import CustomerManagement from "./pages/people/CustomerManagement";
 import SupplierManagement from "./pages/people/SupplierManagement";
+import DepositAccounts from "./pages/Sales/DepositAccounts";
 import Expenses from "./pages/Sales/Expenses";
 import Reports from "./pages/Sales/Reports";
 

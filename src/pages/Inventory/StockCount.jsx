@@ -23,14 +23,15 @@ const StockCount = () => {
     try {
       const savedProducts = localStorage.getItem("billmate_products");
       const parsedProducts = savedProducts ? JSON.parse(savedProducts) : [];
+      const validatedProducts = ensureBarcodes(parsedProducts);
 
-      // We attach new billing and sales metrics as sample data
-      // (This can be easily integrated with actual billing data later)
-      const mappedProducts = parsedProducts.map((p) => {
-        const currentStock =
-          p.currentStock !== undefined
-            ? p.currentStock
-            : Math.floor(Math.random() * 100);
+      // Load active sales transactions to calculate actual sold quantities
+      const savedInvoices = localStorage.getItem("billmate_invoices");
+      const invoices = savedInvoices ? JSON.parse(savedInvoices) : [];
+
+      // We attach structural metrics
+      const mappedProducts = validatedProducts.map((p) => {
+        const currentStock = p.currentStock !== undefined ? p.currentStock : 50;
         const minStock = p.minStock !== undefined ? p.minStock : 10;
 
         // Calculate actual sold quantities from real invoices stored in billmate_invoices

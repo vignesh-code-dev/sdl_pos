@@ -320,13 +320,9 @@ const Products = () => {
       {/* CARD 1: PRODUCT LIST TITLE CARD */}
       <div className="bg-pos-card border border-pos-border rounded p-5 flex flex-col xl:flex-row items-start xl:items-center justify-between gap-4 shadow-sm">
         <div>
-          <h2 className="text-2xl font-black tracking-tight text-brand-primary uppercase flex items-center gap-2">
-            
+          <h2 className="text-2xl font-bold tracking-tight text-brand-500 uppercase flex items-center gap-2">
             Product List
           </h2>
-          <p className="text-xs text-text-secondary mt-1">
-            Manage your master catalogue of products, SKU codes, pricing, taxes, of your POS inventory.
-          </p>
         </div>
 
         {/* Bulk Actions Box */}
@@ -342,7 +338,7 @@ const Products = () => {
 
           <button
             onClick={() => csvInputRef.current?.click()}
-            className="flex-1 sm:flex-initial p-3 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+            className="flex-1 sm:flex-initial p-3 px-4 bg-slate-100 hover:bg-slate-200 text-brand-500 border border-brand-500 rounded text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
             title="Import Products via CSV"
           >
             <Upload size={14} />
@@ -351,7 +347,7 @@ const Products = () => {
 
           <button
             onClick={handleExportCSV}
-            className="flex-1 sm:flex-initial p-3 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+            className="flex-1 sm:flex-initial p-3 px-4 bg-slate-100 hover:bg-slate-200 text-brand-500 border border-brand-500 rounded text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
             title="Export Products to CSV"
           >
             <Download size={14} />
@@ -363,7 +359,7 @@ const Products = () => {
             className="w-full sm:w-auto p-3 px-5 bg-brand-500 hover:bg-brand-600 text-white rounded text-xs font-bold flex items-center justify-center gap-1.5 shadow-md shadow-emerald-600/10 cursor-pointer active:scale-95 transition-transform duration-150 shrink-0"
           >
             <Plus size={16} />
-            <span>Add Product</span>
+            <span>Add New Product</span>
           </button>
         </div>
       </div>
@@ -381,7 +377,7 @@ const Products = () => {
             placeholder="Search by product name, SKU, or barcode..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full text-sm bg-pos-bg border border-pos-border rounded pl-10 pr-4 py-3.5 focus:outline-none focus:border-brand-primary font-semibold text-text-primary"
+            className="w-full text-sm bg-pos-bg border border-pos-border rounded pl-10 pr-4 py-3.5 focus:outline-none focus:ring focus:ring-brand-500/50 font-semibold text-text-primary"
           />
         </div>
 
@@ -402,13 +398,13 @@ const Products = () => {
 
         {/* View mode toggle switch */}
         <div className="col-span-1 md:col-span-2 flex justify-end md:justify-center">
-          <div className="border border-pos-border rounded flex bg-pos-bg p-1 overflow-hidden select-none w-full max-w-[140px] md:max-w-none">
+          <div className="border border-pos-border rounded flex bg-pos-bg p-2 gap-1 overflow-hidden select-none w-full max-w-[140px] md:max-w-none">
             <button
               onClick={() => setViewMode("table")}
-              className={`relative flex-1 p-2 rounded cursor-pointer z-10 transition-colors duration-300 flex items-center justify-center gap-1 ${
+              className={`relative flex-1 p-2 rounded cursor-pointer z-10 border transition-colors duration-600 flex items-center justify-center gap-1 ${
                 viewMode === "table"
-                  ? "bg-white text-brand-primary font-bold shadow-xs border border-pos-border/40"
-                  : "text-slate-600 hover:text-brand-primary"
+                  ? "bg-brand-500 text-white font-bold shadow-xs"
+                  : "text-brand-500"
               }`}
               style={{ height: "32px" }}
               title="Table View"
@@ -420,10 +416,10 @@ const Products = () => {
             </button>
             <button
               onClick={() => setViewMode("card")}
-              className={`relative flex-1 p-2 rounded cursor-pointer z-10 transition-all duration-300 flex items-center justify-center gap-1 ${
+              className={`relative flex-1 p-2 rounded cursor-pointer border z-10 transition-all duration-600 flex items-center justify-center gap-1 ${
                 viewMode === "card"
-                  ? "bg-white text-brand-primary font-bold shadow-xs border border-pos-border/40"
-                  : "text-slate-600 hover:text-brand-primary"
+                  ? "bg-brand-500 text-white font-bold shadow-xs"
+                  : "text-brand-500"
               }`}
               style={{ height: "32px" }}
               title="Card View"
@@ -451,7 +447,7 @@ const Products = () => {
           <div className="bg-pos-card border border-pos-border rounded overflow-hidden shadow-sm">
             <table className="w-full text-center border-collapse">
               <thead>
-                <tr className="border-b border-pos-border text-white uppercase text-xs font-semibold tracking-wider bg-emerald-600">
+                <tr className="border border-pos-border text-text-primary uppercase text-xs font-semibold tracking-wider bg-brand-500/30">
                   <th className="py-3.5 px-4 text-center text-xs font-semibold uppercase">
                     Image
                   </th>
@@ -515,7 +511,7 @@ const Products = () => {
                       </div>
                     </td>
                     <td className="py-2.5 px-4 text-center">
-                      <span className="inline-block bg-brand-primary text-white font-bold px-2 py-1 rounded-full text-[12px]">
+                      <span className="inline-block font-bold px-2 py-1 rounded-full text-[12px]">
                         {p.category}
                       </span>
                     </td>
@@ -542,7 +538,6 @@ const Products = () => {
                       </span>
                     </td>
                     <td className="py-2.5 px-4 text-center">
-                      {/* ➡️ Show tax rate in table */}
                       <span
                         className={`inline-block font-bold px-1.5 py-0.5 rounded-full font-mono text-[14px] ${
                           p.tax > 0
@@ -734,12 +729,21 @@ const Products = () => {
                     <button
                       type="button"
                       onClick={() => {
-                        const namePart = formData.name 
-                          ? formData.name.trim().toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 3) 
+                        const namePart = formData.name
+                          ? formData.name
+                              .trim()
+                              .toUpperCase()
+                              .replace(/[^A-Z0-9]/g, "")
+                              .slice(0, 3)
                           : "PRD";
-                        const randomPart = Math.floor(1000 + Math.random() * 9000);
+                        const randomPart = Math.floor(
+                          1000 + Math.random() * 9000,
+                        );
                         const autoBarcode = `${namePart}-${randomPart}`;
-                        setFormData((prev) => ({ ...prev, barcode: autoBarcode }));
+                        setFormData((prev) => ({
+                          ...prev,
+                          barcode: autoBarcode,
+                        }));
                       }}
                       className="text-[11px] text-brand-primary hover:underline font-bold"
                     >

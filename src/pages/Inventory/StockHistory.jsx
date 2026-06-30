@@ -12,49 +12,40 @@ import {
 
 const StockHistory = () => {
   const [movementLog, setMovementLog] = useState([]);
-  const [products, setProducts] = useState([]); // தயாரிப்புகள் பட்டியல்
+  const [products, setProducts] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [userFilter, setUserFilter] = useState("All");
 
   useEffect(() => {
-    // 1. அனைத்து தயாரிப்புகளையும் எடுத்தல் (SKU Fallback-காக)
     const savedProducts = localStorage.getItem("billmate_products");
     let mappedProducts = [];
     if (savedProducts) {
       mappedProducts = JSON.parse(savedProducts);
       setProducts(mappedProducts);
     }
-
-    // 2. ஸ்டாக் என்ட்ரிகளை எடுத்தல்
     const savedEntries = localStorage.getItem("billmate_stock_entries");
     if (savedEntries) {
       setMovementLog(JSON.parse(savedEntries));
     }
   }, []);
 
-  // --- Summary KPI கணக்கீடுகள் ---
   const totalEntries = movementLog.length;
 
-  // தனித்துவமான தயாரிப்புகளின் எண்ணிக்கை
   const uniqueProductsCount = new Set(
     movementLog.map((item) => item.sku || item.selectedProductId || item.name),
   ).size;
 
-  // மொத்தமாக சேர்க்கப்பட்ட ஸ்டாக்கின் அளவு
   const totalQuantityAdded = movementLog.reduce(
     (acc, item) => acc + Number(item.qty || 0),
     0,
   );
 
-  // --- யுசர் ஃபில்டருக்கான பட்டியல் தயாரிப்பு ---
   const dynamicUsers = [
     "All",
     ...new Set(movementLog.map((item) => item.entryBy)),
   ];
 
-  // --- சர்ச் & ஃபில்டர் லாஜிக் ---
   const filteredLogs = movementLog.filter((log) => {
-    // பழைய தரவாக இருந்தால், தயாரிப்புகள் லிஸ்டில் இருந்து அதன் SKU-வை தேடுதல்
     const matchedProduct = products.find(
       (p) =>
         p.name === log.name ||
@@ -190,7 +181,6 @@ const StockHistory = () => {
             </thead>
             <tbody className="divide-y divide-pos-border">
               {filteredLogs.map((log) => {
-                // பழைய என்ட்ரிகளுக்கு தயாரிப்புகள் லிஸ்டில் இருந்து SKU எடுக்கும் மேப்பிங் லாஜிக்
                 const targetProduct = products.find(
                   (p) =>
                     p.name === log.name ||

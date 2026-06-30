@@ -1,6 +1,48 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Barcode, Printer } from "lucide-react";
-import { handlePrintBarcodes } from "../utils/barcodePrinter";
+import JsBarcode from "jsbarcode";
+import {
+  getBarcodeFormat,
+  handlePrintBarcodes,
+} from "../utils/barcodePrinter.jsx";
+
+/**
+ * BarcodePreview component
+ * Uses a canvas or SVG element inside matching React life cycles to render scanner-ready vector barcodes.
+ */
+const BarcodePreview = ({ value, format }) => {
+  const svgRef = useRef(null);
+
+  useEffect(() => {
+    if (svgRef.current && value) {
+      try {
+        JsBarcode(svgRef.current, value, {
+          format: format || "CODE128",
+          width: 2,
+          height: 48,
+          displayValue: false,
+          margin: 0,
+        });
+      } catch (err) {
+        console.error("JsBarcode preview failed for:", format, value, err);
+        // Robust fallback to CODE128
+        try {
+          JsBarcode(svgRef.current, value, {
+            format: "CODE128",
+            width: 2,
+            height: 48,
+            displayValue: false,
+            margin: 0,
+          });
+        } catch (innerErr) {
+          console.error("CODE128 fallback failed as well:", innerErr);
+        }
+      }
+    }
+  }, [value, format]);
+
+  return <svg ref={svgRef} className="max-w-full h-auto mx-auto"></svg>;
+};
 
 /**
  * BarcodeModal Component
@@ -13,6 +55,7 @@ const BarcodeModal = ({ isOpen, onClose, product }) => {
   const [barcodePrintQty, setBarcodePrintQty] = useState(12);
 
   const barcodeValue = product.barcode || product.sku || "";
+  const barcodeFormat = getBarcodeFormat(barcodeValue);
 
   return (
     <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-in fade-in duration-150">
@@ -42,8 +85,8 @@ const BarcodeModal = ({ isOpen, onClose, product }) => {
               {product.name}
             </div>
             <div className="flex justify-between text-xs text-slate-500 font-mono mt-1">
-              <span>SKU Code: {product.sku}</span>
-              {product.barcode && <span>Barcode: {product.barcode}</span>}
+              <span>Sku Code: {product.sku}</span>
+              {barcodeValue && <span>Barcode: {barcodeValue}</span>}
             </div>
           </div>
 
@@ -138,7 +181,7 @@ const BarcodeModal = ({ isOpen, onClose, product }) => {
               }
               handlePrintBarcodes(product, barcodePrintQty);
             }}
-            className="flex-1 bg-brand-500 hover:bg-brand-600 text-white font-bold py-2.5 rounded text-xs flex items-center justify-center gap-1.5 transition-colors shadow-md shadow-emerald-500/10 cursor-pointer"
+            className="flex-1 bg-brand-primary hover:bg-brand-primary/90 text-white font-bold py-2.5 rounded text-xs flex items-center justify-center gap-1.5 transition-colors shadow-md shadow-emerald-500/10 cursor-pointer"
           >
             <Printer size={14} />
             <span>Print Labels Now</span>
