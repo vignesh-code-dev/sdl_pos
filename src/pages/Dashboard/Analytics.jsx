@@ -1,18 +1,18 @@
 import React, { useState, useEffect, useMemo } from "react";
 import {
-  TrendingUp,
-  DollarSign,
-  Percent,
-  ShoppingBag,
-  CreditCard,
-  Layers,
+  BarChart3,
   Calendar,
   Download,
   Filter,
   RefreshCw,
+  TrendingUp,
+  Users,
+  ShoppingBag,
+  ArrowUpRight,
+  ArrowDownRight,
+  Layers,
   User,
-  PieChart,
-  BarChart3,
+  CheckCircle,
 } from "lucide-react";
 import { calculateLineTotal } from "../../utils/invoiceCalculations";
 import { useAuth } from "../../context/AuthContext";
@@ -540,14 +540,9 @@ const Analytics = () => {
               <option value="Week">This Week</option>
               <option value="Month">This Month</option>
               <option value="All Time">All Time</option>
-              <option value="Custom">Custom Range...</option>
+              <option value="Custom">Custom Date Range...</option>
             </select>
-            <Calendar
-              size={14}
-              className="absolute right-3 top-3 text-slate-400 pointer-events-none"
-            />
           </div>
-        </div>
 
           {/* 2. Category Filter */}
           <div className="space-y-1.5">
@@ -566,12 +561,7 @@ const Analytics = () => {
                 </option>
               ))}
             </select>
-            <Filter
-              size={14}
-              className="absolute right-3 top-3 text-slate-400 pointer-events-none"
-            />
           </div>
-        </div>
 
           {/* 3. Staff Filter */}
           <div className="space-y-1.5">
@@ -590,12 +580,7 @@ const Analytics = () => {
                 </option>
               ))}
             </select>
-            <User
-              size={14}
-              className="absolute right-3 top-3 text-slate-400 pointer-events-none"
-            />
           </div>
-        </div>
 
           {/* 4. Refresh & Apply Button */}
           <div className="flex items-end">
@@ -605,7 +590,7 @@ const Analytics = () => {
             >
               <RefreshCw size={14} className="text-[#009b77]" /> Refresh Analytics
             </button>
-          )}
+          </div>
         </div>
       </div>
 
@@ -670,7 +655,8 @@ const Analytics = () => {
               {kpi.sub}
             </div>
           </div>
-        </div>
+        ))}
+      </div>
 
       {/* ──────────────────────────────────────────────────────────────
           STAFF PERFORMANCE CARD PANEL
